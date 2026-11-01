@@ -10,8 +10,9 @@ import android.view.View
 
 class MainActivity : Activity() {
     private var gameMusic: GameMusic? = null
+    private var gameView: GameView? = null
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val openMenu = Runnable { setContentView(GameView(this)) }
+    private val openMenu = Runnable { val view = GameView(this); gameView = view; setContentView(view) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,15 +38,18 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         gameMusic?.resume()
+        gameView?.resumeAudio()
     }
 
     override fun onPause() {
         gameMusic?.pause()
+        gameView?.pauseAudio()
         super.onPause()
     }
 
     override fun onDestroy() {
         mainHandler.removeCallbacks(openMenu)
+        gameView?.releaseAudio()
         gameMusic?.release()
         gameMusic = null
         super.onDestroy()

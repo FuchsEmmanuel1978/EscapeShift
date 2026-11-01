@@ -42,6 +42,13 @@ class GameView(context: Context) : View(context) {
     private val keyboardPressed = mutableSetOf<Int>()
     private fun active(id: Int): Boolean = id in pressed || id in keyboardPressed
     private var world = GameWorld(currentLevel)
+    private val gameAudio = GameAudio(context)
+    private var lastCrateX = world.crateX
+    private var lastKey = false
+    private var lastCoins = 0
+    private var lastGrounded = false
+    private var lastVy = 0f
+    private var lastPushSoundTick = -100
     private var winSaved = false
     private val shift get() = world.shiftOn
     private val dead get() = world.dead
@@ -96,10 +103,12 @@ class GameView(context: Context) : View(context) {
         val dt = min(0.035f, (now - lastTime) / 1_000_000_000f)
         lastTime = now
         if (screen == Screen.PLAY && !dead && !won) update(dt)
+        if (screen != Screen.PLAY || dead || won) {
+            for (type in listOf("laser", "saw", "monster", "conveyor")) gameAudio.updateAmbient(type, null)
+        }
         when (screen) {
             Screen.MENU -> drawMenu(canvas)
             Screen.LEVELS -> drawLevels(canvas)
-            Screen.PRIVACY -> drawPrivacy(canvas)
             Screen.PLAY -> drawGame(canvas)
         }
         canvas.restore()
@@ -111,6 +120,14 @@ class GameView(context: Context) : View(context) {
         frameTime += dt
         var ticks = 0
         while (frameTime >= GameWorld.STEP && ticks < 4 && !dead && !won) {
+            val oldShift = world.shiftOn
+            val oldCoins = world.coinsCollected
+            val oldKey = world.keyCollected
+            val oldGrounded = world.grounded
+            val oldY = world.y
+            val oldVy = world.vy
+            val oldCrate = world.crateX
+            val oldAlive = world.monsters.indices.count { world.isMonsterAlive(it) }
             world.tick(
                 GameInput(
                     left = active(1),
@@ -119,6 +136,17 @@ class GameView(context: Context) : View(context) {
                     shift = active(4)
                 )
             )
+            if (world.shiftOn != oldShift) gameAudio.oneShot("shift")
+            if (world.vy < -250f && oldVy >= -1f) gameAudio.oneShot(if (world.vy < -500f) "spring" else "jump")
+            if (!oldGrounded && world.grounded && oldVy > 50f) gameAudio.oneShot("land", .25f)
+            if (world.coinsCollected > oldCoins) gameAudio.oneShot("coin")
+            if (world.keyCollected && !oldKey) gameAudio.oneShot("key")
+            if (abs(world.crateX - oldCrate) > .3f && world.ticks - lastPushSoundTick > 14) {
+                gameAudio.oneShot("crate", .22f); lastPushSoundTick = world.ticks
+            }
+            if (world.monsters.indices.count { world.isMonsterAlive(it) } < oldAlive) gameAudio.oneShot("monster")
+            if (world.dead) gameAudio.oneShot("death")
+            if (world.won) { gameAudio.oneShot("door"); gameAudio.oneShot("victory", .38f) }
             frameTime -= GameWorld.STEP
             ticks++
         }
@@ -135,8 +163,28 @@ class GameView(context: Context) : View(context) {
             }
             winSaved = true
         }
+        updateSpatialSounds()
         cameraX = (world.x - w * 0.34f).coerceIn(0f, max(0f, world.worldRight - w))
     }
+
+    private fun updateSpatialSounds() {
+        val hero = world.x + GameWorld.SIZE / 2f
+        fun nearest(xs: List<Float>): Float? = xs.minOfOrNull { abs(hero - it) }
+        val laserXs = buildList {
+            if (!world.shiftOn) addAll(world.lasers.map { (it.left + it.right) / 2f })
+            if (world.shiftOn) addAll(world.invertedLasers.map { (it.left + it.right) / 2f })
+            addAll(world.timedLasers.filter { world.timedLaserActive(it) }.map { it.x })
+        }
+        gameAudio.updateAmbient("laser", nearest(laserXs))
+        gameAudio.updateAmbient("saw", nearest(world.saws.map { (world.sawBox(it).left + world.sawBox(it).right) / 2f }))
+        gameAudio.updateAmbient("monster", nearest(world.monsters.indices.filter { world.isMonsterAlive(it) }
+            .map { (world.monsterBox(it).left + world.monsterBox(it).right) / 2f }))
+        gameAudio.updateAmbient("conveyor", nearest(world.conveyors.map { (it.left + it.right) / 2f }))
+    }
+
+    fun pauseAudio() = gameAudio.pause()
+    fun resumeAudio() = gameAudio.resume()
+    fun releaseAudio() = gameAudio.release()
 
     private fun drawGame(c: Canvas) {
         drawBackground(c, world.x)
@@ -255,24 +303,7 @@ class GameView(context: Context) : View(context) {
         text(c, "ACTION + REFLEXION + EVASION", 274f, 309f, 26f, rgb(174, 201, 214))
         menuButton(c, 340f, 354f, "JOUER", rgb(48, 163, 132))
         menuButton(c, 340f, 443f, "NIVEAUX", GameDesign.BLACK)
-        text(c, "CONFIDENTIALITE", 30f, 544f, 19f, whiteSoft)
         if (debugMode) text(c, "MODE DEBUG : niveaux 1-10 disponibles", 290f, 544f, 19f, rgb(255, 216, 131))
-        c.restore()
-    }
-
-    private fun drawPrivacy(c: Canvas) {
-        drawBackground(c)
-        rect(c, 0f, 0f, w, h, alpha(panel, 226))
-        c.save()
-        c.translate(GameViewport.centerOffset(w), 0f)
-        text(c, "CONFIDENTIALITE", 235f, 82f, 42f, GameDesign.ORANGE, true)
-        text(c, "Escape Shift fonctionne sans compte utilisateur.", 118f, 154f, 23f, whiteSoft)
-        text(c, "La progression est stockee sur cet appareil.", 118f, 201f, 23f, whiteSoft)
-        text(c, "Cette version ne contient pas de publicite", 118f, 248f, 23f, whiteSoft)
-        text(c, "ni d'outil d'analyse du comportement.", 118f, 283f, 23f, whiteSoft)
-        text(c, "Tu peux effacer les donnees dans Android.", 118f, 341f, 23f, whiteSoft)
-        text(c, "La politique complete sera disponible sur Google Play.", 118f, 383f, 19f, whiteSoft)
-        menuButton(c, 340f, 448f, "RETOUR", GameDesign.BLACK)
         c.restore()
     }
 
@@ -327,7 +358,10 @@ class GameView(context: Context) : View(context) {
     }
 
     private fun reset() {
+        gameAudio.pause()
+        gameAudio.resume()
         world.reset()
+        lastPushSoundTick = -100
         frameTime = 0f
         heroAnimTime = 0f
         heroFacingRight = true
@@ -399,8 +433,6 @@ class GameView(context: Context) : View(context) {
                     if (debugMode) DevConfig.START_LEVEL.coerceIn(1, 10) else GameProgression.latestPlayable(unlocked)
                 )
                 else if (screen == Screen.MENU && x in 340f..660f && y in 443f..515f) screen = Screen.LEVELS
-                else if (screen == Screen.MENU && x in 15f..250f && y in 515f..560f) screen = Screen.PRIVACY
-                else if (screen == Screen.PRIVACY && x in 340f..660f && y in 448f..520f) screen = Screen.MENU
                 else if (screen == Screen.LEVELS && x in 340f..660f && y in 459f..531f) screen = Screen.MENU
                 else if (screen == Screen.LEVELS) {
                     for (i in 0 until GameProgression.DISPLAY_LEVELS) {
@@ -589,5 +621,5 @@ class GameView(context: Context) : View(context) {
         c.drawText(s, x, y, paint)
     }
 
-    private enum class Screen { MENU, LEVELS, PRIVACY, PLAY }
+    private enum class Screen { MENU, LEVELS, PLAY }
 }

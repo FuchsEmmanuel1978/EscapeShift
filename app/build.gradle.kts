@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "com.escapeshift.game"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.escapeshift.game"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 14
-        versionName = "1.4.0"
+        versionName = "1.4.0-audio"
     }
 
     compileOptions {
@@ -20,14 +20,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-
-    buildTypes {
-        getByName("release") {
-            // Create the signed AAB with Android Studio's signing wizard.
-            isMinifyEnabled = false
-            isDebuggable = false
-        }
-    }
 }
 
 
