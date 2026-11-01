@@ -1,0 +1,9 @@
+Escape Shift V9 — test report
+Kotlin host compile: PASS (Android host stubs, not SDK APK)
+JUnit host tests: 21/21 PASS
+UI host rendering: 10 levels, 3 screen ratios 1000x560, 2400x1080, 2520x1080
+Viewport 2400x1080 -> virtual 1244.44 x 560 (uniform scale)
+Viewport 2520x1080 -> virtual 1306.67 x 560 (uniform scale)
+Audio lifecycle smoke: PASS (loop / resume / pause / release)
+Provided MP3 duration: 145.080 seconds
+Limit: real device Android APK build not performed here.

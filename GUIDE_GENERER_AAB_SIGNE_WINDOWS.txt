@@ -1,0 +1,26 @@
+ESCAPE SHIFT — GENERER LE FICHIER AAB SIGNE (WINDOWS / ANDROID STUDIO)
+
+1. Ouvrir le dossier EscapeShift_Play_Release dans Android Studio.
+2. Settings > Android SDK > SDK Platforms : installer Android 16 (API 36).
+3. Laisser Gradle synchroniser le projet. Le projet utilise AGP 8.11.1, Gradle 8.13 et Kotlin 2.2.21 (si Android Studio propose la mise à jour, l'accepter).
+4. Build > Generate Signed Bundle / APK > Android App Bundle > Next.
+5. Si aucune clé existante : cliquer CREATE NEW.
+   - Emplacement : votre PC, par exemple Documents\EscapeShift\escape-shift-upload.jks
+   - Mot de passe fort pour keystore et pour clé. Notez-les hors du projet et conservez une copie de la clé en lieu sûr.
+   - Alias : escape_shift_upload
+   - Validité : 25 ans ou plus
+   - Renseigner les informations de titulaire demandées par Android Studio.
+   - Ne partagez PAS les mots de passe ou le fichier .jks ici.
+6. Sélectionner le buildType RELEASE et terminer la génération.
+7. Le fichier attendu se trouve en général dans app\release\app-release.aab.
+8. Dans la Google Play Console du parent, créer l'application, sélectionner un test interne, puis importer le fichier AAB.
+9. Suivre l'inscription à Play App Signing et garder le keystore de téléversement pour les mises à jour.
+
+IMPORTANT : ce ZIP contient le PROJET PREPARE. Il ne contient pas de fichier .aab signé : la signature doit être faite sur votre PC avec votre clé personnelle.
+
+POINTS A VERIFIER AVANT ENVOI :
+- Ouvrir et tester sur Xiaomi 12 ; Android 16 (API 36) est une mise à niveau à retester.
+- Vérifier la licence de la musique ambient_loop.mp3 autorisant la redistribution publique.
+- Compléter les déclarations de données et de public cible dans la Console.
+- Mettre en ligne une politique de confidentialité avec une URL publique HTTPS.
+- Ajouter de vraies captures du jeu, pas des illustrations promotionnelles.

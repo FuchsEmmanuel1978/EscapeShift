@@ -1,0 +1,10 @@
+ESCAPE SHIFT V13 - VALIDATION LOCALE
+
+Compilateur Kotlin (API Android de substitution) : OK
+Tests unitaires et scénarios : 27/27 PASS
+Niveaux terminables par joueur virtuel : 10/10 PASS
+Rendu Canvas simulé : 10/10 niveaux et 3 formats d’écran PASS
+Nouveaux tests : pièces collectées/reset, double/grand pic, course des scies,
+monstres près des tapis, traversabilité des plateformes, stomp/side collision.
+
+Limite : pas de compilation Android/Gradle APK native ; test dans Android Studio à faire.

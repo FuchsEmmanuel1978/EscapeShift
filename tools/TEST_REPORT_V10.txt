@@ -1,0 +1,11 @@
+ESCAPE SHIFT V10 – validation locale
+================================
+- Compilation Kotlin avec stubs Android : OK
+- Ancien rendu 10 niveaux (3 ratios d'ecran) : OK
+- Tests logiques existants : 21/21 PASS
+- Ecran d'accueil affiche en 1920x1080, 2400x1080 et 2520x1080 : PASS (stubs)
+- Passage automatique SplashView -> GameView : PASS (simulation du callback)
+- Ressources PNG : decode et structure OK
+- AndroidManifest et icones adaptatives XML : syntaxe OK
+- APK Gradle natif : NON teste (Android SDK absent de cet environnement)
+- Contenu musical V9 : conserve sans modification

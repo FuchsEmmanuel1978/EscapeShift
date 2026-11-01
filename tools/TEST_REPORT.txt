@@ -1,0 +1,102 @@
+ESCAPE SHIFT V6 - RAPPORT DE TESTS
+
+Kotlin/JVM unit tests: 13/13 passed
+Android API stub compilation: PASS
+Android Canvas UI smoke: 10/10 screens drawn
+Android native APK compilation: NOT RUN (SDK unavailable)
+
+GameWorld shared physics - scripted player reach exit alive:
+
+Niveau 1 : PASS | 132 frames / 2.2 s | sauts=1, SHIFT=0, demi-tours=0
+  OK exit reached alive
+  OK all 1 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 2 : PASS | 346 frames / 5.8 s | sauts=3, SHIFT=1, demi-tours=0
+  OK exit reached alive
+  OK all 2 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 3 : PASS | 326 frames / 5.4 s | sauts=1, SHIFT=2, demi-tours=0
+  OK exit reached alive
+  OK all 3 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 4 : PASS | 409 frames / 6.8 s | sauts=2, SHIFT=1, demi-tours=0
+  OK exit reached alive
+  OK all 4 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 5 : PASS | 396 frames / 6.6 s | sauts=3, SHIFT=1, demi-tours=0
+  OK exit reached alive
+  OK all 4 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 6 : PASS | 474 frames / 7.9 s | sauts=2, SHIFT=1, demi-tours=2
+  OK exit reached alive
+  OK all 5 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 7 : PASS | 517 frames / 8.6 s | sauts=4, SHIFT=1, demi-tours=0
+  OK exit reached alive
+  OK all 6 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 8 : PASS | 557 frames / 9.3 s | sauts=3, SHIFT=1, demi-tours=0
+  OK exit reached alive
+  OK all 7 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 9 : PASS | 858 frames / 14.3 s | sauts=4, SHIFT=3, demi-tours=2
+  OK exit reached alive
+  OK all 8 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+Niveau 10 : PASS | 1076 frames / 17.9 s | sauts=6, SHIFT=2, demi-tours=2
+  OK exit reached alive
+  OK all 10 forward challenges visited
+  OK crate pushed & climbed if required
+  OK starter finished
+  OK key obtained if needed
+  OK switch triggered if needed
+  OK backtrack executed if requested
+  OK no time-out
+
+
+Note: scripted virtual player tests one winning path per level, not a general solver; not a human-difficulty rating.
