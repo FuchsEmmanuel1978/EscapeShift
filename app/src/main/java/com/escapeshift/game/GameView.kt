@@ -24,7 +24,7 @@ class GameView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val spritePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
     private val backgroundRenderer = GameBackground(context)
-    private val design = GameDesign()
+    private val design = GameDesign(context)
     private val prefs = context.getSharedPreferences("escape_shift", Context.MODE_PRIVATE)
     private val debugMode = DevConfig.ENABLED &&
         (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0)
@@ -63,7 +63,6 @@ class GameView(context: Context) : View(context) {
         loadSprite(R.drawable.hero_walk_04),
         loadSprite(R.drawable.hero_walk_05)
     )
-    private val crateSprite = loadSprite(R.drawable.crate)
     private val sawSprite = loadSprite(R.drawable.saw)
     private val monsterSprite = loadSprite(R.drawable.monster_bot)
     private val laserSprite = loadSprite(R.drawable.laser_vertical)
@@ -276,7 +275,7 @@ class GameView(context: Context) : View(context) {
     private fun drawControls(c: Canvas) {
         for ((id, b) in buttons) {
             val label = when(id) { 1 -> "◀"; 2 -> "▶"; 3 -> "SAUT"; else -> "SHIFT" }
-            design.drawControl(c, b, label, active(id))
+            design.drawControl(c, b, label, active(id) || (id == 4 && shift))
         }
     }
 
@@ -465,6 +464,11 @@ class GameView(context: Context) : View(context) {
     }
 
     private fun drawPlatform(c: Canvas, r: RectF) {
+        // Upright walls are textured; ground and overhead platforms keep the liked V14 design.
+        if (r.top < GameWorld.GROUND_Y - 36f && r.bottom >= GameWorld.GROUND_Y && r.width() <= 80f) {
+            design.drawWall(c, r, alternate = ((r.left / 170f).toInt() % 2 == 0))
+            return
+        }
         val visibleBottom = if (r.bottom >= 540f) min(r.top + 95f, r.bottom) else r.bottom
         val body = RectF(r.left, r.top, r.right, visibleBottom)
         rect(c, body.left, body.top, body.right, body.bottom, steelDark)
@@ -498,11 +502,7 @@ class GameView(context: Context) : View(context) {
         drawHazardBand(c, RectF(r.left + 10f, r.top + 3f, r.right - 10f, r.top + 16f), inactive = !active)
     }
 
-    private fun drawCrate(c: Canvas, r: RectF) {
-        rounded(c, RectF(r.left + 2f, r.bottom - 4f, r.right - 2f, r.bottom + 4f), 5f, alpha(Color.BLACK, 70))
-        val dest = RectF(r.left - 3f, r.top - 2f, r.right + 3f, r.bottom + 2f)
-        drawBitmapFit(c, crateSprite, dest)
-    }
+    private fun drawCrate(c: Canvas, r: RectF) = design.drawCrate(c, r)
 
     private fun drawLaserColumn(c: Canvas, r: RectF, glow: Int, active: Boolean) {
         val dest = RectF(r.left - 19f, r.top - 19f, r.right + 19f, r.bottom + 19f)
@@ -515,19 +515,7 @@ class GameView(context: Context) : View(context) {
         if (!active) rect(c, r.left + 4f, r.top + 20f, r.right - 4f, r.bottom - 20f, alpha(panel, 70))
     }
 
-    private fun drawSpring(c: Canvas, r: RectF) {
-        rect(c, r.left, r.top + 10f, r.right, r.bottom, steelDark)
-        rect(c, r.left, r.top + 5f, r.right, r.top + 11f, orange)
-        var x = r.left + 5f
-        var up = true
-        while (x < r.right - 5f) {
-            val y1 = if (up) r.bottom - 4f else r.top + 16f
-            val y2 = if (up) r.top + 16f else r.bottom - 4f
-            strokeLine(c, x, y1, x + 8f, y2, alpha(whiteSoft, 180), 2.4f)
-            x += 8f
-            up = !up
-        }
-    }
+    private fun drawSpring(c: Canvas, r: RectF) = design.drawSpring(c, r)
 
     private fun drawSwitch(c: Canvas, r: RectF, activated: Boolean) {
         rect(c, r.left, r.top, r.right, r.bottom, steelDark)

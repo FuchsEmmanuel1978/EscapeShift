@@ -39,4 +39,23 @@ faire l'image de l'avant en bloc qui s'echaine bien visuellement et laisser vide
 Enlever le pousse sur la caisse
 Par defaut on va directement au niveau suivant sans arriver sur menu next et menu
 
+code pub:
+210877569
+
+niveau 10 : la scie va jusqu'a la position du laser
+piece inaccessible
+
+
+Mondes
+1 : indus tres facile 
+2 : Montagne facile
+3: jungle
+4:egypte/desert
+5:bonbon
+6:volcan
+7:
+8
+9
+10:espace
+
 

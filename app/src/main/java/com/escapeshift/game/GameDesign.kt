@@ -1,5 +1,8 @@
 package com.escapeshift.game
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -13,7 +16,25 @@ import kotlin.math.abs
  * Only this file needs changing to restyle doors, hazards, buttons and levels.
  * No physics or hitbox dimensions are defined here.
  */
-class GameDesign {
+class GameDesign(private val context: Context) {
+    private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
+    private fun load(id: Int): Bitmap = BitmapFactory.decodeResource(context.resources, id)
+    private val spikeImage = load(R.drawable.spike_industrial)
+    private val closedDoorImage = load(R.drawable.door_closed)
+    private val openDoorImage = load(R.drawable.door_open)
+    private val crateImage = load(R.drawable.crate)
+    private val coinImage = load(R.drawable.coin_collectible)
+    private val springImage = load(R.drawable.spring_platform)
+    private val wallImages = listOf(load(R.drawable.wall_graphite), load(R.drawable.wall_orange))
+    private val controlOffImage = load(R.drawable.control_off)
+    private val controlOnImage = load(R.drawable.control_on)
+
+    private fun drawImage(c: Canvas, bitmap: Bitmap, rect: RectF, transparency: Int = 255) {
+        imagePaint.alpha = transparency.coerceIn(0, 255)
+        c.drawBitmap(bitmap, null, rect, imagePaint)
+        imagePaint.alpha = 255
+    }
+
     companion object {
         val BLACK: Int = Color.rgb(12, 16, 20)
         val GRAPHITE: Int = Color.rgb(36, 43, 49)
@@ -46,10 +67,61 @@ class GameDesign {
         c.drawText(s, r.centerX() - p.measureText(s) * 0.5f, r.centerY() + size * 0.35f, p)
     }
 
-    /** Touch controls: strict flat white, 5% opacity, no outline, bevel or orange stripe. */
+    /** Shared ON/OFF 2D image-based touch controls. Hitboxes stay in GameView. */
     fun drawControl(c: Canvas, r: RectF, word: String, pressed: Boolean) {
-        fill(c, r.left, r.top, r.right, r.bottom, opacity(WHITE, 13))
-        label(c, word, r, if (word == "◀" || word == "▶") 35f else 25f, if (pressed) ORANGE_LIGHT else WHITE)
+        val image = if (pressed) controlOnImage else controlOffImage
+        drawImage(c, image, r)
+        // Black flat label panel covers the stock ON/OFF inscription for arrows/jump.
+        val labelBox = RectF(r.left + 10f, r.top + 23f, r.right - 10f, r.bottom - 17f)
+        fill(c, labelBox.left, labelBox.top, labelBox.right, labelBox.bottom, opacity(BLACK, 197))
+        label(c, word, labelBox, if (word == "◀" || word == "▶") 31f else 21f, WHITE)
+    }
+
+    /** PNG door states share exactly the same layout and do not alter the exit hitbox. */
+    fun drawDoor(c: Canvas, r: RectF, locked: Boolean) {
+        drawImage(c, if (locked) closedDoorImage else openDoorImage,
+            RectF(r.left - 6f, r.top - 8f, r.right + 6f, r.bottom + 3f))
+    }
+
+    /** A panel sprite used ONLY for vertical collision walls, never the floor or aerial platforms. */
+    fun drawWall(c: Canvas, r: RectF, alternate: Boolean) {
+        val bmp = wallImages[if (alternate) 1 else 0]
+        fill(c, r.left, r.top, r.right, r.bottom, BLACK)
+        val tileHeight = 57f
+        var y = r.top
+        while (y < r.bottom) {
+            val bottom = minOf(r.bottom, y + tileHeight)
+            drawImage(c, bmp, RectF(r.left, y, r.right, bottom))
+            y = bottom
+        }
+    }
+
+    fun drawCrate(c: Canvas, r: RectF) {
+        drawImage(c, crateImage, RectF(r.left - 3f, r.top - 2f, r.right + 3f, r.bottom + 2f))
+    }
+
+    fun drawSpring(c: Canvas, r: RectF) {
+        // The launchpad is 7px high physically. Artwork grows upward, not into the ground.
+        drawImage(c, springImage, RectF(r.left - 2f, r.top - 20f, r.right + 2f, r.bottom + 2f))
+    }
+
+    /** Draw 1, 2 or 3 copies of the same 2D spike PNG. Collision stays defined by GamePhysics. */
+    fun drawSpikeGroup(c: Canvas, r: RectF, count: Int) {
+        val n = count.coerceIn(1, 3)
+        val unitWidth = r.width() / n
+        for (i in 0 until n) {
+            val x = r.left + i * unitWidth
+            drawImage(c, spikeImage, RectF(x, r.top - 2f, x + unitWidth, r.bottom + 2f))
+        }
+    }
+
+    fun drawSpike(c: Canvas, r: RectF) = drawSpikeGroup(c, r,
+        when { r.width() >= 90f -> 3; r.width() >= 65f -> 2; else -> 1 })
+
+    fun drawCoin(c: Canvas, box: HitBox, ticks: Int) {
+        val bob = kotlin.math.sin(ticks * 0.11).toFloat() * 3f
+        drawImage(c, coinImage,
+            RectF(box.left - 5f, box.top - 5f + bob, box.right + 5f, box.bottom + 5f + bob))
     }
 
     /** All menu/overlay buttons share the same style and geometry. */
@@ -75,54 +147,6 @@ class GameDesign {
         }
     }
 
-    fun drawDoor(c: Canvas, r: RectF, locked: Boolean) {
-        // Identical outer steel frame. Closed has shutter, open has illuminated opening.
-        fill(c, r.left-7f, r.top-6f, r.right+7f, r.bottom+4f, BLACK)
-        fill(c, r.left-2f, r.top-1f, r.right+2f, r.bottom, ORANGE)
-        fill(c, r.left+6f, r.top+6f, r.right-6f, r.bottom-4f, BLACK)
-        if (locked) {
-            fill(c, r.left+12f, r.top+12f, r.right-12f, r.bottom-7f, GRAPHITE)
-            var y=r.top+20f
-            while(y < r.bottom-12f) {
-                fill(c, r.left+12f, y, r.right-12f, y+4f, opacity(WHITE, 75))
-                y += 12f
-            }
-            fill(c, r.left+15f, r.top+14f, r.right-15f, r.top+23f, ORANGE)
-            fill(c, r.right-11f, r.top+38f, r.right-5f, r.top+56f, WHITE)
-        } else {
-            fill(c, r.left+12f, r.top+12f, r.right-12f, r.bottom-7f, Color.rgb(15,35,35))
-            fill(c, r.left+17f, r.top+14f, r.right-17f, r.bottom-8f, opacity(WHITE, 85))
-            fill(c, r.left+17f, r.top+14f, r.left+24f, r.bottom-8f, WHITE)
-            fill(c, r.right-24f, r.top+14f, r.right-17f, r.bottom-8f, WHITE)
-            fill(c, r.left+22f, r.top+20f, r.right-22f, r.top+26f, ORANGE_LIGHT)
-            fill(c, r.right-11f, r.top+38f, r.right-5f, r.top+56f, WHITE)
-        }
-        fill(c, r.left-7f, r.bottom-4f, r.right+7f, r.bottom+4f, GRAPHITE)
-        fill(c, r.left-7f, r.bottom-4f, r.right+7f, r.bottom-1f, WHITE)
-    }
-
-    /** Drawn based on the exact triangular hitbox. Tall/double hazards use real collision rectangles. */
-    fun drawSpike(c: Canvas, r: RectF) {
-        val triangle=Path().apply {
-            moveTo(r.left,r.bottom)
-            lineTo(r.centerX(),r.top)
-            lineTo(r.right,r.bottom)
-            close()
-        }
-        p.style=Paint.Style.FILL; p.color=BLACK
-        c.drawPath(triangle,p)
-        val inner=Path().apply {
-            moveTo(r.left+4f,r.bottom-2f)
-            lineTo(r.centerX(),r.top+5f)
-            lineTo(r.right-4f,r.bottom-2f)
-            close()
-        }
-        p.color=ORANGE; c.drawPath(inner,p)
-        line(c,r.centerX(),r.top+4f,r.centerX(),r.bottom-7f,WHITE,2f)
-        fill(c,r.left,r.bottom-5f,r.right,r.bottom,BLACK)
-        fill(c,r.left+4f,r.bottom-5f,r.right-4f,r.bottom-2f,WHITE)
-    }
-
     fun drawConveyor(c: Canvas, r: RectF, ticks: Int) {
         // High-contrast animated leftward belt. Different world.tick speed affects physics.
         fill(c, r.left-4f, r.top-12f, r.right+4f, r.bottom+8f, BLACK)
@@ -144,25 +168,4 @@ class GameDesign {
         fill(c,r.right-13f,r.top-10f,r.right-3f,r.bottom+4f,ORANGE)
     }
 
-    fun drawCoin(c: Canvas, box: HitBox, ticks: Int) {
-        val bob = kotlin.math.sin(ticks * 0.11).toFloat() * 3.0f
-        val cx=(box.left+box.right)*0.5f
-        val cy=(box.top+box.bottom)*0.5f+bob
-        // A machined octagonal collectible with a sharp white-and-orange contrast.
-        val radius=15f
-        val path=Path().apply {
-            for (i in 0 until 8) {
-                val angle=i*Math.PI/4.0
-                val x=cx+kotlin.math.cos(angle).toFloat()*radius
-                val y=cy+kotlin.math.sin(angle).toFloat()*radius
-                if(i==0)moveTo(x,y) else lineTo(x,y)
-            }
-            close()
-        }
-        p.style=Paint.Style.FILL; p.color=ORANGE; c.drawPath(path,p)
-        p.style=Paint.Style.STROKE;p.strokeWidth=2f;p.color=WHITE;c.drawPath(path,p)
-        p.style=Paint.Style.FILL
-        fill(c,cx-5f,cy-7f,cx+5f,cy+7f,BLACK)
-        fill(c,cx-2f,cy-4f,cx+2f,cy+4f,WHITE)
-    }
 }

@@ -11,8 +11,8 @@ android {
         applicationId = "com.escapeshift.game"
         minSdk = 24
         targetSdk = 35
-        versionCode = 14
-        versionName = "1.4.0-audio"
+        versionCode = 15
+        versionName = "1.5.0-graphics"
     }
 
     compileOptions {

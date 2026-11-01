@@ -1,45 +1,46 @@
-# ESCAPE SHIFT — V13 : Design partagé et nouveaux défis
+# ESCAPE SHIFT — V15 Graphismes 2D
 
-V13 reprend la V12. Compatible avec Android Studio Kotlin, package `com.escapeshift.game`.
+Version de développement basée sur **V14 Audio** avec les 10 niveaux, le fond industriel à parallaxe, les sons et les cinq images d'animation du héros.
 
-## Modifications
+## Contenu de cette mise à jour
+- Pics PNG industriels, utilisables à différentes tailles, par groupes de 1 à 3.
+- Deux états graphiques pour la sortie : `door_closed.png` et `door_open.png`.
+- Caisse en PNG 2D (le mouvement et les collisions restent identiques).
+- Pièces bonus en PNG, avec leur mouvement vertical.
+- Tremplin en PNG, affiché au-dessus de la zone de rebond.
+- Panneaux de murs 2D en deux variantes. Les **sols et plateformes en hauteur** ne sont pas changés.
+- Boutons tactiles 2D OFF / ON : les quatre touches changent d'état quand on appuie. Le bouton SHIFT reste visuellement ON tant que le pouvoir est activé.
+- Le tapis roulant, les lasers, les scies, les monstres et les sons de proximité sont préservés.
 
-- **GAME OVER orange**, boutons de victoire/défaite et menu 2D orange/blanc avec bordure noire.
-- Commandes à l'écran en aplat blanc à **5 % d'opacité**, aucun cadre ni liseré orange, seulement le texte/flèche visible.
-- Barre du haut : à gauche `PIÈCES x/y`, au centre niveau, à droite SHIFT ON/OFF orange et MENU 2D.
-- Portes **fermée** (volet graphite rayé, voyant orange) et **ouverte** (ouverture claire, montant noir/orange).
-- Pics orange/blanc/noir en tailles normales, hautes ou en double. Dimensions des collisions synchronisées avec le dessin.
-- Tapis plus contrastés, rayures animées et déplacement vers la gauche accéléré.
-- Monstres à côté des tapis sur les niveaux 8-10 ; saut dessus pour les éliminer.
-- Scies : oscillation horizontale de 110 unités (contre 52 précédemment).
-- Plateformes aériennes **traversables par en dessous**, atterrissage possible par le dessus. Pièces bonus dessinées au-dessus, collectables, avec compteur dans la barre supérieure.
-- **Refactoring** : `GameDesign.kt` contient toutes les fonctions de design partagé pour les menus, HUD, boutons, portes, pics, tapis, pièces et choix de niveaux.
-- Fond panoramique et musique de la V12 conservés ; dix niveaux, progression, debug, animations PNG conservés.
+## Architecture
 
-## Installer le correctif dans le projet existant
+Les styles et les ressources graphiques sont dans :
 
-1. Extraire `escape_shift_v13_correctif.zip`.
-2. Copier le dossier `app` extrait par-dessus le dossier `app` de votre projet EscapeShift V12, accepter fusion et remplacement.
-3. Dans Android Studio : **Build > Rebuild Project** puis **Run**.
+`app/src/main/java/com/escapeshift/game/GameDesign.kt`
 
-Le correctif contient exclusivement les sources Kotlin modifiées, pas les grandes images ni la musique ; le projet complet contient tout.
+Les emplacements et commandes d'affichage sont dans :
 
-## Changer l'apparence plus tard
+`app/src/main/java/com/escapeshift/game/GameView.kt`
 
-Fichier central : `app/src/main/java/com/escapeshift/game/GameDesign.kt`
+Les PNG sont dans `app/src/main/res/drawable-nodpi/`, faciles à remplacer **par d'autres PNG de même nom**.
 
-- `drawControl` : boutons transparents, à 5 % de blanc
-- `drawMenuButton` : Rejouer, Menu, Next, Retour
-- `drawLevelTile` : sélection de niveaux
-- `drawDoor` : état ouvert ou fermé
-- `drawSpike` : pics
-- `drawConveyor` : tapis
-- `drawCoin` : pièces
-- couleurs centralisées en tête de fichier
+Les collisions, la progression, les mouvements du héros et la répartition des niveaux restent dans `GamePhysics.kt` (inchangé).
 
-## Tests
+## Installer dans Android Studio / GitHub
 
-- 27/27 tests Kotlin/JUnit sur interfaces Android de substitution (y compris 10/10 parcours automatisés, pièces et monstres).
-- Rendu simulé sur 3 formats, pour les 10 niveaux : OK.
-- Pas de compilation APK Android native dans cet environnement. Une vérification réelle sur Xiaomi/émulateur est nécessaire.
-- Le joueur virtuel suit des scripts déterministes : il prouve l'existence d'un parcours, pas que chaque itinéraire est sûr.
+- **Projet complet** : décompresser et ouvrir le dossier `EscapeShift` dans Android Studio.
+- **Correctif** : copier le dossier `app` du correctif au même emplacement dans le projet existant, et accepter la fusion/remplacement.
+- Pour un dépôt GitHub : copier les fichiers dans votre clone local, vérifier les changements dans GitHub Desktop, puis commit/push.
+- Éviter de stocker le clone dans OneDrive ; utiliser par exemple `C:\Dev\EscapeShift`.
+
+Exécuter `Build > Rebuild Project`, puis `Run` sur le Xiaomi 12 ou l'émulateur.
+
+## Vérification et limites
+
+- Kotlin : compilation avec API Android simulées réussie.
+- 27 tests de logique existants : réussis.
+- 10 niveaux : parcours gagnants du joueur virtuel confirmés.
+- Rendu simulé : 10 niveaux et trois formats d'écran confirmés.
+- **Le build APK / AAB natif Android n'a pas été exécuté ici**. Valider dans Android Studio.
+
+**Publication Google Play** : ce ZIP est une version de **développement**, non signée. Le `targetSdk=35` de la base V14 doit être porté à la valeur demandée par Google Play lors de la prochaine release. Signer avec la clé `.jks` déjà utilisée ; ne jamais publier cette clé sur GitHub.
