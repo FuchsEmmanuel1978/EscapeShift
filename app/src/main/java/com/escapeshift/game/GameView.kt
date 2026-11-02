@@ -16,14 +16,26 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.exp
+import kotlin.math.ceil
 
 /** Foreground gameplay uses Canvas; the industrial background is a parallax bitmap. */
-class GameView(context: Context) : View(context) {
+class GameView(
+    context: Context,
+    private val onLevelWon: ((Int, Boolean, () -> Boolean) -> Unit)? = null,
+    private val onLeaveVictory: (() -> Unit)? = null
+) : View(context) {
     private var w = 1000f // Dynamic virtual viewport width: screen fills horizontally.
     private val h = 560f
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val spritePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
     private val backgroundRenderer = GameBackground(context)
+    private val worldBackgrounds = WorldBackgrounds(context)
+    private var selectedWorld = 1
+    private var worldScroll = 0f
+    private var worldTouchStartX = 0f
+    private var worldTouchStartY = 0f
+    private var worldTouchStartValid = false
     private val design = GameDesign(context)
     private val prefs = context.getSharedPreferences("escape_shift", Context.MODE_PRIVATE)
     private val debugMode = DevConfig.ENABLED &&
@@ -102,6 +114,11 @@ class GameView(context: Context) : View(context) {
         val dt = min(0.035f, (now - lastTime) / 1_000_000_000f)
         lastTime = now
         if (screen == Screen.PLAY && !dead && !won) update(dt)
+        if (screen == Screen.LEVELS) {
+            val target = (selectedWorld - 1).toFloat()
+            worldScroll += (target - worldScroll) * (1f - exp(-dt * 14f))
+            if (abs(target - worldScroll) < 0.002f) worldScroll = target
+        }
         if (screen != Screen.PLAY || dead || won) {
             for (type in listOf("laser", "saw", "monster", "conveyor")) gameAudio.updateAmbient(type, null)
         }
@@ -161,6 +178,7 @@ class GameView(context: Context) : View(context) {
                 prefs.edit().putInt("unlocked", unlocked).apply()
             }
             winSaved = true
+            onLevelWon?.invoke(currentLevel, nextAfterWin() != null) { screen == Screen.PLAY && won }
         }
         updateSpatialSounds()
         cameraX = (world.x - w * 0.34f).coerceIn(0f, max(0f, world.worldRight - w))
@@ -301,28 +319,77 @@ class GameView(context: Context) : View(context) {
         text(c, "SHIFT", 364f, 260f, 92f, rgb(110, 241, 178), true)
         text(c, "ACTION + REFLEXION + EVASION", 274f, 309f, 26f, rgb(174, 201, 214))
         menuButton(c, 340f, 354f, "JOUER", rgb(48, 163, 132))
-        menuButton(c, 340f, 443f, "NIVEAUX", GameDesign.BLACK)
+        menuButton(c, 340f, 443f, "MONDES", GameDesign.BLACK)
         if (debugMode) text(c, "MODE DEBUG : niveaux 1-10 disponibles", 290f, 544f, 19f, rgb(255, 216, 131))
         c.restore()
     }
 
+    /** Ten world pages slide horizontally; each page owns its panoramic backdrop. */
     private fun drawLevels(c: Canvas) {
-        drawBackground(c)
-        rect(c, 0f, 0f, w, h, alpha(panel, 118))
-        c.save()
-        c.translate(GameViewport.centerOffset(w), 0f)
-        text(c, "CHOISIS UN NIVEAU", 248f, 90f, 47f, whiteSoft, true)
-        for (i in 0 until GameProgression.DISPLAY_LEVELS) {
-            val col = i % 5
-            val row = i / 5
-            val x = 147f + col * 146f
-            val y = 132f + row * 144f
-            design.drawLevelTile(c, RectF(x, y, x + 118f, y + 110f), i + 1, accessible(i + 1))
+        // Render only pages visible during the swipe animation (never all 10 large images).
+        val first = worldScroll.toInt().coerceIn(0, WorldCatalog.WORLD_COUNT - 1)
+        val last = ceil(worldScroll.toDouble()).toInt().coerceIn(0, WorldCatalog.WORLD_COUNT - 1)
+        for (index in first..last) {
+            c.save()
+            c.translate((index - worldScroll) * w, 0f)
+            drawWorldPage(c, index + 1)
+            c.restore()
         }
-        text(c, if (debugUnlockAll) "DEBUG : niveaux disponibles sans changer la sauvegarde" else
-            "Termine le niveau N pour debloquer N+1 !", 190f, 426f, 22f, rgb(188, 211, 222))
-        menuButton(c, 340f, 459f, "RETOUR", rgb(46, 86, 105))
+    }
+
+    private fun drawWorldPage(c: Canvas, number: Int) {
+        val info = WorldCatalog.world(number)
+        worldBackgrounds.draw(c, number, w, h,
+            parallax = (0.5f + 0.12f * (worldScroll - (number - 1))).coerceIn(0f, 1f))
+        // Readable but translucent panes, preserving a clear view of each landscape.
+        val offset = GameViewport.centerOffset(w)
+        c.save()
+        c.translate(offset, 0f)
+        rounded(c, RectF(92f, 32f, 908f, 520f), 20f, alpha(panel, 161))
+        rect(c, 108f, 48f, 892f, 52f, GameDesign.ORANGE)
+        text(c, "MONDE ${number.toString().padStart(2, '0')} / 10", 130f, 98f, 24f, orangeLight, true)
+        text(c, info.title, 130f, 145f, 43f, whiteSoft, true)
+        text(c, info.subtitle, 131f, 179f, 19f, rgb(203, 220, 229))
+        if (!info.developed) {
+            text(c, "MONDE EN PREPARATION", 582f, 96f, 19f, orangeLight, true)
+        } else {
+            text(c, "10 NIVEAUX JOUABLES", 606f, 96f, 18f, rgb(159, 248, 204), true)
+        }
+        for (i in 0 until WorldCatalog.LEVELS_PER_WORLD) {
+            val x = 126f + (i % 5) * 151f
+            val y = 204f + (i / 5) * 111f
+            val enabled = info.developed && accessible(i + 1)
+            // Shared graphic style from V15, no world-specific redesign.
+            design.drawLevelTile(c, RectF(x, y, x + 117f, y + 91f), i + 1, enabled)
+        }
+        if (!info.developed) text(c, "Les 10 emplacements sont reserves ; niveaux bientot disponibles.",
+            161f, 447f, 19f, whiteSoft)
+        else text(c, "Termine le niveau N pour debloquer le N+1.", 260f, 447f, 20f, whiteSoft)
+        design.drawMenuButton(c, RectF(340f, 463f, 660f, 514f), "RETOUR", false)
         c.restore()
+
+        if (number > 1) {
+            rounded(c, RectF(10f, 221f, 86f, 320f), 13f, alpha(panel, 181))
+            text(c, "◀", 24f, 289f, 47f, whiteSoft, true)
+        }
+        if (number < WorldCatalog.WORLD_COUNT) {
+            rounded(c, RectF(w - 86f, 221f, w - 10f, 320f), 13f, alpha(panel, 181))
+            text(c, "▶", w - 73f, 289f, 47f, whiteSoft, true)
+        }
+        // Simple discrete indicator; page navigation always stays within 1..10.
+        val dotWidth = 17f
+        val gap = 12f
+        val totalWidth = 10f * dotWidth + 9f * gap
+        val startX = (w - totalWidth) / 2f
+        for (i in 0 until 10) {
+            val color = if (i == number - 1) orangeLight else alpha(whiteSoft, 80)
+            rounded(c, RectF(startX + i * (dotWidth + gap), 535f,
+                startX + i * (dotWidth + gap) + dotWidth, 543f), 3f, color)
+        }
+    }
+
+    private fun changeWorld(nextWorld: Int) {
+        selectedWorld = WorldCatalog.clamp(nextWorld)
     }
 
     private fun nextAfterWin(): Int? = (currentLevel + 1).takeIf { accessible(it) }
@@ -351,6 +418,7 @@ class GameView(context: Context) : View(context) {
 
     private fun startLevel(levelNumber: Int) {
         if (!accessible(levelNumber)) return
+        onLeaveVictory?.invoke()
         currentLevel = levelNumber
         world = GameWorld(currentLevel)
         reset()
@@ -417,12 +485,49 @@ class GameView(context: Context) : View(context) {
                     else {
                         val next = nextAfterWin()
                         if (next != null) startLevel(next)
-                        else { screen = Screen.LEVELS; pressed.clear(); keyboardPressed.clear() }
+                        else { onLeaveVictory?.invoke(); selectedWorld = 1; worldScroll = 0f; screen = Screen.LEVELS; pressed.clear(); keyboardPressed.clear() }
                     }
                 } else if (x in 340f..660f && y in 405f..477f) {
+                    onLeaveVictory?.invoke()
                     screen = Screen.MENU; pressed.clear(); keyboardPressed.clear()
                 }
             }
+            return true
+        }
+        if (screen == Screen.LEVELS) {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    val (x, y) = coord(event.actionIndex)
+                    worldTouchStartX = x; worldTouchStartY = y
+                    worldTouchStartValid = true
+                }
+                MotionEvent.ACTION_UP -> {
+                    val (x, y) = coord(event.actionIndex)
+                    val dx = x - worldTouchStartX
+                    val dy = y - worldTouchStartY
+                    val swipeTarget = WorldCatalog.swipe(selectedWorld, dx, dy)
+                    if (worldTouchStartValid && swipeTarget != selectedWorld) changeWorld(swipeTarget)
+                    else if (worldTouchStartValid && abs(dx) < 35f && abs(dy) < 35f) {
+                        val cx = x - GameViewport.centerOffset(w)
+                        if (cx in 340f..660f && y in 463f..514f) screen = Screen.MENU
+                        else if (x in 10f..86f && y in 221f..320f) changeWorld(selectedWorld - 1)
+                        else if (x in (w - 86f)..(w - 10f) && y in 221f..320f) changeWorld(selectedWorld + 1)
+                        else if (selectedWorld == 1) {
+                            for (i in 0 until WorldCatalog.LEVELS_PER_WORLD) {
+                                val bx = 126f + (i % 5) * 151f
+                                val by = 204f + (i / 5) * 111f
+                                if (cx in bx..(bx + 117f) && y in by..(by + 91f) && accessible(i + 1)) {
+                                    startLevel(i + 1)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    worldTouchStartValid = false
+                }
+                MotionEvent.ACTION_CANCEL -> worldTouchStartValid = false
+            }
+            invalidate()
             return true
         }
         if (screen != Screen.PLAY) {
@@ -432,19 +537,6 @@ class GameView(context: Context) : View(context) {
                     if (debugMode) DevConfig.START_LEVEL.coerceIn(1, 10) else GameProgression.latestPlayable(unlocked)
                 )
                 else if (screen == Screen.MENU && x in 340f..660f && y in 443f..515f) screen = Screen.LEVELS
-                else if (screen == Screen.LEVELS && x in 340f..660f && y in 459f..531f) screen = Screen.MENU
-                else if (screen == Screen.LEVELS) {
-                    for (i in 0 until GameProgression.DISPLAY_LEVELS) {
-                        val col = i % 5
-                        val row = i / 5
-                        val bx = 147f + col * 146f
-                        val by = 132f + row * 144f
-                        if (x in bx..(bx + 118f) && y in by..(by + 110f) && accessible(i + 1)) {
-                            startLevel(i + 1)
-                            break
-                        }
-                    }
-                }
             }
             return true
         }

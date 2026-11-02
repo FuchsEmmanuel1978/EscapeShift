@@ -1,46 +1,26 @@
-# ESCAPE SHIFT — V15 Graphismes 2D
+# ESCAPE SHIFT V17 — intégration publicitaire Start.io (TEST)
 
-Version de développement basée sur **V14 Audio** avec les 10 niveaux, le fond industriel à parallaxe, les sons et les cinq images d'animation du héros.
+Base : V16, 10 mondes et 10 niveaux actifs du monde 1 conservés.
 
-## Contenu de cette mise à jour
-- Pics PNG industriels, utilisables à différentes tailles, par groupes de 1 à 3.
-- Deux états graphiques pour la sortie : `door_closed.png` et `door_open.png`.
-- Caisse en PNG 2D (le mouvement et les collisions restent identiques).
-- Pièces bonus en PNG, avec leur mouvement vertical.
-- Tremplin en PNG, affiché au-dessus de la zone de rebond.
-- Panneaux de murs 2D en deux variantes. Les **sols et plateformes en hauteur** ne sont pas changés.
-- Boutons tactiles 2D OFF / ON : les quatre touches changent d'état quand on appuie. Le bouton SHIFT reste visuellement ON tant que le pouvoir est activé.
-- Le tapis roulant, les lasers, les scies, les monstres et les sons de proximité sont préservés.
+- SDK Start.io 5.2.4 configuré dans `app/build.gradle.kts`.
+- Réglages dans `app/src/main/java/com/escapeshift/game/StartioConfig.kt`.
+- Écran de victoire : une pub interstitielle de test peut apparaître **1,4 s après la victoire**, seulement si préchargée, si le niveau suivant est jouable, et si le délai de 2 min depuis la précédente pub est écoulé.
+- Jamais à l'ouverture du jeu, jamais pendant une partie, jamais après GAME OVER.
+- Si aucune pub prête : NEXT reste utilisable et aucune attente n'est imposée.
+- Pub annulée quand le joueur quitte l'écran de victoire ou commence le niveau suivant.
+- App ID Start.io réel : **non fourni**. Mettre votre ID dans `StartioConfig.APP_ID`.
+- Publicités réelles désactivées en version release par quatre drapeaux de validation.
+- La version debug utilise l'App ID **demo officiel** et le mode test du SDK.
 
-## Architecture
+Voir `STARTIO_README.md` pour les paramètres, les exigences Google Play / vie privée et le mode d'installation.
 
-Les styles et les ressources graphiques sont dans :
+## Installation sur le projet GitHub local
 
-`app/src/main/java/com/escapeshift/game/GameDesign.kt`
+1. Faire une sauvegarde (commit GitHub) des modifications actuelles.
+2. Décompresser `ESCAPE_SHIFT_V17_STARTIO_CORRECTIF.zip`.
+3. Copier / fusionner son dossier `app` dans `C:\Dev\EscapeShift`.
+4. Android Studio : Sync Gradle puis Build > Rebuild Project, Run sur le Xiaomi 12.
+5. Rester en Debug : utiliser les **pubs de test** uniquement. Aucun ID personnel n'est nécessaire pour voir les annonces de démonstration si l'inventaire test est disponible.
+6. Lancer niveau 1, terminer, rester sur l'écran BRAVO : publicité test seulement si une pub a déjà été préchargée.
 
-Les emplacements et commandes d'affichage sont dans :
-
-`app/src/main/java/com/escapeshift/game/GameView.kt`
-
-Les PNG sont dans `app/src/main/res/drawable-nodpi/`, faciles à remplacer **par d'autres PNG de même nom**.
-
-Les collisions, la progression, les mouvements du héros et la répartition des niveaux restent dans `GamePhysics.kt` (inchangé).
-
-## Installer dans Android Studio / GitHub
-
-- **Projet complet** : décompresser et ouvrir le dossier `EscapeShift` dans Android Studio.
-- **Correctif** : copier le dossier `app` du correctif au même emplacement dans le projet existant, et accepter la fusion/remplacement.
-- Pour un dépôt GitHub : copier les fichiers dans votre clone local, vérifier les changements dans GitHub Desktop, puis commit/push.
-- Éviter de stocker le clone dans OneDrive ; utiliser par exemple `C:\Dev\EscapeShift`.
-
-Exécuter `Build > Rebuild Project`, puis `Run` sur le Xiaomi 12 ou l'émulateur.
-
-## Vérification et limites
-
-- Kotlin : compilation avec API Android simulées réussie.
-- 27 tests de logique existants : réussis.
-- 10 niveaux : parcours gagnants du joueur virtuel confirmés.
-- Rendu simulé : 10 niveaux et trois formats d'écran confirmés.
-- **Le build APK / AAB natif Android n'a pas été exécuté ici**. Valider dans Android Studio.
-
-**Publication Google Play** : ce ZIP est une version de **développement**, non signée. Le `targetSdk=35` de la base V14 doit être porté à la valeur demandée par Google Play lors de la prochaine release. Signer avec la clé `.jks` déjà utilisée ; ne jamais publier cette clé sur GitHub.
+**Limites des vérifications :** compilation Kotlin réalisée avec stubs Android/Start.io, tests de logique et rendu simulés. Compilation APK et chargement SDK réels restent à faire dans Android Studio avec Maven Central accessible.

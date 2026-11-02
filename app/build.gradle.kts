@@ -11,8 +11,8 @@ android {
         applicationId = "com.escapeshift.game"
         minSdk = 24
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.5.0-graphics"
+        versionCode = 17
+        versionName = "1.7.0-startio-test"
     }
 
     compileOptions {
@@ -24,5 +24,6 @@ android {
 
 
 dependencies {
+    implementation("com.startapp:inapp-sdk:5.2.4")
     testImplementation("junit:junit:4.13.2")
 }

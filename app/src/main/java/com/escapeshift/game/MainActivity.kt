@@ -11,8 +11,18 @@ import android.view.View
 class MainActivity : Activity() {
     private var gameMusic: GameMusic? = null
     private var gameView: GameView? = null
+    private var interstitials: StartioInterstitials? = null
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val openMenu = Runnable { val view = GameView(this); gameView = view; setContentView(view) }
+    private val openMenu = Runnable {
+        val view = GameView(this,
+            onLevelWon = { level, next, showingVictory ->
+                interstitials?.onLevelWon(level, next, showingVictory)
+            },
+            onLeaveVictory = { interstitials?.cancelScheduled() }
+        )
+        gameView = view
+        setContentView(view)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,15 +43,18 @@ class MainActivity : Activity() {
         setContentView(StartupSplashView(this))
         mainHandler.postDelayed(openMenu, 2200L)
         gameMusic = GameMusic(this)
+        interstitials = StartioInterstitials(this).also { it.initialize() }
     }
 
     override fun onResume() {
         super.onResume()
         gameMusic?.resume()
         gameView?.resumeAudio()
+        interstitials?.onResume()
     }
 
     override fun onPause() {
+        interstitials?.onPause()
         gameMusic?.pause()
         gameView?.pauseAudio()
         super.onPause()
@@ -49,6 +62,8 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         mainHandler.removeCallbacks(openMenu)
+        interstitials?.release()
+        interstitials = null
         gameView?.releaseAudio()
         gameMusic?.release()
         gameMusic = null

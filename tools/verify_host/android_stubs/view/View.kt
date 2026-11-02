@@ -31,6 +31,7 @@ class MotionEvent {
  fun getX(i:Int):Float=0f
  fun getY(i:Int):Float=0f
  companion object {
+  const val ACTION_DOWN=0
   const val ACTION_UP=1
   const val ACTION_CANCEL=3
   const val ACTION_POINTER_UP=6

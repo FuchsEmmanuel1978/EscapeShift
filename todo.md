@@ -44,7 +44,8 @@ code pub:
 
 niveau 10 : la scie va jusqu'a la position du laser
 piece inaccessible
-
+animation mort et entre porte
+moteur de niveau : papa
 
 Mondes
 1 : indus tres facile 
