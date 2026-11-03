@@ -11,6 +11,7 @@ class Canvas {
  fun drawRoundRect(r:RectF, rx:Float, ry:Float, p:Paint) {}
  fun drawPath(path:Path, paint:Paint) {}
  fun drawLine(x:Float,y:Float,x2:Float,y2:Float,paint:Paint) {}
+ fun drawCircle(cx:Float,cy:Float,radius:Float,paint:Paint) {}
  fun drawText(txt:String,x:Float,y:Float,p:Paint) {}
 }
 class RectF(val left:Float, val top:Float, val right:Float, val bottom:Float) {

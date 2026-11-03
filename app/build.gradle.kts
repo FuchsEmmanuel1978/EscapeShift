@@ -11,8 +11,8 @@ android {
         applicationId = "com.escapeshift.game"
         minSdk = 24
         targetSdk = 35
-        versionCode = 17
-        versionName = "1.7.0-startio-test"
+        versionCode = 23
+        versionName = "2.2.0-world2-json"
     }
 
     compileOptions {

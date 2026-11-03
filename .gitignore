@@ -9,3 +9,8 @@ key.properties
 *.aab
 *.apk
 .DS_Store
+
+# Generated during level editing/simulation
+/tools/levels/backups/
+/tools/levels/reports/
+/tools/levels/previews/

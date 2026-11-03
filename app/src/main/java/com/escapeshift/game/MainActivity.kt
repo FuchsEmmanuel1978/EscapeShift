@@ -15,10 +15,10 @@ class MainActivity : Activity() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val openMenu = Runnable {
         val view = GameView(this,
-            onLevelWon = { level, next, showingVictory ->
-                interstitials?.onLevelWon(level, next, showingVictory)
+            onLevelFinished = { level, victory, stillOnResult ->
+                interstitials?.onLevelFinished(level, victory, stillOnResult)
             },
-            onLeaveVictory = { interstitials?.cancelScheduled() }
+            onLeaveResult = { interstitials?.cancelScheduled() }
         )
         gameView = view
         setContentView(view)
@@ -26,6 +26,12 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Install the Android assets loader BEFORE constructing any GameWorld.
+        // The same JSONs are used by the app and the desktop level simulator.
+        LevelCatalog.install { number ->
+            assets.open("levels/${LevelCatalog.filename(number)}")
+                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+        }
         @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
             or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION

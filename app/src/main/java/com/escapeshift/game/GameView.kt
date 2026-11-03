@@ -22,8 +22,8 @@ import kotlin.math.ceil
 /** Foreground gameplay uses Canvas; the industrial background is a parallax bitmap. */
 class GameView(
     context: Context,
-    private val onLevelWon: ((Int, Boolean, () -> Boolean) -> Unit)? = null,
-    private val onLeaveVictory: (() -> Unit)? = null
+    private val onLevelFinished: ((Int, Boolean, () -> Boolean) -> Unit)? = null,
+    private val onLeaveResult: (() -> Unit)? = null
 ) : View(context) {
     private var w = 1000f // Dynamic virtual viewport width: screen fills horizontally.
     private val h = 560f
@@ -36,7 +36,8 @@ class GameView(
     private var worldTouchStartX = 0f
     private var worldTouchStartY = 0f
     private var worldTouchStartValid = false
-    private val design = GameDesign(context)
+    private val strings = GameStrings(context)
+    private val design = GameDesign(context, strings)
     private val prefs = context.getSharedPreferences("escape_shift", Context.MODE_PRIVATE)
     private val debugMode = DevConfig.ENABLED &&
         (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0)
@@ -62,6 +63,7 @@ class GameView(
     private var lastVy = 0f
     private var lastPushSoundTick = -100
     private var winSaved = false
+    private var endOfLevelReported = false
     private val shift get() = world.shiftOn
     private val dead get() = world.dead
     private val won get() = world.won
@@ -142,7 +144,7 @@ class GameView(
             val oldGrounded = world.grounded
             val oldY = world.y
             val oldVy = world.vy
-            val oldCrate = world.crateX
+            val oldCrates = world.crateBoxes.map { it.left }
             val oldAlive = world.monsters.indices.count { world.isMonsterAlive(it) }
             world.tick(
                 GameInput(
@@ -157,7 +159,7 @@ class GameView(
             if (!oldGrounded && world.grounded && oldVy > 50f) gameAudio.oneShot("land", .25f)
             if (world.coinsCollected > oldCoins) gameAudio.oneShot("coin")
             if (world.keyCollected && !oldKey) gameAudio.oneShot("key")
-            if (abs(world.crateX - oldCrate) > .3f && world.ticks - lastPushSoundTick > 14) {
+            if (world.crateBoxes.map { it.left }.zip(oldCrates).any { (now, old) -> abs(now - old) > .3f } && world.ticks - lastPushSoundTick > 14) {
                 gameAudio.oneShot("crate", .22f); lastPushSoundTick = world.ticks
             }
             if (world.monsters.indices.count { world.isMonsterAlive(it) } < oldAlive) gameAudio.oneShot("monster")
@@ -178,7 +180,16 @@ class GameView(
                 prefs.edit().putInt("unlocked", unlocked).apply()
             }
             winSaved = true
-            onLevelWon?.invoke(currentLevel, nextAfterWin() != null) { screen == Screen.PLAY && won }
+        }
+        // Exactly one game result notification per attempt: victory OR defeat.
+        // The callback is raised only after the physics engine ends the level.
+        if ((won || dead) && !endOfLevelReported) {
+            endOfLevelReported = true
+            val resultWasVictory = won
+            onLevelFinished?.invoke(currentLevel, resultWasVictory) {
+                screen == Screen.PLAY &&
+                    if (resultWasVictory) won else dead
+            }
         }
         updateSpatialSounds()
         cameraX = (world.x - w * 0.34f).coerceIn(0f, max(0f, world.worldRight - w))
@@ -211,7 +222,7 @@ class GameView(
 
         for (b in level.blocks) drawPlatform(c, RectF(b.left, b.top, b.right, b.bottom))
 
-        if (level.hasCrate) drawCrate(c, RectF(level.crateBox.left, level.crateBox.top, level.crateBox.right, level.crateBox.bottom))
+        for (crate in level.crateBoxes) drawCrate(c, RectF(crate.left, crate.top, crate.right, crate.bottom))
 
         level.bridge?.let {
             val bridgeColor = if (shift) cyan else rgb(56, 71, 78)
@@ -230,7 +241,15 @@ class GameView(
 
         for (spring in level.springs) drawSpring(c, RectF(spring.left, spring.top, spring.right, spring.bottom))
         for (belt in level.conveyors) design.drawConveyor(c, RectF(belt.left, belt.top, belt.right, belt.bottom), level.ticks)
-        for (pad in level.switches) drawSwitch(c, RectF(pad.left, pad.top, pad.right, pad.bottom), level.switchActivated)
+        for (i in level.switches.indices) {
+            val pad = level.switches[i]
+            drawSwitch(c, RectF(pad.left, pad.top, pad.right, pad.bottom), level.isSwitchTouched(i))
+        }
+        for (i in level.crateSwitches.indices) {
+            val pad = level.crateSwitches[i]
+            drawPressurePlate(c, RectF(pad.left, pad.top, pad.right, pad.bottom), level.isPlateActive(i))
+        }
+        for (i in level.snowflakes.indices) drawSnowflake(c, level.snowflakeBox(i))
         for (i in level.monsters.indices) if (level.isMonsterAlive(i)) drawMonster(c, RectF(level.monsterBox(i).left, level.monsterBox(i).top, level.monsterBox(i).right, level.monsterBox(i).bottom))
         for (saw in level.saws) drawSaw(c, RectF(level.sawBox(saw).left, level.sawBox(saw).top, level.sawBox(saw).right, level.sawBox(saw).bottom))
         for (s in level.spikes) design.drawSpike(c, RectF(s.left, s.top, s.right, s.bottom))
@@ -239,9 +258,10 @@ class GameView(
 
         val locked = !level.exitUnlocked
         design.drawDoor(c, RectF(level.exit.left, level.exit.top, level.exit.right, level.exit.bottom), locked)
-        text(c, if (locked) (if (level.spec.requiresSwitch) "BOUTON !" else "CARTE !") else "SORTIE", level.exit.left - 8f, level.exit.top - 17f, 24f, if (locked) orangeLight else rgb(165, 255, 214), true)
+        text(c, if (locked) (if (!level.pressureReady) strings.t("required_plate") else if (level.spec.requiresSwitch) strings.t("required_switch") else strings.t("required_key")) else strings.t("exit"), level.exit.left - 8f, level.exit.top - 17f, 24f, if (locked) orangeLight else rgb(165, 255, 214), true)
         if (hintTime < 9f && level.hasCrate) {
-            text(c, "POUSSE →", level.crateBox.left - 10f, level.crateBox.top - 19f, 17f, rgb(249, 218, 147), true)
+            val crate = level.crateBoxes.first()
+            text(c, strings.t("push"), crate.left - 10f, crate.top - 19f, 17f, rgb(249, 218, 147), true)
         }
 
         drawPlayer(c)
@@ -257,10 +277,10 @@ class GameView(
 
     private fun drawTopHud(c: Canvas) {
         design.drawMenuHeader(c, RectF(0f, 0f, w, 64f))
-        text(c, "PIÈCES  ${level.coinsCollected}/${level.coins.size}", 22f, 42f, 28f, GameDesign.WHITE, true)
-        text(c, "NIVEAU $currentLevel/10", w * 0.38f, 40f, 25f, rgb(190, 216, 229))
-        text(c, if (shift) "SHIFT: ON" else "SHIFT: OFF", w - 350f, 40f, 25f, GameDesign.ORANGE, true)
-        design.drawMenuButton(c, RectF(w - 125f, 11f, w - 22f, 54f), "MENU", false)
+        textFitted(c, strings.t("coins_count", "collected" to level.coinsCollected, "total" to level.coins.size), 22f, 42f, 28f, w * 0.32f, GameDesign.WHITE, true)
+        textFitted(c, strings.t("level_count", "n" to ((currentLevel - 1) % 10 + 1)), w * 0.38f, 40f, 25f, w * 0.24f, rgb(190, 216, 229))
+        textFitted(c, strings.t("shift_state", "state" to strings.t(if (shift) "on" else "off")), w - 350f, 40f, 25f, 205f, GameDesign.ORANGE, true)
+        design.drawMenuButton(c, RectF(w - 125f, 11f, w - 22f, 54f), strings.t("menu"), false)
     }
 
     private fun drawHint(c: Canvas) {
@@ -268,14 +288,14 @@ class GameView(
         c.translate(GameViewport.centerOffset(w), 0f)
         rounded(c, RectF(284f, 83f, 730f, 130f), 10f, alpha(panel, 180))
         rounded(c, RectF(284f, 83f, 730f, 130f), 10f, alpha(whiteSoft, 16))
-        text(c, level.spec.hint, 295f, 114f, 18f, whiteSoft)
+        textFitted(c, strings.t(level.spec.hint), 295f, 114f, 18f, 425f, whiteSoft)
         c.restore()
     }
 
     private fun drawDebug(c: Canvas) {
         rounded(c, RectF(16f, 72f, 285f, 103f), 6f, alpha(panel, 176))
         rect(c, 22f, 78f, 112f, 82f, orange)
-        text(c, "DEBUG  x=${world.x.toInt()} t=${world.ticks}  N=$currentLevel", 22f, 95f, 16f, rgb(255, 213, 115))
+        text(c, strings.t("debug_info", "x" to world.x.toInt(), "ticks" to world.ticks, "level" to currentLevel), 22f, 95f, 16f, rgb(255, 213, 115))
     }
 
     private fun drawHitboxes(c: Canvas) {
@@ -292,7 +312,7 @@ class GameView(
 
     private fun drawControls(c: Canvas) {
         for ((id, b) in buttons) {
-            val label = when(id) { 1 -> "◀"; 2 -> "▶"; 3 -> "SAUT"; else -> "SHIFT" }
+            val label = when(id) { 1 -> "◀"; 2 -> "▶"; 3 -> strings.t("jump"); else -> strings.t("brand_shift") }
             design.drawControl(c, b, label, active(id) || (id == 4 && shift))
         }
     }
@@ -307,7 +327,14 @@ class GameView(
     }
 
     private fun drawBackground(c: Canvas, heroX: Float = GameBackground.START_X) {
-        backgroundRenderer.draw(c, w, h, heroX)
+        if (screen == Screen.PLAY && currentLevel in 11..20) {
+            // Same 3:1 panorama used on world-select. Move crop with the hero for parallaxe.
+            val progress = ((heroX - 78f) / (level.worldRight - 78f).coerceAtLeast(1f))
+                .coerceIn(0f, 1f)
+            worldBackgrounds.draw(c, 2, w, h, progress)
+        } else {
+            backgroundRenderer.draw(c, w, h, heroX)
+        }
     }
 
     private fun drawMenu(c: Canvas) {
@@ -315,12 +342,12 @@ class GameView(
         rect(c, 0f, 0f, w, h, alpha(panel, 116))
         c.save()
         c.translate(GameViewport.centerOffset(w), 0f)
-        text(c, "ESCAPE", 274f, 173f, 92f, whiteSoft, true)
-        text(c, "SHIFT", 364f, 260f, 92f, rgb(110, 241, 178), true)
-        text(c, "ACTION + REFLEXION + EVASION", 274f, 309f, 26f, rgb(174, 201, 214))
-        menuButton(c, 340f, 354f, "JOUER", rgb(48, 163, 132))
-        menuButton(c, 340f, 443f, "MONDES", GameDesign.BLACK)
-        if (debugMode) text(c, "MODE DEBUG : niveaux 1-10 disponibles", 290f, 544f, 19f, rgb(255, 216, 131))
+        text(c, strings.t("brand_escape"), 274f, 173f, 92f, whiteSoft, true)
+        text(c, strings.t("brand_shift"), 364f, 260f, 92f, rgb(110, 241, 178), true)
+        textFitted(c, strings.t("tagline"), 274f, 309f, 26f, 520f, rgb(174, 201, 214))
+        menuButton(c, 340f, 354f, strings.t("play"), rgb(48, 163, 132))
+        menuButton(c, 340f, 443f, strings.t("worlds"), GameDesign.BLACK)
+        if (debugMode) text(c, strings.t("debug_all"), 290f, 544f, 19f, rgb(255, 216, 131))
         c.restore()
     }
 
@@ -347,25 +374,24 @@ class GameView(
         c.translate(offset, 0f)
         rounded(c, RectF(92f, 32f, 908f, 520f), 20f, alpha(panel, 161))
         rect(c, 108f, 48f, 892f, 52f, GameDesign.ORANGE)
-        text(c, "MONDE ${number.toString().padStart(2, '0')} / 10", 130f, 98f, 24f, orangeLight, true)
-        text(c, info.title, 130f, 145f, 43f, whiteSoft, true)
-        text(c, info.subtitle, 131f, 179f, 19f, rgb(203, 220, 229))
+        text(c, strings.t("world_count", "n" to number.toString().padStart(2, '0')), 130f, 98f, 24f, orangeLight, true)
+        textFitted(c, strings.t(info.title), 130f, 145f, 43f, 440f, whiteSoft, true)
+        textFitted(c, strings.t(info.subtitle), 131f, 179f, 19f, 505f, rgb(203, 220, 229))
         if (!info.developed) {
-            text(c, "MONDE EN PREPARATION", 582f, 96f, 19f, orangeLight, true)
+            textFitted(c, strings.t("world_soon"), 582f, 96f, 19f, 289f, orangeLight, true)
         } else {
-            text(c, "10 NIVEAUX JOUABLES", 606f, 96f, 18f, rgb(159, 248, 204), true)
+            textFitted(c, strings.t("levels_playable"), 606f, 96f, 18f, 260f, rgb(159, 248, 204), true)
         }
         for (i in 0 until WorldCatalog.LEVELS_PER_WORLD) {
             val x = 126f + (i % 5) * 151f
             val y = 204f + (i / 5) * 111f
-            val enabled = info.developed && accessible(i + 1)
+            val enabled = info.developed && accessible((number - 1) * 10 + i + 1)
             // Shared graphic style from V15, no world-specific redesign.
             design.drawLevelTile(c, RectF(x, y, x + 117f, y + 91f), i + 1, enabled)
         }
-        if (!info.developed) text(c, "Les 10 emplacements sont reserves ; niveaux bientot disponibles.",
-            161f, 447f, 19f, whiteSoft)
-        else text(c, "Termine le niveau N pour debloquer le N+1.", 260f, 447f, 20f, whiteSoft)
-        design.drawMenuButton(c, RectF(340f, 463f, 660f, 514f), "RETOUR", false)
+        if (!info.developed) textFitted(c, strings.t("slots_soon"), 161f, 447f, 19f, 696f, whiteSoft)
+        else textFitted(c, strings.t("unlock_hint"), 200f, 447f, 20f, 640f, whiteSoft)
+        design.drawMenuButton(c, RectF(340f, 463f, 660f, 514f), strings.t("back"), false)
         c.restore()
 
         if (number > 1) {
@@ -398,33 +424,34 @@ class GameView(
         rect(c, 0f, 0f, w, h, Color.argb(215, 6, 13, 22))
         c.save()
         c.translate(GameViewport.centerOffset(w), 0f)
-        text(c, if (won) "BRAVO !" else "GAME OVER", if (won) 340f else 258f, 190f, 75f, GameDesign.ORANGE, true)
-        text(
+        textCenteredFitted(c, strings.t(if (won) "win_title" else "lose_title"), 500f, 190f, 75f, 780f, GameDesign.ORANGE, true)
+        textCenteredFitted(
             c,
-            if (won && currentLevel == GameProgression.MAX_LEVEL) "Bravo ! Tu as termine les 10 niveaux !"
-            else if (won) "Niveau $currentLevel termine ! Le prochain est debloque."
-            else "Le piege t'a eu. Reessaie !",
-            247f, 246f, 24f, whiteSoft
+            if (won && currentLevel == GameProgression.MAX_LEVEL) strings.t("all_complete")
+            else if (won) strings.t("level_complete", "n" to currentLevel)
+            else strings.t("lose_message"),
+            500f, 246f, 24f, 790f, whiteSoft
         )
-        val primaryLabel = if (!won) "REJOUER" else if (nextAfterWin() != null) "NEXT" else "NIVEAUX"
+        val primaryLabel = if (!won) strings.t("retry") else if (nextAfterWin() != null) strings.t("next") else strings.t("levels")
         menuButton(c, 340f, 304f, primaryLabel, GameDesign.ORANGE)
-        menuButton(c, 340f, 405f, "MENU", GameDesign.BLACK)
+        menuButton(c, 340f, 405f, strings.t("menu"), GameDesign.BLACK)
         c.restore()
     }
 
     private fun menuButton(c: Canvas, x: Float, y: Float, label: String, color: Int) {
-        design.drawMenuButton(c, RectF(x, y, x + 320f, y + 72f), label, color != GameDesign.BLACK && label != "MENU" && label != "RETOUR")
+        design.drawMenuButton(c, RectF(x, y, x + 320f, y + 72f), label, color != GameDesign.BLACK && label != strings.t("menu") && label != strings.t("back"))
     }
 
     private fun startLevel(levelNumber: Int) {
         if (!accessible(levelNumber)) return
-        onLeaveVictory?.invoke()
+        onLeaveResult?.invoke()
         currentLevel = levelNumber
         world = GameWorld(currentLevel)
         reset()
     }
 
     private fun reset() {
+        onLeaveResult?.invoke() // Cancel any delayed ad when user chooses REJOUER/NEXT.
         gameAudio.pause()
         gameAudio.resume()
         world.reset()
@@ -435,6 +462,7 @@ class GameView(
         hintTime = 0f
         cameraX = 0f
         winSaved = false
+        endOfLevelReported = false
         pressed.clear()
         keyboardPressed.clear()
         screen = Screen.PLAY
@@ -450,7 +478,7 @@ class GameView(
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (debugMode && DevConfig.ALLOW_LEVEL_SHORTCUTS && screen == Screen.PLAY) {
-            if (keyCode == KeyEvent.KEYCODE_PAGE_UP) { startLevel((currentLevel + 1).coerceAtMost(10)); return true }
+            if (keyCode == KeyEvent.KEYCODE_PAGE_UP) { startLevel((currentLevel + 1).coerceAtMost(GameProgression.MAX_LEVEL)); return true }
             if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) { startLevel((currentLevel - 1).coerceAtLeast(1)); return true }
         }
         val button = gameButtonForKey(keyCode) ?: return super.onKeyDown(keyCode, event)
@@ -485,10 +513,10 @@ class GameView(
                     else {
                         val next = nextAfterWin()
                         if (next != null) startLevel(next)
-                        else { onLeaveVictory?.invoke(); selectedWorld = 1; worldScroll = 0f; screen = Screen.LEVELS; pressed.clear(); keyboardPressed.clear() }
+                        else { onLeaveResult?.invoke(); selectedWorld = ((currentLevel - 1) / 10) + 1; worldScroll = (selectedWorld - 1).toFloat(); screen = Screen.LEVELS; pressed.clear(); keyboardPressed.clear() }
                     }
                 } else if (x in 340f..660f && y in 405f..477f) {
-                    onLeaveVictory?.invoke()
+                    onLeaveResult?.invoke()
                     screen = Screen.MENU; pressed.clear(); keyboardPressed.clear()
                 }
             }
@@ -512,12 +540,12 @@ class GameView(
                         if (cx in 340f..660f && y in 463f..514f) screen = Screen.MENU
                         else if (x in 10f..86f && y in 221f..320f) changeWorld(selectedWorld - 1)
                         else if (x in (w - 86f)..(w - 10f) && y in 221f..320f) changeWorld(selectedWorld + 1)
-                        else if (selectedWorld == 1) {
+                        else if (WorldCatalog.world(selectedWorld).developed) {
                             for (i in 0 until WorldCatalog.LEVELS_PER_WORLD) {
                                 val bx = 126f + (i % 5) * 151f
                                 val by = 204f + (i / 5) * 111f
-                                if (cx in bx..(bx + 117f) && y in by..(by + 91f) && accessible(i + 1)) {
-                                    startLevel(i + 1)
+                                if (cx in bx..(bx + 117f) && y in by..(by + 91f) && accessible((selectedWorld - 1) * 10 + i + 1)) {
+                                    startLevel((selectedWorld - 1) * 10 + i + 1)
                                     break
                                 }
                             }
@@ -534,7 +562,7 @@ class GameView(
             if (event.actionMasked == MotionEvent.ACTION_UP) {
                 val (x, y) = centeredCoord(event.actionIndex)
                 if (screen == Screen.MENU && x in 340f..660f && y in 354f..426f) startLevel(
-                    if (debugMode) DevConfig.START_LEVEL.coerceIn(1, 10) else GameProgression.latestPlayable(unlocked)
+                    if (debugMode) DevConfig.START_LEVEL.coerceIn(1, GameProgression.MAX_LEVEL) else GameProgression.latestPlayable(unlocked)
                 )
                 else if (screen == Screen.MENU && x in 340f..660f && y in 443f..515f) screen = Screen.LEVELS
             }
@@ -613,7 +641,7 @@ class GameView(
         rect(c, r.left, r.top, r.right, r.bottom, steelDark)
         rect(c, r.left + 5f, r.top + 5f, r.right - 5f, r.bottom - 5f, if (activated) rgb(32, 85, 79) else rgb(36, 141, 138))
         rect(c, r.left + 9f, r.top + 10f, r.right - 9f, r.top + 18f, if (activated) alpha(whiteSoft, 90) else alpha(whiteSoft, 185))
-        text(c, if (activated) "OK" else "ON", r.left + 8f, r.top - 12f, 16f, if (activated) rgb(122, 236, 214) else rgb(155, 255, 242), true)
+        text(c, if (activated) strings.t("switch_ok") else strings.t("switch_on"), r.left + 8f, r.top - 12f, 16f, if (activated) rgb(122, 236, 214) else rgb(155, 255, 242), true)
     }
 
 
@@ -621,6 +649,27 @@ class GameView(
         rounded(c, RectF(r.left + 6f, r.bottom - 4f, r.right - 6f, r.bottom + 4f), 6f, alpha(Color.BLACK, 72))
         val dest = RectF(r.left - 8f, r.top - 10f, r.right + 8f, r.bottom + 4f)
         drawBitmapFit(c, monsterSprite, dest)
+    }
+
+    /** White circular falling flake, intentionally no image asset in V20. */
+    private fun drawSnowflake(c: Canvas, b: HitBox) {
+        val cx = (b.left + b.right) / 2f
+        val cy = (b.top + b.bottom) / 2f
+        val r = (b.right - b.left) / 2f
+        paint.style = Paint.Style.FILL
+        paint.color = alpha(whiteSoft, 75)
+        c.drawCircle(cx, cy, r + 4f, paint)
+        paint.color = alpha(whiteSoft, 245)
+        c.drawCircle(cx, cy, r, paint)
+        paint.color = rgb(172, 213, 228)
+        c.drawCircle(cx - 3f, cy - 3f, r * .26f, paint)
+    }
+
+    private fun drawPressurePlate(c: Canvas, b: RectF, active: Boolean) {
+        val trim = if (active) rgb(89, 238, 177) else orangeLight
+        rect(c, b.left - 2f, b.top - 5f, b.right + 2f, b.bottom + 3f, steelDark)
+        rect(c, b.left + 2f, b.top - 4f, b.right - 2f, b.top + 4f, trim)
+        rect(c, b.left + 8f, b.top + 6f, b.right - 8f, b.top + 9f, whiteSoft)
     }
 
     private fun drawSaw(c: Canvas, r: RectF) {
@@ -693,6 +742,25 @@ class GameView(
     private fun alpha(color: Int, a: Int) = Color.argb(a.coerceIn(0, 255), Color.red(color), Color.green(color), Color.blue(color))
     private fun rect(c: Canvas, l: Float, t: Float, r: Float, b: Float, color: Int) { paint.color = color; paint.style = Paint.Style.FILL; c.drawRect(l, t, r, b, paint) }
     private fun rounded(c: Canvas, r: RectF, rad: Float, color: Int) { paint.color = color; paint.style = Paint.Style.FILL; c.drawRoundRect(r, rad, rad, paint) }
+    private fun textCenteredFitted(c: Canvas, s: String, centerX: Float, y: Float,
+                                   size: Float, maxWidth: Float, color: Int, bold: Boolean = false) {
+        paint.textSize = size
+        paint.typeface = Typeface.create("sans-serif", if (bold) Typeface.BOLD else Typeface.NORMAL)
+        val measured = paint.measureText(s)
+        val actualSize = if (measured > maxWidth && measured > 0f) (size * maxWidth / measured).coerceAtLeast(12f) else size
+        paint.textSize = actualSize
+        text(c, s, centerX - paint.measureText(s) / 2f, y, actualSize, color, bold)
+    }
+
+    /** For long translations (German/Hindi), shrink text instead of clipping it. */
+    private fun textFitted(c: Canvas, s: String, x: Float, y: Float, size: Float,
+                           maxWidth: Float, color: Int, bold: Boolean = false) {
+        paint.textSize = size
+        paint.typeface = Typeface.create("sans-serif", if (bold) Typeface.BOLD else Typeface.NORMAL)
+        val measured = paint.measureText(s)
+        text(c, s, x, y, if (measured > maxWidth && measured > 0f) (size * maxWidth / measured).coerceAtLeast(11f) else size, color, bold)
+    }
+
     private fun text(c: Canvas, s: String, x: Float, y: Float, size: Float, color: Int, bold: Boolean = false) {
         paint.color = color
         paint.textSize = size

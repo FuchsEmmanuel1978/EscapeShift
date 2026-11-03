@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 6,
+  "titleKey": "level_06_title",
+  "hintKey": "level_06_hint",
+  "intro": "SHIFT_BRIDGE",
+  "backtrackCount": 1,
+  "worldWidth": 2090,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "x": 300,
+        "width": 140,
+        "id": "gap_01"
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "starter_shift_bridge",
+      "type": "bridge",
+      "x": 300,
+      "y": 444,
+      "width": 140,
+      "height": 20
+    },
+    {
+      "id": "laser_red_01",
+      "type": "laser_red",
+      "x": 675,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 102
+    },
+    {
+      "id": "spike_02",
+      "type": "spike",
+      "x": 930,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "laser_timed_03",
+      "type": "laser_timed",
+      "x": 1185,
+      "y": 285,
+      "width": 16,
+      "height": 159,
+      "phase": 28,
+      "period": 120,
+      "activeTicks": 64
+    },
+    {
+      "id": "spike_04",
+      "type": "spike",
+      "x": 1440,
+      "y": 398,
+      "width": 58,
+      "height": 46,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "key_05",
+      "type": "key",
+      "x": 1695,
+      "y": 388,
+      "width": 27,
+      "height": 45,
+      "phase": 74
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 915,
+      "y": 352,
+      "width": 123,
+      "height": 20
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1408,
+      "y": 318,
+      "width": 134,
+      "height": 20
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 964.5,
+      "y": 321,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 1463.0,
+      "y": 287,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 1565,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "laser_red_01",
+    "spike_02",
+    "laser_timed_03",
+    "spike_04",
+    "key_05"
+  ]
+}

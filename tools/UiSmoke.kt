@@ -18,7 +18,7 @@ fun main() {
     }
     val method = ui.javaClass.getDeclaredMethod("startLevel", Int::class.javaPrimitiveType)
     method.isAccessible = true
-    for(n in 1..10){
+    for(n in 1..20){
         method.invoke(ui,n)
         repeat(3){ui.onDraw(c)}
         println("DRAW OK: Level $n")

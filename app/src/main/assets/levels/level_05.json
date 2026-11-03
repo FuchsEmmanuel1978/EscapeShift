@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 5,
+  "titleKey": "level_05_title",
+  "hintKey": "level_05_hint",
+  "intro": "UPPER_PLATFORM",
+  "backtrackCount": 0,
+  "worldWidth": 1990,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "starter_upper_platform",
+      "type": "platform",
+      "x": 320,
+      "y": 363,
+      "width": 95,
+      "height": 19
+    },
+    {
+      "id": "spike_01",
+      "type": "spike",
+      "x": 695,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "key_02",
+      "type": "key",
+      "x": 950,
+      "y": 388,
+      "width": 27,
+      "height": 45,
+      "phase": 108
+    },
+    {
+      "id": "laser_red_03",
+      "type": "laser_red",
+      "x": 1205,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 11
+    },
+    {
+      "id": "spike_04",
+      "type": "spike",
+      "x": 1460,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 835,
+      "y": 356,
+      "width": 145,
+      "height": 20
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1188,
+      "y": 318,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 355.5,
+      "y": 332,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 895.5,
+      "y": 325,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_03",
+      "type": "coin",
+      "x": 1245.0,
+      "y": 287,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 1740,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "spike_01",
+    "key_02",
+    "laser_red_03",
+    "spike_04"
+  ]
+}

@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "world": 2,
+  "level": 17,
+  "titleKey": "level_17_title",
+  "hintKey": "level_17_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 5355,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "id": "gap_01",
+        "x": 1325,
+        "width": 128
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "crate_01",
+      "type": "crate",
+      "x": 225,
+      "y": 400,
+      "width": 46,
+      "height": 44
+    },
+    {
+      "id": "crate_wall_01",
+      "type": "wall",
+      "x": 375,
+      "y": 324,
+      "width": 42,
+      "height": 120
+    },
+    {
+      "id": "crate_pressure_01",
+      "type": "crate_switch",
+      "x": 329,
+      "y": 431,
+      "width": 46,
+      "height": 13
+    },
+    {
+      "id": "crate_02",
+      "type": "crate",
+      "x": 835,
+      "y": 400,
+      "width": 46,
+      "height": 44
+    },
+    {
+      "id": "crate_wall_02",
+      "type": "wall",
+      "x": 985,
+      "y": 324,
+      "width": 42,
+      "height": 120
+    },
+    {
+      "id": "spike_01",
+      "type": "spike",
+      "x": 1635,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "laser_01",
+      "type": "laser_red",
+      "x": 1945,
+      "y": 291,
+      "width": 16,
+      "height": 153
+    },
+    {
+      "id": "monster_01",
+      "type": "monster",
+      "x": 2210,
+      "y": 398,
+      "width": 62,
+      "height": 46,
+      "amplitude": 22,
+      "phase": 8,
+      "period": 138
+    },
+    {
+      "id": "saw_01",
+      "type": "saw",
+      "x": 2520,
+      "y": 410,
+      "width": 30,
+      "height": 34,
+      "amplitude": 50,
+      "phase": 16,
+      "period": 160
+    },
+    {
+      "id": "spike_02",
+      "type": "spike",
+      "x": 2830,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "laser_02",
+      "type": "laser_blue",
+      "x": 3140,
+      "y": 291,
+      "width": 16,
+      "height": 153
+    },
+    {
+      "id": "monster_02",
+      "type": "monster",
+      "x": 3405,
+      "y": 398,
+      "width": 62,
+      "height": 46,
+      "amplitude": 22,
+      "phase": 39,
+      "period": 138
+    },
+    {
+      "id": "spike_03",
+      "type": "spike",
+      "x": 3715,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "laser_03",
+      "type": "laser_red",
+      "x": 4025,
+      "y": 291,
+      "width": 16,
+      "height": 153
+    },
+    {
+      "id": "spike_04",
+      "type": "spike",
+      "x": 4290,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "switch_01",
+      "type": "switch",
+      "x": 4600,
+      "y": 431,
+      "width": 47,
+      "height": 13
+    },
+    {
+      "id": "switch_02",
+      "type": "switch",
+      "x": 4865,
+      "y": 431,
+      "width": 47,
+      "height": 13
+    },
+    {
+      "id": "snowflake_01",
+      "type": "snowflake",
+      "x": 1500.0,
+      "y": 92,
+      "width": 24,
+      "height": 24,
+      "phase": 153,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 160
+    },
+    {
+      "id": "snowflake_02",
+      "type": "snowflake",
+      "x": 2015.0,
+      "y": 104,
+      "width": 24,
+      "height": 24,
+      "phase": 24,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 177
+    },
+    {
+      "id": "snowflake_03",
+      "type": "snowflake",
+      "x": 2530.0,
+      "y": 116,
+      "width": 24,
+      "height": 24,
+      "phase": 55,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 194
+    },
+    {
+      "id": "snowflake_04",
+      "type": "snowflake",
+      "x": 3045.0,
+      "y": 92,
+      "width": 24,
+      "height": 24,
+      "phase": 86,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 160
+    },
+    {
+      "id": "snowflake_05",
+      "type": "snowflake",
+      "x": 3560.0,
+      "y": 104,
+      "width": 24,
+      "height": 24,
+      "phase": 117,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 177
+    },
+    {
+      "id": "snowflake_06",
+      "type": "snowflake",
+      "x": 4075.0,
+      "y": 116,
+      "width": 24,
+      "height": 24,
+      "phase": 148,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 194
+    },
+    {
+      "id": "snowflake_07",
+      "type": "snowflake",
+      "x": 4590.0,
+      "y": 92,
+      "width": 24,
+      "height": 24,
+      "phase": 19,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 160
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 1445,
+      "y": 344,
+      "width": 128,
+      "height": 20
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 1495,
+      "y": 308,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 2695,
+      "y": 324,
+      "width": 128,
+      "height": 20
+    },
+    {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 2745,
+      "y": 288,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 5165,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "gap_01",
+    "spike_01",
+    "laser_01",
+    "monster_01",
+    "saw_01",
+    "spike_02",
+    "laser_02",
+    "monster_02",
+    "spike_03",
+    "laser_03",
+    "spike_04",
+    "switch_01",
+    "switch_02"
+  ],
+  "difficulty": {
+    "jump": "moyen",
+    "sawAmplitude": 50,
+    "spikeGroups": 4,
+    "spikesPerGroup": 2,
+    "monsters": 2,
+    "crates": 2,
+    "buttons": 2,
+    "cratePressurePads": 1,
+    "walls": 2,
+    "snowflakes": 7,
+    "shiftChanges": 3
+  },
+  "world2Modules": [
+    {
+      "crateId": "crate_01",
+      "wallId": "crate_wall_01",
+      "mustClimb": true,
+      "pressureId": "crate_pressure_01"
+    },
+    {
+      "crateId": "crate_02",
+      "wallId": "crate_wall_02",
+      "mustClimb": true,
+      "pressureId": null
+    }
+  ]
+}

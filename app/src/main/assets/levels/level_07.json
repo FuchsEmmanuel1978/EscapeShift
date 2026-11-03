@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 7,
+  "titleKey": "level_07_title",
+  "hintKey": "level_07_hint",
+  "intro": "SPRING_WALL",
+  "backtrackCount": 0,
+  "worldWidth": 2515,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "starter_spring_wall",
+      "type": "wall",
+      "x": 460,
+      "y": 298,
+      "width": 52,
+      "height": 146
+    },
+    {
+      "id": "starter_spring",
+      "type": "spring",
+      "x": 240,
+      "y": 437,
+      "width": 45,
+      "height": 7
+    },
+    {
+      "id": "spike_01",
+      "type": "spike",
+      "x": 710,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "saw_02",
+      "type": "saw",
+      "x": 965,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 22,
+      "amplitude": 55,
+      "period": 155,
+      "offsetX": 35
+    },
+    {
+      "id": "spike_03",
+      "type": "spike",
+      "x": 1220,
+      "y": 398,
+      "width": 58,
+      "height": 46,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "laser_blue_04",
+      "type": "laser_blue",
+      "x": 1475,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 68
+    },
+    {
+      "id": "laser_red_05",
+      "type": "laser_red",
+      "x": 1730,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 91
+    },
+    {
+      "id": "spike_06",
+      "type": "spike",
+      "x": 1985,
+      "y": 398,
+      "width": 58,
+      "height": 46,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2265,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "spike_01",
+    "saw_02",
+    "spike_03",
+    "laser_blue_04",
+    "laser_red_05",
+    "spike_06"
+  ]
+}

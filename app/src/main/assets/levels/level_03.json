@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 3,
+  "titleKey": "level_03_title",
+  "hintKey": "level_03_hint",
+  "intro": "SHIFT_BRIDGE",
+  "backtrackCount": 0,
+  "worldWidth": 1715,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "x": 300,
+        "width": 140,
+        "id": "gap_01"
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "starter_shift_bridge",
+      "type": "bridge",
+      "x": 300,
+      "y": 444,
+      "width": 140,
+      "height": 20
+    },
+    {
+      "id": "laser_red_01",
+      "type": "laser_red",
+      "x": 675,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 51
+    },
+    {
+      "id": "laser_blue_02",
+      "type": "laser_blue",
+      "x": 930,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 74
+    },
+    {
+      "id": "spike_03",
+      "type": "spike",
+      "x": 1185,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 1465,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "laser_red_01",
+    "laser_blue_02",
+    "spike_03"
+  ]
+}

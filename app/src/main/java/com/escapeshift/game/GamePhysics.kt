@@ -11,9 +11,15 @@ data class HitBox(val left: Float, val top: Float, val right: Float, val bottom:
 data class GameInput(val left: Boolean = false, val right: Boolean = false, val jump: Boolean = false, val shift: Boolean = false)
 
 enum class StartType { OPEN, CRATE_WALL, SHIFT_BRIDGE, SPRING_WALL, UPPER_PLATFORM }
-enum class ChallengeType { SPIKE, RED_LASER, BLUE_LASER, TIMED_LASER, KEY, SPRING, SAW, CONVEYOR, SWITCH, MONSTER }
-data class Challenge(val type: ChallengeType, val x: Float, val phase: Int = 0)
-data class LevelDesign(val title: String, val intro: StartType, val sequence: String, val backtrackCount: Int = 0, val hint: String)
+enum class ChallengeType { SPIKE, RED_LASER, BLUE_LASER, TIMED_LASER, KEY, SPRING, SAW, CONVEYOR, SWITCH, MONSTER, GAP, WALL }
+
+/** Route checkpoints are references to JSON objects, never a second set of coordinates. */
+data class Challenge(
+    val type: ChallengeType, val x: Float, val phase: Int = 0,
+    val y: Float = 0f, val width: Float = 0f, val height: Float = 0f,
+    val amplitude: Float = 0f, val period: Int = 120,
+    val activeTicks: Int = 64, val offsetX: Float = 0f, val speed: Float = -145f
+)
 
 data class LevelSpec(
     val number: Int,
@@ -25,78 +31,22 @@ data class LevelSpec(
     val requiresKey: Boolean,
     val requiresSwitch: Boolean,
     val backtrackCount: Int,
-    val hint: String
+    val hint: String,
+    val startX: Float,
+    val startY: Float,
+    val groundY: Float,
+    val groundDepth: Float,
+    val gaps: List<GroundGap>,
+    val objects: List<LevelObject>
 )
 
 data class MonsterSpawn(
-    val anchorX: Float,
-    val yTop: Float,
-    val amplitude: Float,
-    val width: Float,
-    val height: Float,
-    val phase: Int
+    val anchorX: Float, val yTop: Float, val amplitude: Float,
+    val width: Float, val height: Float, val phase: Int,
+    val period: Int = 130
 )
 
-/** Ten individually designed routes, instead of extending one single linear level. */
-object LevelCatalog {
-    const val MAX_LEVEL = 10
-    private val designs = listOf(
-        LevelDesign("Premier saut", StartType.OPEN, "S", hint = "SAUT : evite les pics rouges."),
-        LevelDesign("La caisse", StartType.CRATE_WALL, "SR", hint = "Pousse la caisse et saute dessus pour franchir le mur."),
-        LevelDesign("Le pont fantome", StartType.SHIFT_BRIDGE, "RBS", hint = "SHIFT cree un pont. Le laser bleu est dangereux en SHIFT ON."),
-        LevelDesign("Le bon moment", StartType.OPEN, "STSR", hint = "Les lasers orange pulsent : attends la bonne ouverture."),
-        LevelDesign("Carte sur la hauteur", StartType.UPPER_PLATFORM, "SKRS", hint = "Monte sur la plateforme, puis trouve la carte jaune."),
-        LevelDesign("Retour obligatoire", StartType.SHIFT_BRIDGE, "RSTSK", 1, "Passe la sortie fermee, prends la carte, puis REVIENS."),
-        LevelDesign("Saut propulse", StartType.SPRING_WALL, "SMSBRS", hint = "Le ressort vert te propulse au-dessus du grand mur."),
-        LevelDesign("Tapis sous pression", StartType.OPEN, "STCESBRS", hint = "Tapis rapide ! Saute sur le monstre pour le neutraliser."),
-        LevelDesign("Interrupteur secret", StartType.CRATE_WALL, "RBSTSCERW", 2, "Saute sur le monstre, active la plaque et reviens vers la sortie."),
-        LevelDesign("Evasion totale", StartType.UPPER_PLATFORM, "SMTRBSPCESW", 3, "Combo scies, tapis, monstre et retour jusqu'a la sortie !")
-    )
-    val titles get() = designs.map { it.title }
-    fun create(level: Int): LevelSpec {
-        require(level in 1..MAX_LEVEL)
-        val d = designs[level - 1]
-        var cursor = when (d.intro) {
-            StartType.OPEN -> 385f
-            StartType.CRATE_WALL -> 825f
-            StartType.SHIFT_BRIDGE -> 675f
-            StartType.SPRING_WALL -> 710f
-            StartType.UPPER_PLATFORM -> 695f
-        }
-        val events = mutableListOf<Challenge>()
-        for ((i, letter) in d.sequence.withIndex()) {
-            val type = when(letter) {
-                'S' -> ChallengeType.SPIKE
-                'R' -> ChallengeType.RED_LASER
-                'B' -> ChallengeType.BLUE_LASER
-                'T' -> ChallengeType.TIMED_LASER
-                'K' -> ChallengeType.KEY
-                'P' -> ChallengeType.SPRING
-                'M' -> ChallengeType.SAW
-                'C' -> ChallengeType.CONVEYOR
-                'W' -> ChallengeType.SWITCH
-                'E' -> ChallengeType.MONSTER
-                else -> error("Obstacle inconnu $letter")
-            }
-            events.add(Challenge(type, cursor, (level * 17 + i * 23) % 120))
-            cursor += when (type) {
-                ChallengeType.SPRING -> 600f
-                ChallengeType.CONVEYOR -> 310f
-                ChallengeType.MONSTER -> 270f
-                else -> 255f
-            }
-        }
-        val exitX = if (d.backtrackCount == 0) cursor + 25f
-        else events[events.size - d.backtrackCount].x - 130f
-        return LevelSpec(level, d.title, d.intro, events, exitX,
-            max(cursor + 140f, exitX + 250f),
-            events.any { it.type == ChallengeType.KEY },
-            events.any { it.type == ChallengeType.SWITCH },
-            d.backtrackCount, d.hint)
-    }
-}
-
-/** Physics shared with the on-device game and the desktop virtual player. */
+/** Same V18.1 physics; the geometry is exclusively loaded from level JSONs. */
 class GameWorld(val levelNumber: Int = 1) {
     companion object {
         const val STEP = 1f / 60f
@@ -111,113 +61,90 @@ class GameWorld(val levelNumber: Int = 1) {
     }
     val spec = LevelCatalog.create(levelNumber)
     val worldRight = spec.worldRight
-    val hasCrate = spec.intro == StartType.CRATE_WALL
-    val bridge: HitBox? = when (spec.intro) {
-        StartType.CRATE_WALL -> HitBox(450f, GROUND_Y, 590f, 464f)
-        StartType.SHIFT_BRIDGE -> HitBox(300f, GROUND_Y, 440f, 464f)
-        else -> null
+    private fun objects(type: String) = spec.objects.filter { it.type == type }
+    private fun challenge(o: LevelObject, type: ChallengeType) = Challenge(
+        type, o.x, o.phase, o.y, o.width, o.height, o.amplitude,
+        o.period, o.activeTicks, o.offsetX, o.speed
+    )
+    private val crateConfigs = objects("crate")
+    private val crateConfig = crateConfigs.firstOrNull()
+    private var cratePositions = crateConfigs.map { it.x }.toMutableList()
+    val hasCrate = crateConfigs.isNotEmpty()
+    private val crateY = crateConfig?.y ?: -5000f
+    private val crateWidth = crateConfig?.width ?: CRATE_WIDTH
+    private val crateHeight = crateConfig?.height ?: CRATE_HEIGHT
+    /** All crate hitboxes, including those used on pressure plates. */
+    val crateBoxes: List<HitBox> get() = crateConfigs.indices.map { i ->
+        val config = crateConfigs[i]; val px = cratePositions[i]
+        HitBox(px, config.y, px + config.width, config.y + config.height)
     }
-    val exit = HitBox(spec.exitX, 354f, spec.exitX + 65f, GROUND_Y)
-
-    private fun extraPlatformsForLevel(level: Int): List<HitBox> = when (level) {
-        4 -> listOf(
-            HitBox(1010f, 366f, 1132f, 386f),
-            HitBox(1450f, 332f, 1584f, 352f)
-        )
-        5 -> listOf(
-            HitBox(835f, 356f, 980f, 376f),
-            HitBox(1188f, 318f, 1326f, 338f)
-        )
-        6 -> listOf(
-            HitBox(915f, 352f, 1038f, 372f),
-            HitBox(1408f, 318f, 1542f, 338f)
-        )
-        8 -> listOf(
-            HitBox(965f, 356f, 1098f, 376f),
-            HitBox(1405f, 320f, 1548f, 340f),
-            HitBox(1810f, 286f, 1935f, 306f)
-        )
-        9 -> listOf(
-            HitBox(955f, 356f, 1088f, 376f),
-            HitBox(1540f, 320f, 1680f, 340f),
-            HitBox(2065f, 286f, 2200f, 306f)
-        )
-        10 -> listOf(
-            HitBox(860f, 358f, 980f, 378f),
-            HitBox(1315f, 323f, 1452f, 343f),
-            HitBox(1780f, 286f, 1915f, 306f),
-            HitBox(2305f, 340f, 2440f, 360f)
-        )
-        else -> emptyList()
+    val crateSwitches = objects("crate_switch").map { it.box }
+    fun isPlateActive(index: Int): Boolean = crateBoxes.any { crate ->
+        val pad = crateSwitches[index]
+        crate.right > pad.left + 12f && crate.left < pad.right - 12f &&
+            crate.bottom >= pad.top && crate.top < pad.bottom
     }
+    val pressureReady: Boolean get() = crateSwitches.indices.all { isPlateActive(it) }
+    fun isSwitchTouched(index: Int): Boolean = switchTouched.getOrNull(index) == true
+    val snowflakes = objects("snowflake")
+    fun snowflakeBox(index: Int, atTick: Int = ticks): HitBox {
+        val s = snowflakes[index]
+        val floor = spec.groundY + s.height
+        val range = (floor - s.y).coerceAtLeast(40f)
+        val fall = ((atTick + s.phase) * s.speed * STEP) % range
+        val yy = s.y + fall
+        val xx = s.x + s.amplitude * sin((atTick + s.phase) * (2 * Math.PI / s.period.toDouble())).toFloat()
+        return HitBox(xx, yy, xx + s.width, yy + s.height)
+    }
+    val bridge: HitBox? = objects("bridge").firstOrNull()?.box
+    val exit = objects("door").single().box
 
     val blocks: List<HitBox> = buildList {
-        when (spec.intro) {
-            StartType.CRATE_WALL -> {
-                add(HitBox(0f, GROUND_Y, 450f, 590f))
-                add(HitBox(590f, GROUND_Y, spec.worldRight, 590f))
-                add(HitBox(390f, 328f, 430f, GROUND_Y))
-            }
-            StartType.SHIFT_BRIDGE -> {
-                add(HitBox(0f, GROUND_Y, 300f, 590f))
-                add(HitBox(440f, GROUND_Y, spec.worldRight, 590f))
-            }
-            else -> add(HitBox(0f, GROUND_Y, spec.worldRight, 590f))
+        // Ground is a single baseline with explicit empty intervals (gaps).
+        // Widen a gap in JSON to make a jump longer; no hidden code must be changed.
+        var cursor = 0f
+        for (gap in spec.gaps) {
+            if (gap.x > cursor) add(HitBox(cursor, spec.groundY, gap.x, spec.groundY + spec.groundDepth))
+            cursor = gap.x + gap.width
         }
-        if (spec.intro == StartType.SPRING_WALL) add(HitBox(460f, 298f, 512f, GROUND_Y))
-        if (spec.intro == StartType.UPPER_PLATFORM) add(HitBox(320f, 363f, 415f, 382f))
-        spec.challenges.filter { it.type == ChallengeType.SPRING }.forEach {
-            add(HitBox(it.x + 185f, 298f, it.x + 234f, GROUND_Y))
-        }
-        addAll(extraPlatformsForLevel(levelNumber))
+        if (cursor < spec.worldRight) add(HitBox(cursor, spec.groundY, spec.worldRight, spec.groundY + spec.groundDepth))
+        addAll(objects("wall").map { it.box })
+        addAll(objects("platform").map { it.box })
     }
-
-    // Progressive hazard groups: single, tall, or two consecutive triangles.
-    // Keep collision shapes synchronized with artwork in GameDesign.
-    val oneWayPlatforms: List<HitBox> = blocks.filter { it.bottom < GROUND_Y && it.top < GROUND_Y - 20f }
-    val spikes = spec.challenges.filter { it.type == ChallengeType.SPIKE }.flatMapIndexed { index, event ->
-        val variant = (levelNumber + index) % 3
-        when {
-            levelNumber <= 2 -> listOf(HitBox(event.x, 421f, event.x + 34f, GROUND_Y))
-            variant == 0 -> listOf(HitBox(event.x, 398f, event.x + 58f, GROUND_Y))
-            variant == 1 -> listOf(
-                HitBox(event.x, 421f, event.x + 34f, GROUND_Y),
-                HitBox(event.x + 37f, 421f, event.x + 71f, GROUND_Y)
-            )
-            else -> listOf(HitBox(event.x, 409f, event.x + 52f, GROUND_Y))
+    /** The player can jump up THROUGH platforms, then stand on top. */
+    val oneWayPlatforms: List<HitBox> = objects("platform").map { it.box }
+    val spikes: List<HitBox> = objects("spike").flatMap { o ->
+        (0 until o.count).map { index ->
+            val left = o.x + index * (o.width + o.spacing)
+            HitBox(left, o.y, left + o.width, o.y + o.height)
         }
     }
-    val lasers = spec.challenges.filter { it.type == ChallengeType.RED_LASER }.map { HitBox(it.x, 300f, it.x + 15f, GROUND_Y) }
-    val invertedLasers = spec.challenges.filter { it.type == ChallengeType.BLUE_LASER }.map { HitBox(it.x, 300f, it.x + 15f, GROUND_Y) }
-    val timedLasers = spec.challenges.filter { it.type == ChallengeType.TIMED_LASER }
-    val springs = buildList {
-        if (spec.intro == StartType.SPRING_WALL) add(HitBox(240f, 437f, 285f, GROUND_Y))
-        spec.challenges.filter { it.type == ChallengeType.SPRING }.forEach { add(HitBox(it.x, 437f, it.x + 45f, GROUND_Y)) }
-    }
-    val keys = spec.challenges.filter { it.type == ChallengeType.KEY }.map { HitBox(it.x, 388f, it.x + 27f, 433f) }
-    val switches = spec.challenges.filter { it.type == ChallengeType.SWITCH }.map { HitBox(it.x, 431f, it.x + 48f, GROUND_Y) }
-    val conveyors = spec.challenges.filter { it.type == ChallengeType.CONVEYOR }.map { HitBox(it.x, 438f, it.x + 135f, GROUND_Y) }
-    val coins = oneWayPlatforms.filter { it.right - it.left >= 46f }.map {
-        val center = (it.left + it.right) * 0.5f
-        HitBox(center - 12f, it.top - 31f, center + 12f, it.top - 7f)
-    }
-
-    val saws = spec.challenges.filter { it.type == ChallengeType.SAW }
-    val monsters: List<MonsterSpawn> = spec.challenges.filter { it.type == ChallengeType.MONSTER }.map { e ->
-        MonsterSpawn(e.x - 4f, GROUND_Y - 48f, 14f, 64f, 48f, e.phase)
+    val lasers = objects("laser_red").map { it.box }
+    val invertedLasers = objects("laser_blue").map { it.box }
+    val timedLasers = objects("laser_timed").map { challenge(it, ChallengeType.TIMED_LASER) }
+    val springs = objects("spring").map { it.box }
+    val keys = objects("key").map { it.box }
+    val switches = objects("switch").map { it.box }
+    val conveyors = objects("conveyor").map { it.box }
+    private val conveyorSpeeds = objects("conveyor").map { it.box to it.speed }
+    val coins = objects("coin").map { it.box }
+    val saws = objects("saw").map { challenge(it, ChallengeType.SAW) }
+    val monsters: List<MonsterSpawn> = objects("monster").map { o ->
+        MonsterSpawn(o.x + o.offsetX, o.y, o.amplitude, o.width, o.height, o.phase, o.period)
     }
 
-    var x = 78f; private set
-    var y = 405f; private set
+    var x = spec.startX; private set
+    var y = spec.startY; private set
     var vx = 0f; private set
     var vy = 0f; private set
     var grounded = false; private set
-    var crateX = if (hasCrate) 201f else -5000f; private set
+    val crateX: Float get() = cratePositions.firstOrNull() ?: -5000f
     var shiftOn = false; private set
     var dead = false; private set
     var won = false; private set
     var keyCollected = false; private set
     var switchActivated = false; private set
+    private var switchTouched = BooleanArray(0)
     var elapsed = 0f; private set
     var ticks = 0; private set
     private var jumpPrevious = false
@@ -229,26 +156,29 @@ class GameWorld(val levelNumber: Int = 1) {
     fun isCoinVisible(index: Int): Boolean = !coinTaken[index]
 
     val playerBox get() = HitBox(x, y, x + SIZE, y + SIZE)
-    val crateBox get() = HitBox(crateX, GROUND_Y - CRATE_HEIGHT, crateX + CRATE_WIDTH, GROUND_Y)
-    val exitUnlocked get() = (!spec.requiresKey || keyCollected) && (!spec.requiresSwitch || switchActivated)
+    val crateBox get() = crateBoxes.firstOrNull() ?: HitBox(-5000f, -5000f, -4954f, -4956f)
+    val exitUnlocked get() = (!spec.requiresKey || keyCollected) &&
+        (switches.isEmpty() || switchActivated) && pressureReady
     fun solids(): List<HitBox> = (blocks - oneWayPlatforms).let { if (shiftOn && bridge != null) it + bridge else it }
     fun sawBox(saw: Challenge, t: Int = ticks): HitBox {
-        val offset = 55f * sin((t + saw.phase) * (2 * Math.PI / 155.0)).toFloat()
-        return HitBox(saw.x + 35f + offset, 405f, saw.x + 68f + offset, GROUND_Y)
+        val offset = saw.amplitude * sin((t + saw.phase) * (2 * Math.PI / saw.period.toDouble())).toFloat()
+        val left = saw.x + saw.offsetX + offset
+        return HitBox(left, saw.y, left + saw.width, saw.y + saw.height)
     }
     fun monsterBox(index: Int, t: Int = ticks): HitBox {
         val m = monsters[index]
-        val offset = m.amplitude * sin((t + m.phase) * (2 * Math.PI / 130.0)).toFloat()
+        val offset = m.amplitude * sin((t + m.phase) * (2 * Math.PI / m.period.toDouble())).toFloat()
         return HitBox(m.anchorX + offset, m.yTop, m.anchorX + m.width + offset, m.yTop + m.height)
     }
     fun isMonsterAlive(index: Int): Boolean = monsterAlive.getOrNull(index) == true
-    fun timedLaserActive(laser: Challenge, t: Int = ticks): Boolean = (t + laser.phase) % 120 < 64
-    fun timedLaserBox(laser: Challenge) = HitBox(laser.x, 285f, laser.x + 16f, GROUND_Y)
+    fun timedLaserActive(laser: Challenge, t: Int = ticks): Boolean = (t + laser.phase) % laser.period < laser.activeTicks
+    fun timedLaserBox(laser: Challenge) = HitBox(laser.x, laser.y, laser.x + laser.width, laser.y + laser.height)
 
     fun reset() {
-        x = 78f; y = 405f; vx = 0f; vy = 0f; grounded = false
-        crateX = if (hasCrate) 201f else -5000f
+        x = spec.startX; y = spec.startY; vx = 0f; vy = 0f; grounded = false
+        cratePositions = crateConfigs.map { it.x }.toMutableList()
         shiftOn = false; dead = false; won = false; keyCollected = false; switchActivated = false
+        switchTouched = BooleanArray(switches.size)
         elapsed = 0f; ticks = 0; jumpPrevious = false; shiftPrevious = false; springCooldown = 0
         monsterAlive = MutableList(monsters.size) { true }
         coinTaken = BooleanArray(coins.size)
@@ -261,20 +191,22 @@ class GameWorld(val levelNumber: Int = 1) {
         if (input.shift && !shiftPrevious) shiftOn = !shiftOn
         shiftPrevious = input.shift
         val direction = (if (input.right) 1 else 0) - (if (input.left) 1 else 0)
-        val conveyorBoost = if (grounded && conveyors.any { playerBox.intersects(it.copy(top = it.top - 7f)) }) -145f else 0f
+        val conveyorBoost = if (grounded) conveyorSpeeds.firstOrNull { (box, _) -> playerBox.intersects(box.copy(top = box.top - 7f)) }?.second ?: 0f else 0f
         vx = SPEED * direction + conveyorBoost
         if (input.jump && !jumpPrevious && grounded) { vy = JUMP_SPEED; grounded = false }
         jumpPrevious = input.jump
         val dx = vx * STEP
         x += dx
-        if (hasCrate && playerBox.intersects(crateBox)) {
+        for (i in crateConfigs.indices) {
+            val crate = crateBoxes[i]
+            if (!playerBox.intersects(crate)) continue
             if (dx > 0f) {
-                val needed = playerBox.right - crateBox.left
-                val moved = pushCrate(needed)
+                val needed = playerBox.right - crate.left
+                val moved = pushCrate(i, needed)
                 x -= needed - moved
             } else if (dx < 0f) {
-                val needed = playerBox.left - crateBox.right
-                val moved = pushCrate(needed)
+                val needed = playerBox.left - crate.right
+                val moved = pushCrate(i, needed)
                 x -= needed - moved
             }
         }
@@ -290,7 +222,7 @@ class GameWorld(val levelNumber: Int = 1) {
         val previousTop = y
         y += vy * STEP
         grounded = false
-        for (solid in solids() + oneWayPlatforms + (if (hasCrate) listOf(crateBox) else emptyList())) {
+        for (solid in solids() + oneWayPlatforms + crateBoxes) {
             if (!playerBox.intersects(solid)) continue
             if (vy >= 0f && previousBottom <= solid.top + 2f) {
                 y = solid.top - SIZE
@@ -309,7 +241,9 @@ class GameWorld(val levelNumber: Int = 1) {
         }
         if (keys.any { playerBox.intersects(it) }) keyCollected = true
         for (i in coins.indices) if (!coinTaken[i] && playerBox.intersects(coins[i])) coinTaken[i] = true
-        if (switches.any { playerBox.intersects(it.copy(top = it.top - 6f)) }) switchActivated = true
+        if (switchTouched.size != switches.size) switchTouched = BooleanArray(switches.size)
+        for (i in switches.indices) if (playerBox.intersects(switches[i].copy(top = switches[i].top - 6f))) switchTouched[i] = true
+        switchActivated = switches.isNotEmpty() && switchTouched.all { it }
 
         var player = playerBox
         for (i in monsters.indices) {
@@ -336,19 +270,27 @@ class GameWorld(val levelNumber: Int = 1) {
         if (!dead && player.intersects(exit) && exitUnlocked) won = true
     }
 
-    private fun pushCrate(amount: Float): Float {
+    private fun pushCrate(index: Int, amount: Float): Float {
         if (amount == 0f) return 0f
-        val old = crateX
-        var target = (crateX + amount).coerceAtLeast(0f)
+        val config = crateConfigs[index]
+        val old = cratePositions[index]
+        var target = (old + amount).coerceAtLeast(0f)
         for (solid in blocks) {
-            if (solid.bottom <= GROUND_Y - CRATE_HEIGHT || solid.top >= GROUND_Y) continue
-            val targetBox = HitBox(target, GROUND_Y - CRATE_HEIGHT, target + CRATE_WIDTH, GROUND_Y)
+            if (solid.bottom <= config.y || solid.top >= config.y + config.height) continue
+            val targetBox = HitBox(target, config.y, target + config.width, config.y + config.height)
             if (targetBox.intersects(solid)) {
-                if (amount > 0f) target = min(target, solid.left - CRATE_WIDTH)
+                if (amount > 0f) target = min(target, solid.left - config.width)
                 else target = max(target, solid.right)
             }
         }
-        crateX = target
-        return crateX - old
+        for (other in crateBoxes.filterIndexed { i, _ -> i != index }) {
+            val targetBox = HitBox(target, config.y, target + config.width, config.y + config.height)
+            if (targetBox.intersects(other)) {
+                if (amount > 0f) target = min(target, other.left - config.width)
+                else target = max(target, other.right)
+            }
+        }
+        cratePositions[index] = target
+        return target - old
     }
 }

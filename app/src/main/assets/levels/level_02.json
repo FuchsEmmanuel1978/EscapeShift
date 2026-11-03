@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 2,
+  "titleKey": "level_02_title",
+  "hintKey": "level_02_hint",
+  "intro": "CRATE_WALL",
+  "backtrackCount": 0,
+  "worldWidth": 1610,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "x": 450,
+        "width": 140,
+        "id": "gap_01"
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "starter_wall",
+      "type": "wall",
+      "x": 390,
+      "y": 328,
+      "width": 40,
+      "height": 116
+    },
+    {
+      "id": "starter_crate",
+      "type": "crate",
+      "x": 201,
+      "y": 400,
+      "width": 46,
+      "height": 44
+    },
+    {
+      "id": "starter_shift_bridge",
+      "type": "bridge",
+      "x": 450,
+      "y": 444,
+      "width": 140,
+      "height": 20
+    },
+    {
+      "id": "spike_01",
+      "type": "spike",
+      "x": 825,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "laser_red_02",
+      "type": "laser_red",
+      "x": 1080,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 57
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 1360,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "spike_01",
+    "laser_red_02"
+  ]
+}

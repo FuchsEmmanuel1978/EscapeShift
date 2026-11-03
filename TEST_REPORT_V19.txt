@@ -1,0 +1,21 @@
+ESCAPE SHIFT V19 - MONDE 1 / ESCAPE ADVENTURE
+
+VERIFICATIONS EXECUTEES
+1) Compilation du moteur et de l'interface Kotlin avec implementations Android simulees : OK
+2) Parcours physiques : 10/10 jouables avec LevelPlaytester (V18 conserve)
+3) Scenario escape : 10/10 salles resolues dans l'ordre, dont 2 codes, 2 suites,
+   objets combines, usage contextuel et condition finale (StorySmoke)
+4) Code incorrect refuse : OK
+5) Usage d'un code loin de la porte refuse : OK
+6) Inventaire / enigmes sauvegardes puis restaures : OK
+7) Porte verrouillee tant que l'enigme n'est pas resolue : OK
+8) Rendu simule de l'inventaire : 10 salles x 3 formats d'ecran : OK
+
+LIMITES
+- Les tests d'affichage utilisent des stubs Android : ils ne prouvent pas la convivialite
+  du tactile sur un vrai Xiaomi, ni une compilation native par Gradle.
+- LevelPlaytester sait finir les parcours physiques ; la resolution des enigmes est
+  verifiee separement dans AdventureSmoke. Ce n'est pas encore un agent unique
+  qui resout de maniere autonome l'ensemble de l'escape.
+- Sur les comptes deja avances, la narration commence a la premiere salle du nouveau
+  scenario ; les anciennes donnees sont preservees.

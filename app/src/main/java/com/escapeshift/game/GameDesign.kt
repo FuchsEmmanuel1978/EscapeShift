@@ -16,7 +16,7 @@ import kotlin.math.abs
  * Only this file needs changing to restyle doors, hazards, buttons and levels.
  * No physics or hitbox dimensions are defined here.
  */
-class GameDesign(private val context: Context) {
+class GameDesign(private val context: Context, private val strings: GameStrings) {
     private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
     private fun load(id: Int): Bitmap = BitmapFactory.decodeResource(context.resources, id)
     private val spikeImage = load(R.drawable.spike_industrial)
@@ -63,8 +63,10 @@ class GameDesign(private val context: Context) {
         p.style = Paint.Style.FILL
         p.textSize = size
         p.typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        val measured = p.measureText(s)
+        if (measured > r.width() - 18f && measured > 0f) p.textSize = (size * (r.width() - 18f) / measured).coerceAtLeast(11f)
         p.color = color
-        c.drawText(s, r.centerX() - p.measureText(s) * 0.5f, r.centerY() + size * 0.35f, p)
+        c.drawText(s, r.centerX() - p.measureText(s) * 0.5f, r.centerY() + p.textSize * 0.35f, p)
     }
 
     /** Shared ON/OFF 2D image-based touch controls. Hitboxes stay in GameView. */
@@ -143,7 +145,7 @@ class GameDesign(private val context: Context) {
         fill(c, r.left, r.top, r.right, r.top+9f, if(unlocked) ORANGE else GREY)
         label(c, "$level", RectF(r.left,r.top+16f,r.right,r.bottom-4f), 49f, WHITE)
         if(!unlocked) {
-            label(c, "LOCK", RectF(r.left,r.bottom-35f,r.right,r.bottom-5f), 15f, GREY)
+            label(c, strings.t("locked"), RectF(r.left,r.bottom-35f,r.right,r.bottom-5f), 15f, GREY)
         }
     }
 

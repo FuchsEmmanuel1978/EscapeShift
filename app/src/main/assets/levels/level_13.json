@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "world": 2,
+  "level": 13,
+  "titleKey": "level_13_title",
+  "hintKey": "level_13_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 3020,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "id": "gap_01",
+        "x": 715,
+        "width": 100
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "crate_01",
+      "type": "crate",
+      "x": 225,
+      "y": 400,
+      "width": 46,
+      "height": 44
+    },
+    {
+      "id": "crate_wall_01",
+      "type": "wall",
+      "x": 375,
+      "y": 324,
+      "width": 42,
+      "height": 120
+    },
+    {
+      "id": "spike_01",
+      "type": "spike",
+      "x": 1025,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "saw_01",
+      "type": "saw",
+      "x": 1335,
+      "y": 410,
+      "width": 30,
+      "height": 34,
+      "amplitude": 23,
+      "phase": 90,
+      "period": 160
+    },
+    {
+      "id": "monster_01",
+      "type": "monster",
+      "x": 1645,
+      "y": 398,
+      "width": 62,
+      "height": 46,
+      "amplitude": 16,
+      "phase": 54,
+      "period": 138
+    },
+    {
+      "id": "laser_01",
+      "type": "laser_red",
+      "x": 1955,
+      "y": 291,
+      "width": 16,
+      "height": 153
+    },
+    {
+      "id": "spike_02",
+      "type": "spike",
+      "x": 2220,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "switch_01",
+      "type": "switch",
+      "x": 2530,
+      "y": 431,
+      "width": 47,
+      "height": 13
+    },
+    {
+      "id": "snowflake_01",
+      "type": "snowflake",
+      "x": 890.0,
+      "y": 92,
+      "width": 24,
+      "height": 24,
+      "phase": 125,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 160
+    },
+    {
+      "id": "snowflake_02",
+      "type": "snowflake",
+      "x": 1516.67,
+      "y": 104,
+      "width": 24,
+      "height": 24,
+      "phase": 156,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 177
+    },
+    {
+      "id": "snowflake_03",
+      "type": "snowflake",
+      "x": 2143.33,
+      "y": 116,
+      "width": 24,
+      "height": 24,
+      "phase": 27,
+      "period": 160,
+      "amplitude": 0,
+      "speed": 194
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 835,
+      "y": 344,
+      "width": 128,
+      "height": 20
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 885,
+      "y": 308,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2830,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "gap_01",
+    "spike_01",
+    "saw_01",
+    "monster_01",
+    "laser_01",
+    "spike_02",
+    "switch_01"
+  ],
+  "difficulty": {
+    "jump": "petit",
+    "sawAmplitude": 23,
+    "spikeGroups": 2,
+    "spikesPerGroup": 2,
+    "monsters": 1,
+    "crates": 1,
+    "buttons": 1,
+    "cratePressurePads": 0,
+    "walls": 1,
+    "snowflakes": 3,
+    "shiftChanges": 1
+  },
+  "world2Modules": [
+    {
+      "crateId": "crate_01",
+      "wallId": "crate_wall_01",
+      "mustClimb": true,
+      "pressureId": null
+    }
+  ]
+}

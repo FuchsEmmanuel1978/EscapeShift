@@ -6,6 +6,7 @@ object DevConfig {
     const val UNLOCK_ALL_LEVELS = true     // Uniquement pour tester, ne change pas la sauvegarde
     const val SHOW_HITBOXES = false       // Cadres de collision pendant le jeu
     const val SHOW_DEBUG_STATS = true     // Position / niveau / nombre d'actions
-    const val START_LEVEL = 1            // Niveau lancé par le bouton JOUER (1..10)
+    const val FORCE_LANGUAGE = ""       // "" = langue Android; debug uniquement, ex: "ja", "de", "pt-BR"
+    const val START_LEVEL = 1            // Niveau lancé par le bouton JOUER (1..20)
     const val ALLOW_LEVEL_SHORTCUTS = true // Sur clavier : PageUp / PageDown
 }

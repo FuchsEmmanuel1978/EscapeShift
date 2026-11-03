@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 9,
+  "titleKey": "level_09_title",
+  "hintKey": "level_09_hint",
+  "intro": "CRATE_WALL",
+  "backtrackCount": 2,
+  "worldWidth": 3330,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "x": 450,
+        "width": 140,
+        "id": "gap_01"
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "starter_wall",
+      "type": "wall",
+      "x": 390,
+      "y": 328,
+      "width": 40,
+      "height": 116
+    },
+    {
+      "id": "starter_crate",
+      "type": "crate",
+      "x": 201,
+      "y": 400,
+      "width": 46,
+      "height": 44
+    },
+    {
+      "id": "starter_shift_bridge",
+      "type": "bridge",
+      "x": 450,
+      "y": 444,
+      "width": 140,
+      "height": 20
+    },
+    {
+      "id": "laser_red_01",
+      "type": "laser_red",
+      "x": 825,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 33
+    },
+    {
+      "id": "laser_blue_02",
+      "type": "laser_blue",
+      "x": 1080,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 56
+    },
+    {
+      "id": "spike_03",
+      "type": "spike",
+      "x": 1335,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "laser_timed_04",
+      "type": "laser_timed",
+      "x": 1590,
+      "y": 285,
+      "width": 16,
+      "height": 159,
+      "phase": 102,
+      "period": 120,
+      "activeTicks": 64
+    },
+    {
+      "id": "spike_05",
+      "type": "spike",
+      "x": 1845,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "conveyor_06",
+      "type": "conveyor",
+      "x": 2100,
+      "y": 438,
+      "width": 135,
+      "height": 6,
+      "phase": 28,
+      "speed": -145
+    },
+    {
+      "id": "monster_07",
+      "type": "monster",
+      "x": 2410,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 51,
+      "amplitude": 14,
+      "period": 130,
+      "offsetX": -4
+    },
+    {
+      "id": "laser_red_08",
+      "type": "laser_red",
+      "x": 2680,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 74
+    },
+    {
+      "id": "switch_09",
+      "type": "switch",
+      "x": 2935,
+      "y": 431,
+      "width": 48,
+      "height": 13,
+      "phase": 97
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 955,
+      "y": 356,
+      "width": 133,
+      "height": 20
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1540,
+      "y": 320,
+      "width": 140,
+      "height": 20
+    },
+    {
+      "id": "platform_03",
+      "type": "platform",
+      "x": 2065,
+      "y": 286,
+      "width": 135,
+      "height": 20
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 1009.5,
+      "y": 325,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 1598.0,
+      "y": 289,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_03",
+      "type": "coin",
+      "x": 2120.5,
+      "y": 255,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2550,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "laser_red_01",
+    "laser_blue_02",
+    "spike_03",
+    "laser_timed_04",
+    "spike_05",
+    "conveyor_06",
+    "monster_07",
+    "laser_red_08",
+    "switch_09"
+  ]
+}

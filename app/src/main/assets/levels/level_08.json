@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 8,
+  "titleKey": "level_08_title",
+  "hintKey": "level_08_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2770,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "spike_01",
+      "type": "spike",
+      "x": 385,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "laser_timed_02",
+      "type": "laser_timed",
+      "x": 640,
+      "y": 285,
+      "width": 16,
+      "height": 159,
+      "phase": 39,
+      "period": 120,
+      "activeTicks": 64
+    },
+    {
+      "id": "conveyor_03",
+      "type": "conveyor",
+      "x": 895,
+      "y": 438,
+      "width": 135,
+      "height": 6,
+      "phase": 62,
+      "speed": -145
+    },
+    {
+      "id": "monster_04",
+      "type": "monster",
+      "x": 1205,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 85,
+      "amplitude": 14,
+      "period": 130,
+      "offsetX": -4
+    },
+    {
+      "id": "spike_05",
+      "type": "spike",
+      "x": 1475,
+      "y": 398,
+      "width": 58,
+      "height": 46,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "laser_blue_06",
+      "type": "laser_blue",
+      "x": 1730,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 11
+    },
+    {
+      "id": "laser_red_07",
+      "type": "laser_red",
+      "x": 1985,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 34
+    },
+    {
+      "id": "spike_08",
+      "type": "spike",
+      "x": 2240,
+      "y": 398,
+      "width": 58,
+      "height": 46,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 965,
+      "y": 356,
+      "width": 133,
+      "height": 20
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1405,
+      "y": 320,
+      "width": 143,
+      "height": 20
+    },
+    {
+      "id": "platform_03",
+      "type": "platform",
+      "x": 1810,
+      "y": 286,
+      "width": 125,
+      "height": 20
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 1019.5,
+      "y": 325,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 1464.5,
+      "y": 289,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_03",
+      "type": "coin",
+      "x": 1860.5,
+      "y": 255,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2520,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "spike_01",
+    "laser_timed_02",
+    "conveyor_03",
+    "monster_04",
+    "spike_05",
+    "laser_blue_06",
+    "laser_red_07",
+    "spike_08"
+  ]
+}

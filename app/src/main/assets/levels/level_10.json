@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 10,
+  "titleKey": "level_10_title",
+  "hintKey": "level_10_hint",
+  "intro": "UPPER_PLATFORM",
+  "backtrackCount": 3,
+  "worldWidth": 4055,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "starter_upper_platform",
+      "type": "platform",
+      "x": 320,
+      "y": 363,
+      "width": 95,
+      "height": 19
+    },
+    {
+      "id": "spike_01",
+      "type": "spike",
+      "x": 695,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "saw_02",
+      "type": "saw",
+      "x": 950,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 73,
+      "amplitude": 55,
+      "period": 155,
+      "offsetX": 35
+    },
+    {
+      "id": "laser_timed_03",
+      "type": "laser_timed",
+      "x": 1205,
+      "y": 285,
+      "width": 16,
+      "height": 159,
+      "phase": 96,
+      "period": 120,
+      "activeTicks": 64
+    },
+    {
+      "id": "laser_red_04",
+      "type": "laser_red",
+      "x": 1460,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 119
+    },
+    {
+      "id": "laser_blue_05",
+      "type": "laser_blue",
+      "x": 1715,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 22
+    },
+    {
+      "id": "spike_06",
+      "type": "spike",
+      "x": 1970,
+      "y": 398,
+      "width": 58,
+      "height": 46,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "spring_07",
+      "type": "spring",
+      "x": 2225,
+      "y": 437,
+      "width": 45,
+      "height": 7,
+      "phase": 68
+    },
+    {
+      "id": "wall_after_spring_07",
+      "type": "wall",
+      "x": 2410,
+      "y": 298,
+      "width": 49,
+      "height": 146
+    },
+    {
+      "id": "conveyor_08",
+      "type": "conveyor",
+      "x": 2825,
+      "y": 438,
+      "width": 135,
+      "height": 6,
+      "phase": 91,
+      "speed": -145
+    },
+    {
+      "id": "monster_09",
+      "type": "monster",
+      "x": 3135,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 114,
+      "amplitude": 14,
+      "period": 130,
+      "offsetX": -4
+    },
+    {
+      "id": "spike_10",
+      "type": "spike",
+      "x": 3405,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 2,
+      "spacing": 3
+    },
+    {
+      "id": "switch_11",
+      "type": "switch",
+      "x": 3660,
+      "y": 431,
+      "width": 48,
+      "height": 13,
+      "phase": 40
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 860,
+      "y": 358,
+      "width": 120,
+      "height": 20
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1315,
+      "y": 323,
+      "width": 137,
+      "height": 20
+    },
+    {
+      "id": "platform_03",
+      "type": "platform",
+      "x": 1780,
+      "y": 286,
+      "width": 135,
+      "height": 20
+    },
+    {
+      "id": "platform_04",
+      "type": "platform",
+      "x": 2305,
+      "y": 340,
+      "width": 135,
+      "height": 20
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 355.5,
+      "y": 332,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 908.0,
+      "y": 327,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_03",
+      "type": "coin",
+      "x": 1371.5,
+      "y": 292,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_04",
+      "type": "coin",
+      "x": 1835.5,
+      "y": 255,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin_05",
+      "type": "coin",
+      "x": 2360.5,
+      "y": 309,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 3005,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "spike_01",
+    "saw_02",
+    "laser_timed_03",
+    "laser_red_04",
+    "laser_blue_05",
+    "spike_06",
+    "spring_07",
+    "conveyor_08",
+    "monster_09",
+    "spike_10",
+    "switch_11"
+  ]
+}

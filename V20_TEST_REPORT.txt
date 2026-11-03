@@ -1,0 +1,26 @@
+ESCAPE SHIFT V20 — TEST REPORT
+BASE: ESCAPE SHIFT V19 JSON, gameplay V18.1
+
+Static JSON: 20/20 files valid (Worlds 1+2)
+Kotlin automated tests (Android stubs): 47/47 PASS
+Rendering smoke: 20/20 levels, 3 display ratios
+Virtual player: 20/20 WINNING ROUTES
+Falling snowflakes: round Canvas objects, visual (non-lethal)
+Pressure plates: crate-only, levels 17..20
+
+World 2 difficulty & progression:
+N11  score=33.4  gap=90  saws=1  spikes=2x1  monsters=1  crates=1  buttons=1  plates=0  flakes=1  SHIFT=1
+N12  score=39.4  gap=94  saws=1  spikes=3x1  monsters=1  crates=1  buttons=1  plates=0  flakes=2  SHIFT=1
+N13  score=42.7  gap=100  saws=1  spikes=2x2  monsters=1  crates=1  buttons=1  plates=0  flakes=3  SHIFT=1
+N14  score=54.5  gap=113  saws=1  spikes=3x2  monsters=1  crates=1  buttons=1  plates=0  flakes=4  SHIFT=2
+N15  score=57.0  gap=118  saws=1  spikes=3x2  monsters=1  crates=1  buttons=1  plates=0  flakes=5  SHIFT=2
+N16  score=67.9  gap=123  saws=1  spikes=3x2  monsters=2  crates=2  buttons=1  plates=0  flakes=6  SHIFT=2
+N17  score=91.4  gap=128  saws=1  spikes=4x2  monsters=2  crates=2  buttons=2  plates=1  flakes=7  SHIFT=3
+N18  score=101.3  gap=145  saws=2  spikes=4x2  monsters=2  crates=2  buttons=2  plates=1  flakes=8  SHIFT=3
+N19  score=115.9  gap=149  saws=3  spikes=1x3  monsters=5  crates=3  buttons=2  plates=1  flakes=9  SHIFT=3
+N20  score=120.3  gap=155  saws=3  spikes=1x3  monsters=5  crates=3  buttons=2  plates=1  flakes=10  SHIFT=4
+
+Limits:
+- Simulator uses a deterministic bot path. FAIL does not necessarily mean impossible.
+- Full Android APK build has NOT been run; verify in Android Studio and on Xiaomi.
+- Google Play SDK requirements, privacy and ads must be checked before release.

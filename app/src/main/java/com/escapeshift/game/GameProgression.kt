@@ -4,7 +4,7 @@ import kotlin.math.max
 
 /** Persistent unlocked level and implemented playable levels are different things. */
 object GameProgression {
-    const val MAX_LEVEL = LevelCatalog.MAX_LEVEL // Ten playable levels.
+    const val MAX_LEVEL = LevelCatalog.MAX_LEVEL // 20 playable levels across worlds 1 and 2.
     const val DISPLAY_LEVELS = 10 // Slots shown in the level selection menu.
 
     fun safeUnlocked(value: Int): Int = value.coerceAtLeast(1)

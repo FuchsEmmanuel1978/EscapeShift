@@ -18,6 +18,7 @@ data class PlaytestResult(
  */
 object LevelPlaytester {
     fun test(level: Int): PlaytestResult {
+        if (level in 11..20) return World2Playtester.test(level)
         val w = GameWorld(level)
         val log = mutableListOf<String>()
         val trace = StringBuilder("tick,stage,x,y,crate,shift,key,switch,dead,won\n")
@@ -45,21 +46,21 @@ object LevelPlaytester {
                         when (phase) {
                             0 -> {
                                 cmd = GameInput(right=true)
-                                if (w.crateX >= 343.9f && w.grounded) { introChecks += "crate"; advance = true }
+                                if (w.crateX >= w.spec.objects.first { it.id == "starter_wall" }.x - (w.crateBox.right - w.crateBox.left) - .1f && w.grounded) { introChecks += "crate"; advance = true }
                             }
                             1 -> {
                                 cmd = GameInput(right=phaseTicks < 12, jump=phaseTicks == 0)
-                                if (phaseTicks > 20 && w.grounded && w.y < 370f) {
+                                if (phaseTicks > 20 && w.grounded && w.y < w.spec.objects.first { it.id == "starter_wall" }.y + 42f) {
                                     introChecks += "climbed"; advance = true
                                 }
                             }
                             2 -> {
                                 cmd = GameInput(right=true, jump=phaseTicks==0, shift=phaseTicks==0)
-                                if (w.x > 690f && w.grounded) { introChecks += "bridge"; advance = true }
+                                if (w.x > (w.bridge?.right ?: 590f) + 100f && w.grounded) { introChecks += "bridge"; advance = true }
                             }
                             3 -> {
                                 cmd = GameInput(right=true)
-                                if (w.x > 707f && w.grounded) advance = true
+                                if (w.x > (w.bridge?.right ?: 590f) + 117f && w.grounded) advance = true
                             }
                         }
                         if (advance) {
@@ -72,9 +73,9 @@ object LevelPlaytester {
                     }
                     StartType.SHIFT_BRIDGE -> {
                         when (phase) {
-                            0 -> { cmd=GameInput(right=true); if (w.x >= 210f) advance=true }
+                            0 -> { cmd=GameInput(right=true); if (w.x >= (w.bridge?.left ?: 300f) - 90f) advance=true }
                             1 -> { cmd=GameInput(shift=true); if (w.shiftOn) advance=true }
-                            2 -> { cmd=GameInput(right=true); if (w.x > 525f && w.grounded) advance=true }
+                            2 -> { cmd=GameInput(right=true); if (w.x > (w.bridge?.right ?: 440f) + 85f && w.grounded) advance=true }
                         }
                         if (advance) {
                             phase++; phaseTicks=0
@@ -84,12 +85,12 @@ object LevelPlaytester {
                     }
                     StartType.SPRING_WALL -> {
                         cmd=GameInput(right=true)
-                        if (w.x > 600f && w.grounded) {introDone=true; introChecks+="spring wall";continue}
+                        if (w.x > (w.spec.objects.first { it.id == "starter_spring_wall" }.x + w.spec.objects.first { it.id == "starter_spring_wall" }.width) + 88f && w.grounded) {introDone=true; introChecks+="spring wall";continue}
                     }
                     StartType.UPPER_PLATFORM -> {
                         when (phase) {
-                            0 -> {cmd=GameInput(right=true); if (w.x >= 220f) advance=true}
-                            1 -> {cmd=GameInput(right=true,jump=phaseTicks==0);if(w.x>490f && w.grounded)advance=true}
+                            0 -> {cmd=GameInput(right=true); if (w.x >= w.spec.objects.first { it.id == "starter_upper_platform" }.x - 100f) advance=true}
+                            1 -> {cmd=GameInput(right=true,jump=phaseTicks==0);if(w.x>w.spec.objects.first { it.id == "starter_upper_platform" }.x + w.spec.objects.first { it.id == "starter_upper_platform" }.width + 75f && w.grounded)advance=true}
                         }
                         if(advance){phase++;phaseTicks=0;if(phase==2){introDone=true;introChecks+="upper platform"};continue}
                     }
@@ -101,9 +102,10 @@ object LevelPlaytester {
                     cmd = GameInput(right=true)
                 } else {
                     val e = w.spec.challenges[eventIndex]
-                    val begin = e.x - when(e.type){ChallengeType.SAW->100f;ChallengeType.MONSTER->100f;ChallengeType.TIMED_LASER->85f;else->90f}
+                    val begin = e.x - when(e.type){ChallengeType.SAW->100f;ChallengeType.MONSTER->100f;ChallengeType.TIMED_LASER->85f;ChallengeType.GAP->110f;else->90f}
                     val finish = e.x + when(e.type){
                         ChallengeType.SPRING->291f
+                        ChallengeType.GAP->e.width+65f
                         ChallengeType.SAW->122f
                         ChallengeType.MONSTER->123f
                         ChallengeType.SPIKE->118f
@@ -113,7 +115,7 @@ object LevelPlaytester {
                     if(w.x < begin) cmd = GameInput(right=true)
                     else {
                         when(e.type){
-                            ChallengeType.SPIKE, ChallengeType.SAW, ChallengeType.MONSTER -> {
+                            ChallengeType.SPIKE, ChallengeType.SAW, ChallengeType.MONSTER, ChallengeType.GAP, ChallengeType.WALL -> {
                                 cmd=GameInput(right=true,jump=eventTicks==0)
                                 if(w.x>finish && w.grounded)advance=true
                             }
@@ -159,12 +161,12 @@ object LevelPlaytester {
                     cmd=GameInput(left=true)
                 } else {
                     val e=w.spec.challenges[reverseIndex]
-                    val begin=e.x+when(e.type){ChallengeType.SAW->145f;ChallengeType.MONSTER->145f;else->90f}
+                    val begin=e.x+when(e.type){ChallengeType.SAW->145f;ChallengeType.MONSTER->145f;ChallengeType.GAP->e.width+135f;else->90f}
                     val finish=e.x-100f
                     if(w.x>begin){cmd=GameInput(left=true)}
                     else {
                         when(e.type){
-                            ChallengeType.SPIKE, ChallengeType.SAW, ChallengeType.MONSTER -> {
+                            ChallengeType.SPIKE, ChallengeType.SAW, ChallengeType.MONSTER, ChallengeType.GAP, ChallengeType.WALL -> {
                                 cmd=GameInput(left=true,jump=eventTicks==0)
                                 if(w.x<finish && w.grounded)advance=true
                             }

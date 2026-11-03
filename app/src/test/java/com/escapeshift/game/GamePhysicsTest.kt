@@ -67,7 +67,7 @@ class GamePhysicsTest {
 
     @Test fun debugConfigIsExplicitAndLevelsRemainReal() {
         assertTrue(DevConfig.START_LEVEL in 1..10)
-        assertTrue(GameProgression.MAX_LEVEL==10)
+        assertTrue(GameProgression.MAX_LEVEL==20)
         assertFalse(GameProgression.isPlayable(9,1))
         assertTrue(GameProgression.isPlayable(9,9))
     }
@@ -79,8 +79,8 @@ class GamePhysicsTest {
             unlocked=GameProgression.afterWin(unlocked,level)
             assertTrue(unlocked==level+1)
         }
-        assertTrue(GameProgression.nextLevel(10,unlocked)==null)
-        assertTrue(GameProgression.latestPlayable(unlocked)==10)
+        assertEquals(11, GameProgression.nextLevel(10,unlocked))
+        assertTrue(GameProgression.latestPlayable(unlocked)==11)
     }
 
     @Test fun crateCanBePushedButOnlyWhenPresent() {
