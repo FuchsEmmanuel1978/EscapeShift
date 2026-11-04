@@ -20,8 +20,16 @@ object WorldCatalog {
     )
     fun world(index: Int): WorldInfo = worlds[index.coerceIn(1, WORLD_COUNT) - 1]
     fun clamp(index: Int): Int = index.coerceIn(1, WORLD_COUNT)
-    /** Worlds 1 and 2 have real JSON levels; 3..10 are placeholders. */
-    fun isPlayable(world: Int, level: Int): Boolean = world in 1..2 && level in 1..LEVELS_PER_WORLD
+    /** Worlds 1 and 2 retain their real V20 levels. Other worlds offer only level 1 previews. */
+    fun isPlayable(world: Int, level: Int): Boolean =
+        world in 1..WORLD_COUNT && level in 1..LEVELS_PER_WORLD && (world <= 2 || level == 1)
+
+    /** The first slot in each later world is a JSON preview of level 01. */
+    fun isPreviewLevel(number: Int): Boolean =
+        number in 11..91 && (number - 1) % LEVELS_PER_WORLD == 0
+
+    fun isAvailableLevel(number: Int): Boolean =
+        number in 1..20 || isPreviewLevel(number)
     fun totalSlots(): Int = WORLD_COUNT * LEVELS_PER_WORLD
     fun swipe(current: Int, dx: Float, dy: Float, minDistance: Float = 65f): Int {
         if (kotlin.math.abs(dx) < minDistance || kotlin.math.abs(dx) < kotlin.math.abs(dy) * 1.2f) return current

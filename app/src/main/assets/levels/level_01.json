@@ -6,7 +6,7 @@
   "hintKey": "level_01_hint",
   "intro": "OPEN",
   "backtrackCount": 0,
-  "worldWidth": 915,
+  "worldWidth": 1915,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -24,19 +24,30 @@
       "y": 421,
       "width": 34,
       "height": 23,
-      "count": 1,
+      "count": 3,
+      "spacing": 0
+    },
+    {
+      "id": "spike_02",
+      "type": "spike",
+      "x": 800,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 3,
       "spacing": 0
     },
     {
       "id": "exit_door",
       "type": "door",
-      "x": 665,
+      "x": 1665,
       "y": 354,
       "width": 65,
       "height": 90
     }
   ],
   "route": [
-    "spike_01"
+    "spike_01",
+    "spike_02"
   ]
 }

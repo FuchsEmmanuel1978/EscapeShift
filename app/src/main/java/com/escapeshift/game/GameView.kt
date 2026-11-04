@@ -42,11 +42,16 @@ class GameView(
     private val debugMode = DevConfig.ENABLED &&
         (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0)
     private val debugUnlockAll = debugMode && DevConfig.UNLOCK_ALL_LEVELS
-    private fun accessible(n: Int) = n in 1..GameProgression.MAX_LEVEL &&
-        (debugUnlockAll || GameProgression.isPlayable(n, unlocked))
+    /** Preview slots are always selectable without affecting save-game progression. */
+    private fun accessible(n: Int): Boolean = when {
+        WorldCatalog.isPreviewLevel(n) -> true
+        n in 1..GameProgression.MAX_LEVEL -> debugUnlockAll || GameProgression.isPlayable(n, unlocked)
+        else -> false
+    }
     private var screen = Screen.MENU
     private var unlocked = GameProgression.safeUnlocked(prefs.getInt("unlocked", 1))
     private var currentLevel = 1
+    private var previewSession = false
     private var lastTime = System.nanoTime()
     private var frameTime = 0f
     private var heroAnimTime = 0f
@@ -175,7 +180,7 @@ class GameView(
             heroAnimTime = 0f
         }
         if (won && !winSaved) {
-            if (GameProgression.isPlayable(currentLevel, unlocked)) {
+            if (!previewSession && GameProgression.isPlayable(currentLevel, unlocked)) {
                 unlocked = GameProgression.afterWin(unlocked, currentLevel)
                 prefs.edit().putInt("unlocked", unlocked).apply()
             }
@@ -186,7 +191,7 @@ class GameView(
         if ((won || dead) && !endOfLevelReported) {
             endOfLevelReported = true
             val resultWasVictory = won
-            onLevelFinished?.invoke(currentLevel, resultWasVictory) {
+            if (!previewSession) onLevelFinished?.invoke(currentLevel, resultWasVictory) {
                 screen == Screen.PLAY &&
                     if (resultWasVictory) won else dead
             }
@@ -327,14 +332,15 @@ class GameView(
     }
 
     private fun drawBackground(c: Canvas, heroX: Float = GameBackground.START_X) {
-        if (screen == Screen.PLAY && currentLevel in 11..20) {
-            // Same 3:1 panorama used on world-select. Move crop with the hero for parallaxe.
-            val progress = ((heroX - 78f) / (level.worldRight - 78f).coerceAtLeast(1f))
-                .coerceIn(0f, 1f)
-            worldBackgrounds.draw(c, 2, w, h, progress)
-        } else {
+        if (screen != Screen.PLAY) {
+            // Keep the familiar factory on the home menu.
             backgroundRenderer.draw(c, w, h, heroX)
+            return
         }
+        val chapter = ((currentLevel - 1) / 10 + 1).coerceIn(1, WorldCatalog.WORLD_COUNT)
+        val progress = ((heroX - level.spec.startX) / (level.worldRight - level.spec.startX).coerceAtLeast(1f))
+            .coerceIn(0f, 1f)
+        worldBackgrounds.draw(c, chapter, w, h, progress)
     }
 
     private fun drawMenu(c: Canvas) {
@@ -367,12 +373,12 @@ class GameView(
     private fun drawWorldPage(c: Canvas, number: Int) {
         val info = WorldCatalog.world(number)
         worldBackgrounds.draw(c, number, w, h,
-            parallax = (0.5f + 0.12f * (worldScroll - (number - 1))).coerceIn(0f, 1f))
+            parallax = (0.5f + 0.12f * (worldScroll - (number - 1))).coerceIn(0f, 1f), overlayAlpha = 58)
         // Readable but translucent panes, preserving a clear view of each landscape.
         val offset = GameViewport.centerOffset(w)
         c.save()
         c.translate(offset, 0f)
-        rounded(c, RectF(92f, 32f, 908f, 520f), 20f, alpha(panel, 161))
+        rounded(c, RectF(92f, 32f, 908f, 520f), 20f, alpha(panel, 104))
         rect(c, 108f, 48f, 892f, 52f, GameDesign.ORANGE)
         text(c, strings.t("world_count", "n" to number.toString().padStart(2, '0')), 130f, 98f, 24f, orangeLight, true)
         textFitted(c, strings.t(info.title), 130f, 145f, 43f, 440f, whiteSoft, true)
@@ -385,11 +391,11 @@ class GameView(
         for (i in 0 until WorldCatalog.LEVELS_PER_WORLD) {
             val x = 126f + (i % 5) * 151f
             val y = 204f + (i / 5) * 111f
-            val enabled = info.developed && accessible((number - 1) * 10 + i + 1)
+            val enabled = WorldCatalog.isPlayable(number, i + 1) && accessible((number - 1) * 10 + i + 1)
             // Shared graphic style from V15, no world-specific redesign.
             design.drawLevelTile(c, RectF(x, y, x + 117f, y + 91f), i + 1, enabled)
         }
-        if (!info.developed) textFitted(c, strings.t("slots_soon"), 161f, 447f, 19f, 696f, whiteSoft)
+        if (!info.developed) textFitted(c, strings.t("world_preview") + " • " + strings.t("slots_soon"), 161f, 447f, 19f, 696f, whiteSoft)
         else textFitted(c, strings.t("unlock_hint"), 200f, 447f, 20f, 640f, whiteSoft)
         design.drawMenuButton(c, RectF(340f, 463f, 660f, 514f), strings.t("back"), false)
         c.restore()
@@ -418,7 +424,9 @@ class GameView(
         selectedWorld = WorldCatalog.clamp(nextWorld)
     }
 
-    private fun nextAfterWin(): Int? = (currentLevel + 1).takeIf { accessible(it) }
+    /** A preview never chains into a future (unimplemented) level. */
+    private fun nextAfterWin(): Int? = if (previewSession) null
+        else (currentLevel + 1).takeIf { it <= GameProgression.MAX_LEVEL && accessible(it) }
 
     private fun drawOverlay(c: Canvas) {
         rect(c, 0f, 0f, w, h, Color.argb(215, 6, 13, 22))
@@ -442,11 +450,12 @@ class GameView(
         design.drawMenuButton(c, RectF(x, y, x + 320f, y + 72f), label, color != GameDesign.BLACK && label != strings.t("menu") && label != strings.t("back"))
     }
 
-    private fun startLevel(levelNumber: Int) {
+    private fun startLevel(levelNumber: Int, preview: Boolean = WorldCatalog.isPreviewLevel(levelNumber)) {
         if (!accessible(levelNumber)) return
         onLeaveResult?.invoke()
         currentLevel = levelNumber
-        world = GameWorld(currentLevel)
+        previewSession = preview
+        world = GameWorld(currentLevel, if (preview) WorldPreviewCatalog.create(levelNumber) else null)
         reset()
     }
 
@@ -512,7 +521,7 @@ class GameView(
                     if (!won) reset()
                     else {
                         val next = nextAfterWin()
-                        if (next != null) startLevel(next)
+                        if (next != null) startLevel(next, preview = false)
                         else { onLeaveResult?.invoke(); selectedWorld = ((currentLevel - 1) / 10) + 1; worldScroll = (selectedWorld - 1).toFloat(); screen = Screen.LEVELS; pressed.clear(); keyboardPressed.clear() }
                     }
                 } else if (x in 340f..660f && y in 405f..477f) {
@@ -540,7 +549,7 @@ class GameView(
                         if (cx in 340f..660f && y in 463f..514f) screen = Screen.MENU
                         else if (x in 10f..86f && y in 221f..320f) changeWorld(selectedWorld - 1)
                         else if (x in (w - 86f)..(w - 10f) && y in 221f..320f) changeWorld(selectedWorld + 1)
-                        else if (WorldCatalog.world(selectedWorld).developed) {
+                        else if (WorldCatalog.isPlayable(selectedWorld, 1)) {
                             for (i in 0 until WorldCatalog.LEVELS_PER_WORLD) {
                                 val bx = 126f + (i % 5) * 151f
                                 val by = 204f + (i / 5) * 111f
@@ -562,7 +571,8 @@ class GameView(
             if (event.actionMasked == MotionEvent.ACTION_UP) {
                 val (x, y) = centeredCoord(event.actionIndex)
                 if (screen == Screen.MENU && x in 340f..660f && y in 354f..426f) startLevel(
-                    if (debugMode) DevConfig.START_LEVEL.coerceIn(1, GameProgression.MAX_LEVEL) else GameProgression.latestPlayable(unlocked)
+                    if (debugMode) DevConfig.START_LEVEL.coerceIn(1, GameProgression.MAX_LEVEL) else GameProgression.latestPlayable(unlocked),
+                    preview = false // JOUER always uses the original V20 sequence, never a showcase.
                 )
                 else if (screen == Screen.MENU && x in 340f..660f && y in 443f..515f) screen = Screen.LEVELS
             }

@@ -3,12 +3,13 @@ import com.escapeshift.game.LevelJsonTest
 import com.escapeshift.game.GamePhysicsTest
 import com.escapeshift.game.BackgroundParallaxTest
 import com.escapeshift.game.GameViewportTest
+import com.escapeshift.game.WorldPreviewTest
 import com.escapeshift.game.WorldCatalogTest
 import org.junit.Test
 import com.escapeshift.game.InterstitialPolicyTest
 
 fun main() {
-    val suites = listOf(World2LevelTest(), LevelJsonTest(), GamePhysicsTest(), BackgroundParallaxTest(), GameViewportTest(), WorldCatalogTest(), InterstitialPolicyTest())
+    val suites = listOf(World2LevelTest(), LevelJsonTest(), GamePhysicsTest(), BackgroundParallaxTest(), GameViewportTest(), WorldCatalogTest(), WorldPreviewTest(), InterstitialPolicyTest())
     var failures = 0
     var total = 0
     suites.forEach { suite ->

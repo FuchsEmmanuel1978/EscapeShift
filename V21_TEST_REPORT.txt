@@ -1,0 +1,17 @@
+ESCAPE SHIFT V21 - Rapport de vérification
+
+Base V20: les 20 JSON de niveaux sont identiques octet pour octet.
+Backgrounds: 10/10 PNG (2172 x 724; format 3:1) présents dans les assets Android.
+Prévisualisations: 9/9 JSON de niveaux 11/21/31/41/51/61/71/81/91 reproduisent la géométrie du niveau 01.
+Simulateur niveaux réels V20: 20/20 parcours gagnants.
+Simulateur aperçu (même moteur physique): 9/9 parcours gagnants (132 ticks chacun).
+Compilateur Kotlin: vérification de tous les fichiers Kotlin avec interfaces Android simulées : OK.
+Test d'écran Android simulé: 10 pages monde x 3 formats + 10 aperçus + niveau 11 réel : OK.
+Traduction: 10/10 fichiers i18n avec les mêmes clés et les nouveaux titres de monde.
+
+Limitations:
+- Pas de compilation APK native ni test sur Xiaomi dans cet environnement.
+- Les fonds sont tous au bon format mais les recadrages originaux 3-5 restent ceux déjà livrés.
+- Les aperçus ne remplacent pas les véritables nouveaux niveaux (monde 3..10).
+- Les pubs réelles restent désactivées par défaut selon StartioConfig; la conformité Google Play doit être revérifiée avant une sortie.
+- Le projet V20 utilise targetSdk 35. Ne pas envoyer cette V21 sur Google Play sans mettre à jour les exigences Android/Play et tester la release.

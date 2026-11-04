@@ -47,7 +47,7 @@ data class MonsterSpawn(
 )
 
 /** Same V18.1 physics; the geometry is exclusively loaded from level JSONs. */
-class GameWorld(val levelNumber: Int = 1) {
+class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = null) {
     companion object {
         const val STEP = 1f / 60f
         const val SPEED = 250f
@@ -59,7 +59,7 @@ class GameWorld(val levelNumber: Int = 1) {
         const val CRATE_HEIGHT = 44f
         const val GROUND_Y = 444f
     }
-    val spec = LevelCatalog.create(levelNumber)
+    val spec = previewSpec ?: LevelCatalog.create(levelNumber)
     val worldRight = spec.worldRight
     private fun objects(type: String) = spec.objects.filter { it.type == type }
     private fun challenge(o: LevelObject, type: ChallengeType) = Challenge(

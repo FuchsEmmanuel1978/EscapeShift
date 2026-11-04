@@ -32,6 +32,10 @@ class MainActivity : Activity() {
             assets.open("levels/${LevelCatalog.filename(number)}")
                 .bufferedReader(Charsets.UTF_8).use { it.readText() }
         }
+        WorldPreviewCatalog.install { number ->
+            assets.open("previews/${WorldPreviewCatalog.filename(number)}")
+                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+        }
         @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
             or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
