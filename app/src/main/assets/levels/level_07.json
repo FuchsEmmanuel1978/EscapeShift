@@ -6,7 +6,7 @@
   "hintKey": "level_07_hint",
   "intro": "SPRING_WALL",
   "backtrackCount": 0,
-  "worldWidth": 2515,
+  "worldWidth": 3739,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -18,20 +18,20 @@
   },
   "objects": [
     {
-      "id": "starter_spring_wall",
-      "type": "wall",
-      "x": 460,
-      "y": 298,
-      "width": 52,
-      "height": 146
-    },
-    {
       "id": "starter_spring",
       "type": "spring",
       "x": 240,
       "y": 437,
       "width": 45,
       "height": 7
+    },
+    {
+      "id": "starter_spring_wall",
+      "type": "wall",
+      "x": 460,
+      "y": 298,
+      "width": 52,
+      "height": 146
     },
     {
       "id": "spike_01",
@@ -51,8 +51,8 @@
       "width": 33,
       "height": 39,
       "phase": 22,
-      "amplitude": 55,
-      "period": 155,
+      "amplitude": 78,
+      "period": 170,
       "offsetX": 35
     },
     {
@@ -94,10 +94,69 @@
       "spacing": 0
     },
     {
+      "id": "challenge_extra_01",
+      "type": "monster",
+      "x": 2270,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 80,
+      "amplitude": 53,
+      "period": 150,
+      "offsetX": 0
+    },
+    {
+      "id": "challenge_extra_02",
+      "type": "saw",
+      "x": 2555,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 68,
+      "amplitude": 91,
+      "period": 155,
+      "offsetX": 30
+    },
+    {
+      "id": "challenge_extra_03",
+      "type": "laser_timed",
+      "x": 2840,
+      "y": 285,
+      "width": 16,
+      "height": 159,
+      "phase": 52,
+      "period": 120,
+      "activeTicks": 58
+    },
+    {
+      "id": "exit_stair_01",
+      "type": "platform",
+      "x": 3135,
+      "y": 365,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_02",
+      "type": "platform",
+      "x": 3253,
+      "y": 291,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_03",
+      "type": "platform",
+      "x": 3371,
+      "y": 217,
+      "width": 138,
+      "height": 20
+    },
+    {
       "id": "exit_door",
       "type": "door",
-      "x": 2265,
-      "y": 354,
+      "x": 3489,
+      "y": 125,
       "width": 65,
       "height": 90
     }
@@ -108,6 +167,36 @@
     "spike_03",
     "laser_blue_04",
     "laser_red_05",
-    "spike_06"
+    "spike_06",
+    "challenge_extra_01",
+    "challenge_extra_02",
+    "challenge_extra_03"
+  ],
+  "designVersion": "world1_vertical_challenge_v22",
+  "traps": [
+    {
+      "id": "trap_07_01",
+      "type": "collapse_floor",
+      "x": 3200,
+      "y": 444,
+      "width": 92,
+      "height": 146,
+      "trigger": "player_on",
+      "radius": 20,
+      "delayTicks": 12,
+      "transitionTicks": 18
+    },
+    {
+      "id": "trap_07_02",
+      "type": "rising_spikes",
+      "x": 2640,
+      "y": 412,
+      "width": 52,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 24,
+      "transitionTicks": 18
+    }
   ]
 }

@@ -9,9 +9,11 @@ open class Context {
 }
 class SharedPreferences {
   fun getInt(k: String, default: Int): Int = default
+  fun getString(k: String, default: String?): String? = default
   fun edit(): Editor = Editor()
   class Editor {
     fun putInt(k: String, n: Int): Editor = this
+    fun putString(k: String, n: String): Editor = this
     fun apply(): Unit = Unit
   }
 }

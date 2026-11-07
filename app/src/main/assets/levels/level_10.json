@@ -26,6 +26,30 @@
       "height": 19
     },
     {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 355.5,
+      "y": 332,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "climb_bonus_01",
+      "type": "platform",
+      "x": 520,
+      "y": 366,
+      "width": 126,
+      "height": 20
+    },
+    {
+      "id": "climb_bonus_02",
+      "type": "platform",
+      "x": 637,
+      "y": 292,
+      "width": 126,
+      "height": 20
+    },
+    {
       "id": "spike_01",
       "type": "spike",
       "x": 695,
@@ -36,6 +60,38 @@
       "spacing": 3
     },
     {
+      "id": "climb_bonus_03",
+      "type": "platform",
+      "x": 754,
+      "y": 218,
+      "width": 126,
+      "height": 20
+    },
+    {
+      "id": "climb_bonus_coin_1",
+      "type": "coin",
+      "x": 790,
+      "y": 184,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 860,
+      "y": 358,
+      "width": 120,
+      "height": 20
+    },
+    {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 908.0,
+      "y": 327,
+      "width": 24,
+      "height": 24
+    },
+    {
       "id": "saw_02",
       "type": "saw",
       "x": 950,
@@ -43,8 +99,8 @@
       "width": 33,
       "height": 39,
       "phase": 73,
-      "amplitude": 55,
-      "period": 155,
+      "amplitude": 78,
+      "period": 170,
       "offsetX": 35
     },
     {
@@ -57,6 +113,22 @@
       "phase": 96,
       "period": 120,
       "activeTicks": 64
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1315,
+      "y": 323,
+      "width": 137,
+      "height": 20
+    },
+    {
+      "id": "coin_03",
+      "type": "coin",
+      "x": 1371.5,
+      "y": 292,
+      "width": 24,
+      "height": 24
     },
     {
       "id": "laser_red_04",
@@ -75,6 +147,22 @@
       "width": 15,
       "height": 144,
       "phase": 22
+    },
+    {
+      "id": "platform_03",
+      "type": "platform",
+      "x": 1780,
+      "y": 286,
+      "width": 135,
+      "height": 20
+    },
+    {
+      "id": "coin_04",
+      "type": "coin",
+      "x": 1835.5,
+      "y": 255,
+      "width": 24,
+      "height": 24
     },
     {
       "id": "spike_06",
@@ -96,6 +184,22 @@
       "phase": 68
     },
     {
+      "id": "platform_04",
+      "type": "platform",
+      "x": 2305,
+      "y": 340,
+      "width": 135,
+      "height": 20
+    },
+    {
+      "id": "coin_05",
+      "type": "coin",
+      "x": 2360.5,
+      "y": 309,
+      "width": 24,
+      "height": 24
+    },
+    {
       "id": "wall_after_spring_07",
       "type": "wall",
       "x": 2410,
@@ -108,10 +212,18 @@
       "type": "conveyor",
       "x": 2825,
       "y": 438,
-      "width": 135,
+      "width": 270,
       "height": 6,
       "phase": 91,
-      "speed": -145
+      "speed": -800
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 3005,
+      "y": 354,
+      "width": 65,
+      "height": 90
     },
     {
       "id": "monster_09",
@@ -120,9 +232,9 @@
       "y": 396,
       "width": 64,
       "height": 48,
-      "phase": 114,
-      "amplitude": 14,
-      "period": 130,
+      "phase": 75,
+      "amplitude": 39,
+      "period": 150,
       "offsetX": -4
     },
     {
@@ -143,86 +255,6 @@
       "width": 48,
       "height": 13,
       "phase": 40
-    },
-    {
-      "id": "platform_01",
-      "type": "platform",
-      "x": 860,
-      "y": 358,
-      "width": 120,
-      "height": 20
-    },
-    {
-      "id": "platform_02",
-      "type": "platform",
-      "x": 1315,
-      "y": 323,
-      "width": 137,
-      "height": 20
-    },
-    {
-      "id": "platform_03",
-      "type": "platform",
-      "x": 1780,
-      "y": 286,
-      "width": 135,
-      "height": 20
-    },
-    {
-      "id": "platform_04",
-      "type": "platform",
-      "x": 2305,
-      "y": 340,
-      "width": 135,
-      "height": 20
-    },
-    {
-      "id": "coin_01",
-      "type": "coin",
-      "x": 355.5,
-      "y": 332,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "coin_02",
-      "type": "coin",
-      "x": 908.0,
-      "y": 327,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "coin_03",
-      "type": "coin",
-      "x": 1371.5,
-      "y": 292,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "coin_04",
-      "type": "coin",
-      "x": 1835.5,
-      "y": 255,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "coin_05",
-      "type": "coin",
-      "x": 2360.5,
-      "y": 309,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "exit_door",
-      "type": "door",
-      "x": 3005,
-      "y": 354,
-      "width": 65,
-      "height": 90
     }
   ],
   "route": [
@@ -237,5 +269,33 @@
     "monster_09",
     "spike_10",
     "switch_11"
+  ],
+  "designVersion": "world1_floor_control_v22_1",
+  "traps": [
+    {
+      "id": "trap_10_01",
+      "type": "moving_exit",
+      "x": 3005,
+      "y": 354,
+      "width": 65,
+      "height": 90,
+      "trigger": "player_near",
+      "radius": 150,
+      "delayTicks": 15,
+      "transitionTicks": 18,
+      "travelX": -28
+    },
+    {
+      "id": "trap_10_02",
+      "type": "rising_spikes",
+      "x": 3540,
+      "y": 414,
+      "width": 54,
+      "height": 30,
+      "trigger": "player_jump",
+      "radius": 85,
+      "delayTicks": 22,
+      "transitionTicks": 18
+    }
   ]
 }

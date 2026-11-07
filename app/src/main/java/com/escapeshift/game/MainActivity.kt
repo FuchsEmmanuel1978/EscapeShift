@@ -18,7 +18,8 @@ class MainActivity : Activity() {
             onLevelFinished = { level, victory, stillOnResult ->
                 interstitials?.onLevelFinished(level, victory, stillOnResult)
             },
-            onLeaveResult = { interstitials?.cancelScheduled() }
+            onLeaveResult = { interstitials?.cancelScheduled() },
+            onPauseChanged = { paused -> if (paused) gameMusic?.pause() else gameMusic?.resume() }
         )
         gameView = view
         setContentView(view)
@@ -58,7 +59,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        gameMusic?.resume()
+        if (gameView?.isPaused != true) gameMusic?.resume()
         gameView?.resumeAudio()
         interstitials?.onResume()
     }

@@ -1,6 +1,6 @@
 package com.escapeshift.game
 object R { object drawable {
- const val world_01_factory=61; const val world_02_snow=62; const val world_03_egypt=63; const val world_04_candy=64; const val world_05_volcano=65; const val world_06_forest=66; const val world_07_orbit=67; const val world_08_ocean=68; const val world_09_city=69; const val world_10_cosmic=70; const val escape_factory_bg = 1; const val escape_splash = 3
+ const val world_01_factory=61; const val world_02_snow=62; const val world_03_egypt=63; const val world_04_candy=64; const val world_05_volcano=65; const val world_06_forest=66; const val world_07_orbit=67; const val world_08_ocean=68; const val world_09_city=69; const val world_10_cosmic=70; const val ground_factory_tile=49; const val escape_factory_bg = 1; const val escape_splash = 3
  const val hero_walk_01=4; const val hero_walk_02=5; const val hero_walk_03=6
  const val hero_walk_04=7; const val hero_walk_05=8; const val crate=9
  const val spike_industrial = 40; const val door_closed = 41; const val door_open = 42

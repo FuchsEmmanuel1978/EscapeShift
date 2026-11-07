@@ -152,6 +152,37 @@ object LevelJsonParser {
         require(objects.count { it.type == "bridge" } <= 1)
         require(objects.count { it.type == "crate" } <= if (declaredWorld == 1) 1 else 3)
         require(objects.count { it.type == "crate_switch" } <= 2)
+        val traps = (root["traps"]?.let { list(it, "traps") } ?: emptyList<Any?>()).mapIndexed { index, value ->
+            val t = map(value, "traps[$index]")
+            val id = str(t["id"], "traps[$index].id")
+            val type = str(t["type"], "$id.type")
+            require(type in setOf("collapse_floor", "rising_spikes", "surprise_wall", "moving_platform", "moving_exit", "reverse_zone")) {
+                "Unknown trap type $type on $id"
+            }
+            require(id.matches(Regex("[a-zA-Z0-9_]+")) && seenIds.add(id)) { "Invalid or duplicated trap ID $id" }
+            val trigger = (t["trigger"] as? String) ?: "player_near"
+            require(trigger in setOf("player_near", "player_on", "player_jump", "approach_fast", "player_enter")) {
+                "Invalid trigger $trigger on $id"
+            }
+            TrapDefinition(
+                id, type, number(t["x"], "$id.x"), number(t["y"], "$id.y"),
+                number(t["width"], "$id.width"), number(t["height"], "$id.height"), trigger,
+                optNum(t, "radius", 100f), optInt(t, "delayTicks", 12),
+                optInt(t, "durationTicks", 0), optNum(t, "travelX", 0f),
+                optNum(t, "travelY", 0f), optInt(t, "transitionTicks", 18),
+                optInt(t, "periodTicks", 180), optNum(t, "thresholdSpeed", 250f)
+            ).also { d ->
+                require(d.width > 0f && d.height > 0f && d.x >= 0f && d.x + d.width <= worldWidth)
+                require(d.radius >= 0f && d.delayTicks >= 0 && d.durationTicks >= 0 && d.transitionTicks > 0 && d.periodTicks > 0)
+                if (d.type == "collapse_floor") {
+                    require(d.y == groundY) { "$id: collapse floor must start at groundY" }
+                    require(gaps.none { g -> d.x < g.x + g.width && g.x < d.x + d.width }) {
+                        "$id intersects a permanent ground gap"
+                    }
+                }
+            }
+        }
+        require(traps.count { it.type == "moving_exit" } <= 1)
         val mapById = objects.associateBy { it.id }
         val routeNames = list(get("route"), "route").map { str(it, "route element") }
         require(routeNames.distinct().size == routeNames.size) { "Duplicate route entry" }
@@ -182,7 +213,8 @@ object LevelJsonParser {
             startX = spawnX, startY = spawnY,
             groundY = groundY, groundDepth = groundDepth,
             gaps = gaps,
-            objects = objects
+            objects = objects,
+            traps = traps
         )
     }
 }

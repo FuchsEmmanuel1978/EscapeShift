@@ -1,0 +1,30 @@
+ESCAPE SHIFT V22 - PLAYTEST REPORT
+Generated from the actual Kotlin physics and level JSONs.
+
+N01 PASS   470 ticks ( 7.83 s)  jumps=6  shifts=1  reversals=0   obstacles=8 
+N02 PASS   752 ticks (12.53 s)  jumps=9  shifts=2  reversals=0   obstacles=13
+N03 PASS   663 ticks (11.05 s)  jumps=6  shifts=2  reversals=0   obstacles=11
+N04 PASS   746 ticks (12.43 s)  jumps=7  shifts=2  reversals=0   obstacles=15
+N05 PASS   728 ticks (12.13 s)  jumps=8  shifts=1  reversals=0   obstacles=17
+N06 PASS   772 ticks (12.87 s)  jumps=6  shifts=1  reversals=2   obstacles=17
+N07 PASS   930 ticks (15.50 s)  jumps=9  shifts=1  reversals=0   obstacles=15
+N08 PASS   996 ticks (16.60 s)  jumps=10 shifts=1  reversals=0   obstacles=21
+N09 PASS   962 ticks (16.03 s)  jumps=5  shifts=3  reversals=2   obstacles=23
+N10 PASS  1179 ticks (19.65 s)  jumps=8  shifts=2  reversals=2   obstacles=27
+N11 PASS   702 ticks (11.70 s)  jumps=7  shifts=1  reversals=0   obstacles=12
+N12 PASS   776 ticks (12.93 s)  jumps=8  shifts=1  reversals=0   obstacles=14
+N13 PASS   702 ticks (11.70 s)  jumps=7  shifts=1  reversals=0   obstacles=14
+N14 PASS   841 ticks (14.02 s)  jumps=8  shifts=2  reversals=0   obstacles=17
+N15 PASS   915 ticks (15.25 s)  jumps=9  shifts=2  reversals=0   obstacles=19
+N16 PASS  1111 ticks (18.52 s)  jumps=11 shifts=2  reversals=0   obstacles=24
+N17 PASS  1314 ticks (21.90 s)  jumps=12 shifts=3  reversals=0   obstacles=29
+N18 PASS  1388 ticks (23.13 s)  jumps=13 shifts=3  reversals=0   obstacles=31
+N19 PASS  1709 ticks (28.48 s)  jumps=16 shifts=3  reversals=0   obstacles=35
+N20 PASS  1723 ticks (28.72 s)  jumps=16 shifts=4  reversals=0   obstacles=37
+Summary: 20/20 winning runs
+
+LEVELS 1..10: mandatory final climb: 1,2,3,4,5,7,8.
+Level 6/9/10: backtracking retained, elevated optional coin routes.
+Worlds 2..10 JSON/preview geometry preserved.
+This is a scripted winning-path validation, NOT an exhaustive automatic solver.
+Android native APK build still needs local validation.

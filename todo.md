@@ -59,4 +59,18 @@ Mondes
 9
 10:espace
 
+Objectif du package:
+ vitesse hero x1.2 ==> faire dans le fichier de config
+Enlever en haut Texte niveau x/10 
+Enlever en Le texte shift on ou off
+a la place du bouton menu mettre un bouton pause "||" en transparence. Si on clique dessus, plusieurs possibilité
+revenir au menu ou restart ou continue
+Floutage noir qui retrecie vers le hero dans le moins en moins transparent
 
+Animation:
+hero mort
+
+
+
+biss:
+bouton skip proposer apres plusieurs mort

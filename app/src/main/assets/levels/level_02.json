@@ -6,7 +6,7 @@
   "hintKey": "level_02_hint",
   "intro": "CRATE_WALL",
   "backtrackCount": 0,
-  "worldWidth": 1610,
+  "worldWidth": 3119,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -17,20 +17,12 @@
     "gaps": [
       {
         "x": 450,
-        "width": 140,
+        "width": 270,
         "id": "gap_01"
       }
     ]
   },
   "objects": [
-    {
-      "id": "starter_wall",
-      "type": "wall",
-      "x": 390,
-      "y": 328,
-      "width": 40,
-      "height": 116
-    },
     {
       "id": "starter_crate",
       "type": "crate",
@@ -40,11 +32,19 @@
       "height": 44
     },
     {
+      "id": "starter_wall",
+      "type": "wall",
+      "x": 390,
+      "y": 328,
+      "width": 40,
+      "height": 116
+    },
+    {
       "id": "starter_shift_bridge",
       "type": "bridge",
       "x": 450,
       "y": 444,
-      "width": 140,
+      "width": 270,
       "height": 20
     },
     {
@@ -67,16 +67,114 @@
       "phase": 57
     },
     {
+      "id": "challenge_extra_01",
+      "type": "spike",
+      "x": 1365,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "challenge_extra_02",
+      "type": "laser_blue",
+      "x": 1650,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 76
+    },
+    {
+      "id": "challenge_extra_03",
+      "type": "saw",
+      "x": 1935,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 20,
+      "amplitude": 76,
+      "period": 155,
+      "offsetX": 30
+    },
+    {
+      "id": "challenge_extra_04",
+      "type": "monster",
+      "x": 2220,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 110,
+      "amplitude": 38,
+      "period": 150,
+      "offsetX": 0
+    },
+    {
+      "id": "exit_stair_01",
+      "type": "platform",
+      "x": 2515,
+      "y": 365,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_02",
+      "type": "platform",
+      "x": 2633,
+      "y": 291,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_03",
+      "type": "platform",
+      "x": 2751,
+      "y": 217,
+      "width": 138,
+      "height": 20
+    },
+    {
       "id": "exit_door",
       "type": "door",
-      "x": 1360,
-      "y": 354,
+      "x": 2869,
+      "y": 125,
       "width": 65,
       "height": 90
     }
   ],
   "route": [
     "spike_01",
-    "laser_red_02"
+    "laser_red_02",
+    "challenge_extra_01",
+    "challenge_extra_02",
+    "challenge_extra_03",
+    "challenge_extra_04"
+  ],
+  "designVersion": "world1_floor_control_v22_1",
+  "traps": [
+    {
+      "id": "trap_02_01",
+      "type": "surprise_wall",
+      "x": 2445,
+      "y": 392,
+      "width": 39,
+      "height": 52,
+      "trigger": "player_near",
+      "radius": 95,
+      "delayTicks": 38,
+      "transitionTicks": 18
+    },
+    {
+      "id": "trap_02_02",
+      "type": "rising_spikes",
+      "x": 2050,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_jump",
+      "radius": 110,
+      "delayTicks": 20,
+      "transitionTicks": 18
+    }
   ]
 }

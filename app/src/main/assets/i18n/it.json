@@ -56,7 +56,7 @@
   "world_10_title": "CATTEDRALE COSMICA",
   "world_10_subtitle": "L’ultimo mondo",
   "level_01_title": "Primo salto",
-  "level_01_hint": "SALTA: evita gli spuntoni.",
+  "level_01_hint": "Evita le trappole e sali verso l’uscita!",
   "level_02_title": "La cassa",
   "level_02_hint": "Spingi la cassa e saltaci sopra per superare il muro.",
   "level_03_title": "Ponte fantasma",
@@ -66,7 +66,7 @@
   "level_05_title": "Tessera in alto",
   "level_05_hint": "Sali sulla piattaforma e trova la tessera gialla.",
   "level_06_title": "Ritorno obbligato",
-  "level_06_hint": "Supera l’uscita chiusa, prendi la tessera e TORNA INDIETRO.",
+  "level_06_hint": "Evita le pattuglie, prendi la tessera e torna indietro.",
   "level_07_title": "Salto potenziato",
   "level_07_hint": "Il trampolino ti lancia oltre il muro alto.",
   "level_08_title": "Nastro pericoloso",
@@ -96,5 +96,8 @@
   "level_20_title": "Vetta bloccata",
   "level_20_hint": "Lascia una cassa sulla piastra e cambia SHIFT 4 volte.",
   "required_plate": "CASSA SULLA PIASTRA!",
-  "world_preview": "LIVELLO ANTEPRIMA"
+  "world_preview": "LIVELLO ANTEPRIMA",
+  "pause_title": "PAUSA",
+  "resume": "CONTINUA",
+  "restart": "RICOMINCIA"
 }

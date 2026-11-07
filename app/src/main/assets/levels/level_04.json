@@ -6,7 +6,7 @@
   "hintKey": "level_04_hint",
   "intro": "OPEN",
   "backtrackCount": 0,
-  "worldWidth": 1680,
+  "worldWidth": 2904,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -49,28 +49,11 @@
       "spacing": 0
     },
     {
-      "id": "laser_red_04",
-      "type": "laser_red",
-      "x": 1150,
-      "y": 300,
-      "width": 15,
-      "height": 144,
-      "phase": 17
-    },
-    {
       "id": "platform_01",
       "type": "platform",
       "x": 1010,
       "y": 366,
       "width": 122,
-      "height": 20
-    },
-    {
-      "id": "platform_02",
-      "type": "platform",
-      "x": 1450,
-      "y": 332,
-      "width": 134,
       "height": 20
     },
     {
@@ -82,6 +65,35 @@
       "height": 24
     },
     {
+      "id": "laser_red_04",
+      "type": "laser_red",
+      "x": 1150,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 17
+    },
+    {
+      "id": "challenge_extra_01",
+      "type": "saw",
+      "x": 1435,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 123,
+      "amplitude": 82,
+      "period": 155,
+      "offsetX": 30
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1450,
+      "y": 332,
+      "width": 134,
+      "height": 20
+    },
+    {
       "id": "coin_02",
       "type": "coin",
       "x": 1505.0,
@@ -90,10 +102,55 @@
       "height": 24
     },
     {
+      "id": "challenge_extra_02",
+      "type": "monster",
+      "x": 1720,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 10,
+      "amplitude": 44,
+      "period": 150,
+      "offsetX": 0
+    },
+    {
+      "id": "challenge_extra_03",
+      "type": "laser_blue",
+      "x": 2005,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 21
+    },
+    {
+      "id": "exit_stair_01",
+      "type": "platform",
+      "x": 2300,
+      "y": 365,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_02",
+      "type": "platform",
+      "x": 2418,
+      "y": 291,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_03",
+      "type": "platform",
+      "x": 2536,
+      "y": 217,
+      "width": 138,
+      "height": 20
+    },
+    {
       "id": "exit_door",
       "type": "door",
-      "x": 1430,
-      "y": 354,
+      "x": 2654,
+      "y": 125,
       "width": 65,
       "height": 90
     }
@@ -102,6 +159,37 @@
     "spike_01",
     "laser_timed_02",
     "spike_03",
-    "laser_red_04"
+    "laser_red_04",
+    "challenge_extra_01",
+    "challenge_extra_02",
+    "challenge_extra_03"
+  ],
+  "designVersion": "world1_vertical_challenge_v22",
+  "traps": [
+    {
+      "id": "trap_04_01",
+      "type": "moving_exit",
+      "x": 2654,
+      "y": 125,
+      "width": 65,
+      "height": 90,
+      "trigger": "player_near",
+      "radius": 190,
+      "delayTicks": 22,
+      "transitionTicks": 18,
+      "travelX": -24
+    },
+    {
+      "id": "trap_04_02",
+      "type": "rising_spikes",
+      "x": 2310,
+      "y": 414,
+      "width": 57,
+      "height": 30,
+      "trigger": "player_near",
+      "radius": 70,
+      "delayTicks": 25,
+      "transitionTicks": 18
+    }
   ]
 }

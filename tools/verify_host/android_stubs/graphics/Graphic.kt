@@ -37,6 +37,12 @@ class Paint(flags:Int) {
  fun measureText(s:String):Float=s.length*textSize*0.5f
 }
 class Path {
+ enum class FillType { EVEN_ODD }
+ enum class Direction { CW, CCW }
+ var fillType: FillType = FillType.EVEN_ODD
+ fun addRect(l:Float,t:Float,r:Float,b:Float,dir:Direction){}
+ fun addCircle(cx:Float,cy:Float,radius:Float,dir:Direction){}
+ fun cubicTo(x1:Float,y1:Float,x2:Float,y2:Float,x3:Float,y3:Float){}
  fun moveTo(x:Float,y:Float){}
  fun lineTo(x:Float,y:Float){}
  fun close(){}

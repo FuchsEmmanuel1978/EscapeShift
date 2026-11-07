@@ -1,0 +1,24 @@
+{
+  "base": "ESCAPE_SHIFT_V23",
+  "patch": "ESCAPE_SHIFT_V23_1",
+  "updated": [
+    "app/src/main/java/com/escapeshift/game/GameView.kt",
+    "app/src/main/java/com/escapeshift/game/GamePhysics.kt",
+    "app/src/main/java/com/escapeshift/game/GameVisualConfig.kt",
+    "app/src/main/java/com/escapeshift/game/LevelPlaytester.kt",
+    "app/src/main/java/com/escapeshift/game/World2Playtester.kt",
+    "app/src/main/java/com/escapeshift/game/MainActivity.kt",
+    "app/build.gradle.kts",
+    "app/src/main/assets/i18n/en.json",
+    "app/src/main/assets/i18n/fr.json",
+    "app/src/main/assets/i18n/es.json",
+    "app/src/main/assets/i18n/pt-BR.json",
+    "app/src/main/assets/i18n/de.json",
+    "app/src/main/assets/i18n/it.json",
+    "app/src/main/assets/i18n/ja.json",
+    "app/src/main/assets/i18n/ko.json",
+    "app/src/main/assets/i18n/hi.json",
+    "app/src/main/assets/i18n/id.json"
+  ],
+  "added": []
+}

@@ -56,7 +56,7 @@
   "world_10_title": "KATEDRAL KOSMIK",
   "world_10_subtitle": "Dunia terakhir",
   "level_01_title": "Lompatan Pertama",
-  "level_01_hint": "LOMPAT: hindari duri.",
+  "level_01_hint": "Hindari jebakan, lalu panjat menuju pintu keluar!",
   "level_02_title": "Kotak",
   "level_02_hint": "Dorong kotak dan lompat ke atasnya untuk melewati dinding.",
   "level_03_title": "Jembatan Hantu",
@@ -66,7 +66,7 @@
   "level_05_title": "Kartu di Atas",
   "level_05_hint": "Naik ke platform dan temukan kartu kuning.",
   "level_06_title": "Harus Kembali",
-  "level_06_hint": "Lewati pintu terkunci, ambil kartu, lalu KEMBALI.",
+  "level_06_hint": "Hindari patroli, ambil kartu, lalu kembali.",
   "level_07_title": "Lompatan Tinggi",
   "level_07_hint": "Pegas melontarkanmu melewati dinding tinggi.",
   "level_08_title": "Konveyor Berbahaya",
@@ -96,5 +96,8 @@
   "level_20_title": "Puncak Terkunci",
   "level_20_hint": "Biarkan peti di pelat lalu ganti SHIFT empat kali.",
   "required_plate": "PETI DI ATAS PELAT!",
-  "world_preview": "LEVEL PRATINJAU"
+  "world_preview": "LEVEL PRATINJAU",
+  "pause_title": "JEDA",
+  "resume": "LANJUTKAN",
+  "restart": "MULAI ULANG"
 }

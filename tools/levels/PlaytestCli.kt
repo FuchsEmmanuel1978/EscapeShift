@@ -21,6 +21,7 @@ fun main(args: Array<String>) {
             failed++
             result.checks.filterNot { it.passed }.forEach { println("    ${it.name}") }
             result.events.takeLast(4).forEach { println("    $it") }
+            println("    TRACE_LAST: " + result.csv.lineSequence().filter { it.isNotBlank() }.last())
         }
         val traceFile = File("tools/levels/reports/level_%02d.csv".format(level))
         traceFile.parentFile.mkdirs()

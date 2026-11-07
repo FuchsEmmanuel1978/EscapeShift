@@ -56,7 +56,7 @@
   "world_10_title": "KOSMISCHE KATHEDRALE",
   "world_10_subtitle": "Die letzte Welt",
   "level_01_title": "Erster Sprung",
-  "level_01_hint": "SPRINGE: Weiche den Stacheln aus.",
+  "level_01_hint": "Weiche Fallen aus und klettere zum Ausgang!",
   "level_02_title": "Die Kiste",
   "level_02_hint": "Schiebe die Kiste und spring darauf, um die Mauer zu überwinden.",
   "level_03_title": "Geisterbrücke",
@@ -66,7 +66,7 @@
   "level_05_title": "Karte in der Höhe",
   "level_05_hint": "Klettere auf die Plattform und finde die gelbe Karte.",
   "level_06_title": "Zurück zum Ausgang",
-  "level_06_hint": "Geh am versperrten Ausgang vorbei, hol die Karte und KEHRE UM.",
+  "level_06_hint": "Weiche Patrouillen aus, hol die Karte und kehre zurück.",
   "level_07_title": "Sprungfeder",
   "level_07_hint": "Die Feder schleudert dich über die hohe Mauer.",
   "level_08_title": "Förderbandstress",
@@ -96,5 +96,8 @@
   "level_20_title": "Verriegelter Gipfel",
   "level_20_hint": "Lass die Kiste auf der Platte und schalte SHIFT 4-mal.",
   "required_plate": "KISTE AUF DIE PLATTE!",
-  "world_preview": "VORSCHAU-LEVEL"
+  "world_preview": "VORSCHAU-LEVEL",
+  "pause_title": "PAUSE",
+  "resume": "FORTSETZEN",
+  "restart": "NEU STARTEN"
 }

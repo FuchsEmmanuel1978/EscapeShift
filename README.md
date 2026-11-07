@@ -1,3 +1,11 @@
+# ESCAPE SHIFT V22 — Monde 1 rehaussé
+
+**Document principal : [README_V22.md](README_V22.md).** Cette version repart de la V21, conserve les 10 panoramas et les niveaux enneigés 11..20, mais élève la difficulté des niveaux 1..10.
+
+---
+
+## Historique V20
+
 # ESCAPE SHIFT V20 — Monde 2 / Cimes enneigées
 
 Base technique : V19 JSON (elle-même basée sur V18.1). Le système d'énigmes de l'ancienne V19 n'est PAS réintroduit.
@@ -93,3 +101,7 @@ La plaque s'active si une caisse couvre sa zone ; un joueur qui marche dessus ne
 Le vrai APK Android n'a pas été compilé dans cet environnement : **faire Build → Rebuild Project et tester sur le Xiaomi 12** avant GitHub et Google Play. Avant toute publication publique, actualiser le `targetSdk` selon les exigences Google Play en vigueur et vérifier la monétisation Start.io, notamment selon le public cible.
 
 Ne jamais mettre le fichier `.jks`, `key.properties` ou les mots de passe dans le dépôt GitHub.
+
+## Nouvelle version V24.0
+
+Voir [README_V24.md](README_V24.md) pour les pièges conditionnels, les cœurs, les 10 JSON du monde 1, le simulateur et la commande d'édition.

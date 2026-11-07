@@ -22,12 +22,37 @@ class GamePhysicsTest {
         assertTrue(GameWorld(9).hasCrate)
     }
 
-    @Test fun requiredActionsGrowAcrossCampaign() {
+    @Test fun worldOneStartsHarderAndTheLaterLevelsStayDemanding() {
         val counts = (1..10).map { LevelCatalog.create(it).challenges.size }
-        assertTrue(counts == listOf(1,2,3,4,4,5,6,8,9,11))
-        for(i in 1 until counts.size)assertTrue(counts[i] >= counts[i-1])
-        assertTrue(LevelPlaytester.test(10).jumps > LevelPlaytester.test(1).jumps)
-        assertTrue(LevelPlaytester.test(10).ticks > LevelPlaytester.test(1).ticks * 4)
+        assertTrue("Level 1 needs at least four obstacles", counts.first() >= 4)
+        assertTrue("Level 10 must have more challenges than level 1", counts.last() > counts.first())
+        val intro = LevelPlaytester.test(1)
+        assertTrue(intro.passed)
+        assertTrue("Level 1 should require multiple jumps", intro.jumps >= 5)
+        val finale = LevelPlaytester.test(10)
+        assertTrue(finale.jumps > intro.jumps)
+        assertTrue(finale.ticks > intro.ticks * 1.4)
+    }
+
+    @Test fun elevatedExitsRequireThreeVerticalClimbs() {
+        for (level in listOf(1, 2, 3, 4, 5, 7, 8)) {
+            val world = GameWorld(level)
+            val steps = world.spec.objects.filter { it.id.startsWith("exit_stair_") }.sortedBy { it.x }
+            assertEquals("Level $level must have three stair platforms", 3, steps.size)
+            assertTrue(steps.zipWithNext().all { (a, b) -> b.y < a.y })
+            assertTrue(world.exit.bottom < world.spec.groundY - 150f)
+            val result = LevelPlaytester.test(level)
+            assertTrue("Climb fails in level $level: ${result.checks}", result.passed)
+            assertTrue(result.events.count { it.startsWith("stair ") } == 3)
+        }
+    }
+
+    @Test fun movingHazardsHaveLargePatrolRanges() {
+        val all = (1..10).map { GameWorld(it) }
+        assertTrue(all.any { world -> world.saws.any { it.amplitude >= 75f } })
+        assertTrue(all.any { world -> world.monsters.any { it.amplitude >= 50f } })
+        assertTrue(GameWorld(6).saws.isNotEmpty())
+        assertTrue(GameWorld(6).monsters.isNotEmpty())
     }
 
     @Test fun backtrackingOccursOnThreeLevels() {
@@ -202,4 +227,51 @@ class GamePhysicsTest {
         assertFalse(w.dead)
         assertTrue(w.ticks==0)
     }
+
+    @Test fun longShiftBridgesAreEssentialToCrossTheGaps() {
+        for (level in listOf(2, 3, 6, 9)) {
+            val world = GameWorld(level)
+            val gap = world.spec.gaps.single()
+            assertTrue(gap.width >= 260f)
+            assertEquals(gap.width, world.bridge!!.right - world.bridge!!.left, 0.01f)
+        }
+        // A normal jump, launched at the near edge, cannot cross the level 3 gap.
+        // SHIFT bridges that same distance with the regular ground physics.
+        val base = LevelCatalog.create(3)
+        val gap = base.gaps.single()
+        val scenario = base.copy(startX = gap.x - 42f, startY = base.groundY - GameWorld.SIZE)
+        val noShift = GameWorld(3, scenario)
+        noShift.tick(GameInput())
+        repeat(120) { noShift.tick(GameInput(right=true, jump=it==0)) }
+        assertFalse(noShift.x >= gap.x + gap.width)
+        val withShift = GameWorld(3, scenario)
+        withShift.tick(GameInput(shift=true))
+        repeat(130) { if (withShift.x < gap.x + gap.width + 12f) withShift.tick(GameInput(right=true)) }
+        assertTrue(withShift.x >= gap.x + gap.width + 12f)
+        assertFalse(withShift.dead)
+    }
+
+    @Test fun worldOneBeltsNeedALongJumpNotJustWalking() {
+        for (level in listOf(8,9,10)) {
+            val b = GameWorld(level).conveyors.first()
+            assertEquals(270f, b.right - b.left, .1f)
+        }
+        val base=LevelCatalog.create(8)
+        val belt=base.objects.first { it.type == "conveyor" }
+        val scenario=base.copy(startX=belt.x-45f,startY=base.groundY-GameWorld.SIZE)
+        val walking=GameWorld(8,scenario)
+        walking.tick(GameInput())
+        repeat(150) { walking.tick(GameInput(right=true)) }
+        assertTrue(walking.x < belt.x + belt.width - 50f)
+        val jumping=GameWorld(8,scenario)
+        jumping.tick(GameInput())
+        var crossed=false
+        for (tick in 0..170) {
+            jumping.tick(GameInput(right=true, jump=tick==0))
+            if(jumping.x >= belt.x + belt.width + 2f) { crossed=true;break }
+            if(jumping.dead)break
+        }
+        assertTrue(crossed && !jumping.dead)
+    }
+
 }

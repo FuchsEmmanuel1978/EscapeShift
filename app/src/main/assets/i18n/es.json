@@ -56,7 +56,7 @@
   "world_10_title": "CATEDRAL CÓSMICA",
   "world_10_subtitle": "El último mundo",
   "level_01_title": "Primer salto",
-  "level_01_hint": "SALTA: evita los pinchos.",
+  "level_01_hint": "¡Esquiva trampas y sube hasta la salida!",
   "level_02_title": "La caja",
   "level_02_hint": "Empuja la caja y salta encima para superar el muro.",
   "level_03_title": "Puente fantasma",
@@ -66,7 +66,7 @@
   "level_05_title": "Tarjeta elevada",
   "level_05_hint": "Sube a la plataforma y encuentra la tarjeta amarilla.",
   "level_06_title": "Vuelta obligatoria",
-  "level_06_hint": "Pasa la salida cerrada, recoge la tarjeta y REGRESA.",
+  "level_06_hint": "Evita las patrullas, toma la tarjeta y regresa.",
   "level_07_title": "Salto propulsado",
   "level_07_hint": "El trampolín te lanza por encima del muro alto.",
   "level_08_title": "Cinta peligrosa",
@@ -96,5 +96,8 @@
   "level_20_title": "Cumbre cerrada",
   "level_20_hint": "Deja una caja en la placa y cambia SHIFT 4 veces.",
   "required_plate": "¡CAJA EN LA PLACA!",
-  "world_preview": "NIVEL DE PRUEBA"
+  "world_preview": "NIVEL DE PRUEBA",
+  "pause_title": "PAUSA",
+  "resume": "CONTINUAR",
+  "restart": "REINICIAR"
 }

@@ -37,7 +37,8 @@ data class LevelSpec(
     val groundY: Float,
     val groundDepth: Float,
     val gaps: List<GroundGap>,
-    val objects: List<LevelObject>
+    val objects: List<LevelObject>,
+    val traps: List<TrapDefinition> = emptyList()
 )
 
 data class MonsterSpawn(
@@ -60,6 +61,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         const val GROUND_Y = 444f
     }
     val spec = previewSpec ?: LevelCatalog.create(levelNumber)
+    val traps = TrapEngine(if (levelNumber in 1..10) spec.traps else emptyList())
     val worldRight = spec.worldRight
     private fun objects(type: String) = spec.objects.filter { it.type == type }
     private fun challenge(o: LevelObject, type: ChallengeType) = Challenge(
@@ -97,13 +99,15 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         return HitBox(xx, yy, xx + s.width, yy + s.height)
     }
     val bridge: HitBox? = objects("bridge").firstOrNull()?.box
-    val exit = objects("door").single().box
+    private val initialExit = objects("door").single().box
+    val exit: HitBox get() = traps.exit(initialExit)
 
     val blocks: List<HitBox> = buildList {
         // Ground is a single baseline with explicit empty intervals (gaps).
         // Widen a gap in JSON to make a jump longer; no hidden code must be changed.
         var cursor = 0f
-        for (gap in spec.gaps) {
+        val floorCuts = (spec.gaps + traps.floorDefinitions().map { GroundGap(it.id, it.x, it.width) }).sortedBy { it.x }
+        for (gap in floorCuts) {
             if (gap.x > cursor) add(HitBox(cursor, spec.groundY, gap.x, spec.groundY + spec.groundDepth))
             cursor = gap.x + gap.width
         }
@@ -113,6 +117,9 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     }
     /** The player can jump up THROUGH platforms, then stand on top. */
     val oneWayPlatforms: List<HitBox> = objects("platform").map { it.box }
+    val activePlatforms get() = oneWayPlatforms + traps.platforms()
+    val dynamicTrapViews get() = traps.views()
+    val dynamicGroundGaps get() = spec.gaps + traps.collapsedGaps()
     val spikes: List<HitBox> = objects("spike").flatMap { o ->
         (0 until o.count).map { index ->
             val left = o.x + index * (o.width + o.spacing)
@@ -126,7 +133,9 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val keys = objects("key").map { it.box }
     val switches = objects("switch").map { it.box }
     val conveyors = objects("conveyor").map { it.box }
-    private val conveyorSpeeds = objects("conveyor").map { it.box to it.speed }
+    private val conveyorSpeeds = objects("conveyor").map {
+        it.box to (if (levelNumber in 1..10) GameVisualConfig.WORLD1_CONVEYOR_SPEED else it.speed)
+    }
     val coins = objects("coin").map { it.box }
     val saws = objects("saw").map { challenge(it, ChallengeType.SAW) }
     val monsters: List<MonsterSpawn> = objects("monster").map { o ->
@@ -150,6 +159,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     private var jumpPrevious = false
     private var shiftPrevious = false
     private var springCooldown = 0
+    private var beltLeap = false
     private var monsterAlive = MutableList(monsters.size) { true }
     private var coinTaken = BooleanArray(coins.size)
     val coinsCollected: Int get() = coinTaken.count { it }
@@ -159,7 +169,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val crateBox get() = crateBoxes.firstOrNull() ?: HitBox(-5000f, -5000f, -4954f, -4956f)
     val exitUnlocked get() = (!spec.requiresKey || keyCollected) &&
         (switches.isEmpty() || switchActivated) && pressureReady
-    fun solids(): List<HitBox> = (blocks - oneWayPlatforms).let { if (shiftOn && bridge != null) it + bridge else it }
+    fun solids(): List<HitBox> = (blocks - oneWayPlatforms + traps.solids()).let { if (shiftOn && bridge != null) it + bridge else it }
     fun sawBox(saw: Challenge, t: Int = ticks): HitBox {
         val offset = saw.amplitude * sin((t + saw.phase) * (2 * Math.PI / saw.period.toDouble())).toFloat()
         val left = saw.x + saw.offsetX + offset
@@ -179,9 +189,10 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         cratePositions = crateConfigs.map { it.x }.toMutableList()
         shiftOn = false; dead = false; won = false; keyCollected = false; switchActivated = false
         switchTouched = BooleanArray(switches.size)
-        elapsed = 0f; ticks = 0; jumpPrevious = false; shiftPrevious = false; springCooldown = 0
+        elapsed = 0f; ticks = 0; jumpPrevious = false; shiftPrevious = false; springCooldown = 0; beltLeap = false
         monsterAlive = MutableList(monsters.size) { true }
         coinTaken = BooleanArray(coins.size)
+        traps.reset()
     }
 
     fun tick(input: GameInput) {
@@ -190,11 +201,35 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         elapsed += STEP
         if (input.shift && !shiftPrevious) shiftOn = !shiftOn
         shiftPrevious = input.shift
-        val direction = (if (input.right) 1 else 0) - (if (input.left) 1 else 0)
+        val rawDirection = (if (input.right) 1 else 0) - (if (input.left) 1 else 0)
+        val direction = if (traps.reverseControls(playerBox)) -rawDirection else rawDirection
         val conveyorBoost = if (grounded) conveyorSpeeds.firstOrNull { (box, _) -> playerBox.intersects(box.copy(top = box.top - 7f)) }?.second ?: 0f else 0f
-        vx = SPEED * direction + conveyorBoost
-        if (input.jump && !jumpPrevious && grounded) { vy = JUMP_SPEED; grounded = false }
+        val justJumped = input.jump && !jumpPrevious && grounded
+        if (justJumped) {
+            // The long belts cannot be crossed by walking: approach and jump with momentum.
+            beltLeap = levelNumber in 1..10 && conveyorSpeeds.any { (box, _) ->
+                direction > 0 && playerBox.right >= box.left - 65f &&
+                    playerBox.left < box.left && playerBox.bottom >= box.top - 16f
+            }
+            vy = JUMP_SPEED
+            grounded = false
+        }
+        vx = SPEED * GameVisualConfig.HERO_SPEED_MULTIPLIER * direction * (if (beltLeap && !grounded) GameVisualConfig.WORLD1_BELT_JUMP_MULTIPLIER else 1f) + conveyorBoost
         jumpPrevious = input.jump
+        val oldBox = playerBox
+        val platformBefore = traps.platforms()
+        traps.update(oldBox, oldBox, justJumped, vx)
+        // Carry the player along the platform they were standing on.
+        val platformAfter = traps.platforms()
+        if (grounded) for (i in platformBefore.indices) {
+            val previous = platformBefore[i]
+            if (oldBox.right > previous.left && oldBox.left < previous.right &&
+                kotlin.math.abs(oldBox.bottom - previous.top) < 3f) {
+                x += platformAfter[i].left - previous.left
+                y += platformAfter[i].top - previous.top
+                break
+            }
+        }
         val dx = vx * STEP
         x += dx
         for (i in crateConfigs.indices) {
@@ -222,17 +257,18 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         val previousTop = y
         y += vy * STEP
         grounded = false
-        for (solid in solids() + oneWayPlatforms + crateBoxes) {
+        for (solid in solids() + activePlatforms + crateBoxes) {
             if (!playerBox.intersects(solid)) continue
             if (vy >= 0f && previousBottom <= solid.top + 2f) {
                 y = solid.top - SIZE
                 vy = 0f
                 grounded = true
-            } else if (solid !in oneWayPlatforms && vy < 0f && previousTop >= solid.bottom - 2f) {
+            } else if (solid !in activePlatforms && vy < 0f && previousTop >= solid.bottom - 2f) {
                 y = solid.bottom
                 vy = 0f
             }
         }
+        if (grounded) beltLeap = false
         if (springCooldown > 0) springCooldown--
         if (grounded && springCooldown == 0 && springs.any { playerBox.intersects(it.copy(top = it.top - 3f)) }) {
             vy = SPRING_SPEED
@@ -266,7 +302,10 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             (!shiftOn && lasers.any { player.intersects(it) }) ||
             (shiftOn && invertedLasers.any { player.intersects(it) }) ||
             timedLasers.any { timedLaserActive(it) && player.intersects(timedLaserBox(it)) } ||
-            saws.any { player.intersects(sawBox(it)) }) dead = true
+            saws.any { player.intersects(sawBox(it)) } ||
+            traps.spikes().any { player.intersects(it) } ||
+            traps.views().any { it.type == "surprise_wall" && it.state == "active" && player.intersects(it.box) }
+        ) dead = true
         if (!dead && player.intersects(exit) && exitUnlocked) won = true
     }
 

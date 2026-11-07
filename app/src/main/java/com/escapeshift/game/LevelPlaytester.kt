@@ -36,6 +36,12 @@ object LevelPlaytester {
         val introChecks = mutableSetOf<String>()
         val visited = BooleanArray(w.spec.challenges.size)
         var riskTimeout = false
+        // Mandatory vertical staircase loaded exclusively from the level JSON.
+        // These platforms form the final ascent towards an elevated exit.
+        val exitStairs = w.spec.objects.filter { it.id.startsWith("exit_stair_") && it.type == "platform" }.sortedBy { it.x }
+        var stairIndex = 0
+        var stairMode = 0   // 0: approach / launch; 1: cross to platform and wait to land
+        var stairAirTicks = 0
         while (w.ticks < 9000 && !w.dead && !w.won) {
             var cmd = GameInput()
             var advance = false
@@ -56,11 +62,11 @@ object LevelPlaytester {
                             }
                             2 -> {
                                 cmd = GameInput(right=true, jump=phaseTicks==0, shift=phaseTicks==0)
-                                if (w.x > (w.bridge?.right ?: 590f) + 100f && w.grounded) { introChecks += "bridge"; advance = true }
+                                if (w.x > (w.bridge?.right ?: 590f) + 23f && w.grounded) { introChecks += "bridge"; advance = true }
                             }
                             3 -> {
                                 cmd = GameInput(right=true)
-                                if (w.x > (w.bridge?.right ?: 590f) + 117f && w.grounded) advance = true
+                                if (w.x > (w.bridge?.right ?: 590f) + 34f && w.grounded) advance = true
                             }
                         }
                         if (advance) {
@@ -75,7 +81,7 @@ object LevelPlaytester {
                         when (phase) {
                             0 -> { cmd=GameInput(right=true); if (w.x >= (w.bridge?.left ?: 300f) - 90f) advance=true }
                             1 -> { cmd=GameInput(shift=true); if (w.shiftOn) advance=true }
-                            2 -> { cmd=GameInput(right=true); if (w.x > (w.bridge?.right ?: 440f) + 85f && w.grounded) advance=true }
+                            2 -> { cmd=GameInput(right=true); if (w.x > (w.bridge?.right ?: 440f) + 45f && w.grounded) advance=true }
                         }
                         if (advance) {
                             phase++; phaseTicks=0
@@ -99,17 +105,45 @@ object LevelPlaytester {
             } else if (!returning) {
                 if(eventIndex >= w.spec.challenges.size) {
                     if(w.spec.backtrackCount>0){returning=true;reversals++;log+="return starts tick ${w.ticks}";continue}
-                    cmd = GameInput(right=true)
+                    if (stairIndex < exitStairs.size) {
+                        val target = exitStairs[stairIndex]
+                        val onTarget = w.grounded && kotlin.math.abs(w.y + GameWorld.SIZE - target.y) < 3f &&
+                            w.playerBox.right > target.x + 10f && w.x < target.x + target.width - 10f
+                        if (onTarget) {
+                            log += "stair ${stairIndex + 1} at tick ${w.ticks} x=${w.x.toInt()} y=${w.y.toInt()}"
+                            stairIndex++
+                            stairMode = 0
+                            stairAirTicks = 0
+                            continue
+                        }
+                        if (stairMode == 0) {
+                            if (!w.grounded) cmd = GameInput()
+                            else if (w.x < target.x - 80f) cmd = GameInput(right=true)
+                            else {
+                                cmd = GameInput(right=true, jump=true)
+                                stairMode = 1
+                                stairAirTicks = 0
+                            }
+                        } else {
+                            cmd = GameInput(right = stairAirTicks < 19)
+                            stairAirTicks++
+                            if (stairAirTicks > 95 && w.grounded) {
+                                // Allows retry if the first launch landed short.
+                                stairMode = 0
+                                stairAirTicks = 0
+                            }
+                        }
+                    } else cmd = GameInput(right=true)
                 } else {
                     val e = w.spec.challenges[eventIndex]
-                    val begin = e.x - when(e.type){ChallengeType.SAW->100f;ChallengeType.MONSTER->100f;ChallengeType.TIMED_LASER->85f;ChallengeType.GAP->110f;else->90f}
+                    val begin = e.x - when(e.type){ChallengeType.SAW->100f;ChallengeType.MONSTER->100f;ChallengeType.TIMED_LASER->85f;ChallengeType.GAP->110f;ChallengeType.CONVEYOR->37f;else->90f}
                     val finish = e.x + when(e.type){
                         ChallengeType.SPRING->291f
                         ChallengeType.GAP->e.width+65f
                         ChallengeType.SAW->122f
                         ChallengeType.MONSTER->123f
                         ChallengeType.SPIKE->118f
-                        ChallengeType.CONVEYOR->175f
+                        ChallengeType.CONVEYOR->e.width+5f
                         else->95f
                     }
                     if(w.x < begin) cmd = GameInput(right=true)
@@ -142,7 +176,7 @@ object LevelPlaytester {
                                 if(w.x>finish && w.grounded)advance=true
                             }
                             ChallengeType.CONVEYOR -> {
-                                cmd=GameInput(right=true)
+                                cmd=GameInput(right=true,jump=eventTicks==0)
                                 if(w.x>finish && w.grounded)advance=true
                             }
                         }
@@ -200,6 +234,13 @@ object LevelPlaytester {
             if(cmd.jump && !lastJump)jumps++
             if(cmd.shift && !lastShift)shifts++
             lastJump=cmd.jump;lastShift=cmd.shift
+            // At 1.2x run speed, short direction releases allow fine obstacle timing.
+            // These are real user inputs sent to the same physical game engine.
+            val stepPeriod = if (level in setOf(2, 8, 10)) 5 else 6
+            val stepOffset = if (stepPeriod == 5) 0 else 5
+            if (GameVisualConfig.HERO_SPEED_MULTIPLIER > 1f && w.ticks % stepPeriod == stepOffset && !cmd.jump) {
+                cmd = cmd.copy(left = false, right = false)
+            }
             w.tick(cmd)
             if(w.ticks%6==0 || w.dead || w.won) {
                 val stage=if(!introDone)"intro$phase" else if(returning)"return$reverseIndex" else "event$eventIndex"
@@ -215,6 +256,7 @@ object LevelPlaytester {
             PlaytestCheck("key obtained if needed",!w.spec.requiresKey||w.keyCollected),
             PlaytestCheck("switch triggered if needed",!w.spec.requiresSwitch||w.switchActivated),
             PlaytestCheck("backtrack executed if requested",w.spec.backtrackCount==0 || returning),
+            PlaytestCheck("all elevated exit platforms climbed", stairIndex == exitStairs.size),
             PlaytestCheck("no time-out",!riskTimeout)
         )
         return PlaytestResult(w.ticks,checks.all{it.passed},checks,log,trace.toString(),jumps,shifts,reversals)

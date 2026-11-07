@@ -6,7 +6,7 @@
   "hintKey": "level_01_hint",
   "intro": "OPEN",
   "backtrackCount": 0,
-  "worldWidth": 915,
+  "worldWidth": 2139,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -28,15 +28,76 @@
       "spacing": 0
     },
     {
+      "id": "challenge_extra_01",
+      "type": "laser_red",
+      "x": 670,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 38
+    },
+    {
+      "id": "challenge_extra_02",
+      "type": "saw",
+      "x": 955,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 0,
+      "amplitude": 73,
+      "period": 155,
+      "offsetX": 30
+    },
+    {
+      "id": "challenge_extra_03",
+      "type": "monster",
+      "x": 1240,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 72,
+      "amplitude": 35,
+      "period": 150,
+      "offsetX": 0
+    },
+    {
+      "id": "exit_stair_01",
+      "type": "platform",
+      "x": 1535,
+      "y": 365,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_02",
+      "type": "platform",
+      "x": 1653,
+      "y": 291,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_03",
+      "type": "platform",
+      "x": 1771,
+      "y": 217,
+      "width": 138,
+      "height": 20
+    },
+    {
       "id": "exit_door",
       "type": "door",
-      "x": 665,
-      "y": 354,
+      "x": 1889,
+      "y": 125,
       "width": 65,
       "height": 90
     }
   ],
   "route": [
-    "spike_01"
-  ]
+    "spike_01",
+    "challenge_extra_01",
+    "challenge_extra_02",
+    "challenge_extra_03"
+  ],
+  "designVersion": "preview_world1_v22"
 }

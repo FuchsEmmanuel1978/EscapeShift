@@ -56,7 +56,7 @@
   "world_10_title": "宇宙の大聖堂",
   "world_10_subtitle": "最後の世界",
   "level_01_title": "最初のジャンプ",
-  "level_01_hint": "ジャンプでトゲを避けよう。",
+  "level_01_hint": "トラップを避けて足場を登り、出口を目指そう！",
   "level_02_title": "箱を動かせ",
   "level_02_hint": "箱を押し、その上に乗って壁を越えよう。",
   "level_03_title": "幻の橋",
@@ -66,7 +66,7 @@
   "level_05_title": "高い場所のカード",
   "level_05_hint": "足場に登って黄色いカードを探そう。",
   "level_06_title": "引き返せ",
-  "level_06_hint": "閉まった出口を越えてカードを取り、戻ろう。",
+  "level_06_hint": "巡回ロボを避け、カードを取って戻ろう。",
   "level_07_title": "大ジャンプ",
   "level_07_hint": "ジャンプ台で高い壁を飛び越えよう。",
   "level_08_title": "ベルトの脅威",
@@ -96,5 +96,8 @@
   "level_20_title": "封鎖された山頂",
   "level_20_hint": "箱をスイッチに置き、SHIFTを4回切り替えよう。",
   "required_plate": "箱を床のスイッチに！",
-  "world_preview": "プレビュー"
+  "world_preview": "プレビュー",
+  "pause_title": "ポーズ",
+  "resume": "つづける",
+  "restart": "やり直す"
 }

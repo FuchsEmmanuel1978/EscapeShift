@@ -120,6 +120,9 @@ object World2Playtester {
             if (cmd.jump && !prevJump) jumps++
             if (cmd.shift && !prevShift) shifts++
             prevJump=cmd.jump;prevShift=cmd.shift
+            // Level 20's three fast scies need precise on/off taps at 1.2x speed.
+            if (level == 20 && GameVisualConfig.HERO_SPEED_MULTIPLIER > 1f && w.ticks % 6 == 5 && !cmd.jump)
+                cmd = cmd.copy(left = false, right = false)
             w.tick(cmd)
             if (w.ticks % 6 == 0 || w.dead || w.won) {
                 trace.append("${w.ticks},$stage,${w.x},${w.y},${w.crateX},${w.shiftOn},${w.keyCollected},${w.switchActivated},${w.dead},${w.won},${w.pressureReady}\n")

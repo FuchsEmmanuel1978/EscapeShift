@@ -5,8 +5,8 @@
   "titleKey": "level_06_title",
   "hintKey": "level_06_hint",
   "intro": "SHIFT_BRIDGE",
-  "backtrackCount": 1,
-  "worldWidth": 2090,
+  "backtrackCount": 3,
+  "worldWidth": 2640,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -17,7 +17,7 @@
     "gaps": [
       {
         "x": 300,
-        "width": 140,
+        "width": 270,
         "id": "gap_01"
       }
     ]
@@ -28,7 +28,15 @@
       "type": "bridge",
       "x": 300,
       "y": 444,
-      "width": 140,
+      "width": 270,
+      "height": 20
+    },
+    {
+      "id": "climb_bonus_01",
+      "type": "platform",
+      "x": 600,
+      "y": 366,
+      "width": 126,
       "height": 20
     },
     {
@@ -41,6 +49,38 @@
       "phase": 102
     },
     {
+      "id": "climb_bonus_02",
+      "type": "platform",
+      "x": 717,
+      "y": 292,
+      "width": 126,
+      "height": 20
+    },
+    {
+      "id": "climb_bonus_03",
+      "type": "platform",
+      "x": 834,
+      "y": 218,
+      "width": 126,
+      "height": 20
+    },
+    {
+      "id": "climb_bonus_coin_1",
+      "type": "coin",
+      "x": 870,
+      "y": 184,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 915,
+      "y": 352,
+      "width": 123,
+      "height": 20
+    },
+    {
       "id": "spike_02",
       "type": "spike",
       "x": 930,
@@ -49,6 +89,14 @@
       "height": 23,
       "count": 2,
       "spacing": 3
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 964.5,
+      "y": 321,
+      "width": 24,
+      "height": 24
     },
     {
       "id": "laser_timed_03",
@@ -62,33 +110,6 @@
       "activeTicks": 64
     },
     {
-      "id": "spike_04",
-      "type": "spike",
-      "x": 1440,
-      "y": 398,
-      "width": 58,
-      "height": 46,
-      "count": 1,
-      "spacing": 0
-    },
-    {
-      "id": "key_05",
-      "type": "key",
-      "x": 1695,
-      "y": 388,
-      "width": 27,
-      "height": 45,
-      "phase": 74
-    },
-    {
-      "id": "platform_01",
-      "type": "platform",
-      "x": 915,
-      "y": 352,
-      "width": 123,
-      "height": 20
-    },
-    {
       "id": "platform_02",
       "type": "platform",
       "x": 1408,
@@ -97,12 +118,14 @@
       "height": 20
     },
     {
-      "id": "coin_01",
-      "type": "coin",
-      "x": 964.5,
-      "y": 321,
-      "width": 24,
-      "height": 24
+      "id": "spike_04",
+      "type": "spike",
+      "x": 1440,
+      "y": 398,
+      "width": 58,
+      "height": 46,
+      "count": 1,
+      "spacing": 0
     },
     {
       "id": "coin_02",
@@ -119,6 +142,39 @@
       "y": 354,
       "width": 65,
       "height": 90
+    },
+    {
+      "id": "key_05",
+      "type": "key",
+      "x": 2315,
+      "y": 388,
+      "width": 27,
+      "height": 45,
+      "phase": 74
+    },
+    {
+      "id": "challenge_extra_01",
+      "type": "saw",
+      "x": 1710,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 50,
+      "amplitude": 76,
+      "period": 170,
+      "offsetX": 25
+    },
+    {
+      "id": "challenge_extra_02",
+      "type": "monster",
+      "x": 2010,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 30,
+      "amplitude": 52,
+      "period": 155,
+      "offsetX": 0
     }
   ],
   "route": [
@@ -126,6 +182,35 @@
     "spike_02",
     "laser_timed_03",
     "spike_04",
+    "challenge_extra_01",
+    "challenge_extra_02",
     "key_05"
+  ],
+  "designVersion": "world1_floor_control_v22_1",
+  "traps": [
+    {
+      "id": "trap_06_01",
+      "type": "rising_spikes",
+      "x": 2350,
+      "y": 170,
+      "width": 52,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 22,
+      "transitionTicks": 18
+    },
+    {
+      "id": "trap_06_02",
+      "type": "surprise_wall",
+      "x": 1850,
+      "y": 393,
+      "width": 36,
+      "height": 51,
+      "trigger": "player_jump",
+      "radius": 85,
+      "delayTicks": 30,
+      "transitionTicks": 18
+    }
   ]
 }

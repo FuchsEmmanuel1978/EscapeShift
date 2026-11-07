@@ -16,8 +16,10 @@ BACKUPS = Path(__file__).resolve().parent / 'backups'
 
 SUPPORTED = {'wall','platform','crate','bridge','spike','laser_red','laser_blue','laser_timed','spring','key','coin','switch','conveyor','saw','monster','door','crate_switch','snowflake'}
 ROUTEABLE = {'spike','laser_red','laser_blue','laser_timed','spring','key','switch','conveyor','saw','monster','wall'}
-INT_FIELDS = {'count', 'phase', 'period', 'activeTicks'}
-NUMBER_FIELDS = {'x','y','width','height','count','spacing','phase','period','activeTicks','amplitude','offsetX','speed'}
+INT_FIELDS = {'count', 'phase', 'period', 'activeTicks', 'delayTicks', 'durationTicks', 'transitionTicks', 'periodTicks'}
+NUMBER_FIELDS = {'x','y','width','height','count','spacing','phase','period','activeTicks','amplitude','offsetX','speed', 'radius', 'delayTicks', 'durationTicks', 'transitionTicks', 'periodTicks', 'travelX', 'travelY', 'thresholdSpeed'}
+TRAP_TYPES = {'collapse_floor', 'rising_spikes', 'surprise_wall', 'moving_platform', 'moving_exit', 'reverse_zone'}
+TRIGGERS = {'player_near', 'player_on', 'player_jump', 'approach_fast', 'player_enter'}
 
 def path_for(n):
     if not 1 <= n <= 20: raise ValueError('Only levels 1..20 exist')
@@ -60,6 +62,27 @@ def validate(d):
         if isinstance(w,(int,float)):expect(x+count*w+(count-1)*spacing<=width+1e-5,f'{ident} out of world')
         period=o.get('period',120);active=o.get('activeTicks',64)
         expect(isinstance(period,int) and period>0 and 0<active<=period,f'bad period {ident}')
+    traps=d.get('traps',[])
+    expect(isinstance(traps,list),'traps must be a list')
+    for t in traps:
+        ident=t.get('id')
+        expect(isinstance(ident,str) and ident not in seen, f'invalid or repeated trap id {ident}')
+        seen.add(ident)
+        kind=t.get('type')
+        expect(kind in TRAP_TYPES, f'unknown trap type: {kind}')
+        expect(t.get('trigger','player_near') in TRIGGERS, f'invalid trigger {ident}')
+        x=t.get('x',-1);y=t.get('y');w=t.get('width',-1);h=t.get('height',-1)
+        expect(all(isinstance(v,(int,float)) for v in (x,y,w,h)),f'invalid trap geometry: {ident}')
+        if all(isinstance(v,(int,float)) for v in (x,y,w,h)):
+            expect(x>=0 and w>0 and h>0 and x+w<=width, f'invalid trap bounds {ident}')
+        for k in ('radius','delayTicks','durationTicks'):
+            expect(isinstance(t.get(k,0),(int,float)) and t.get(k,0)>=0, f'invalid {ident}.{k}')
+        for k in ('transitionTicks','periodTicks'):
+            expect(isinstance(t.get(k,1),int) and t.get(k,1)>0, f'invalid {ident}.{k}')
+        if kind=='collapse_floor':
+            expect(y==ground.get('y'), f'{ident} must be at ground.y')
+            expect(all(not (x<g['x']+g['width'] and g['x']<x+w) for g in ground.get('gaps', [])),f'{ident} intersects gap')
+    expect(sum(t.get('type')=='moving_exit' for t in traps)<=1,'only one moving exit')
     expect(sum(o.get('type')=='door' for o in objects)==1,'exactly one door required')
     expect(sum(o.get('type')=='crate' for o in objects) <= (1 if d.get('world') == 1 else 3), 'too many crates')
     expect(sum(o.get('type')=='bridge' for o in objects)<=1,'only one SHIFT bridge supported currently')
@@ -73,14 +96,16 @@ def validate(d):
     expect(0<=d.get('backtrackCount',0)<=len(route),'bad backtrackCount')
     return errors
 
-def edit(level,object_id,gap_id,assignments):
+def edit(level,object_id,gap_id,trap_id,assignments):
     d=load(level)
     if object_id:
         matches=[o for o in d['objects'] if o.get('id')==object_id]
+    elif trap_id:
+        matches=[o for o in d.get('traps',[]) if o.get('id')==trap_id]
     else:
         matches=[o for o in d['ground']['gaps'] if o.get('id')==gap_id]
     if len(matches)!=1:
-        raise ValueError(f'Unknown {"object" if object_id else "gap"}: {object_id or gap_id}')
+        raise ValueError(f'Unknown object/gap/trap: {object_id or gap_id or trap_id}')
     target=matches[0]
     for a in assignments:
         if '=' not in a:raise ValueError(f'Use FIELD=NUMBER, got {a}')
@@ -130,6 +155,11 @@ def preview(d,output):
         else:
             ax.add_patch(Rectangle((x,y),w,h,color=palette.get(t,'#eff1f2'),alpha=.9))
         if t!='coin':ax.text(x,y-5,o['id'],color='#f4f4f4',fontsize=6,rotation=45)
+    trapPalette={'collapse_floor':'#ff8750','rising_spikes':'#e83232','surprise_wall':'#ffcb52','moving_platform':'#72dcff','moving_exit':'#a0f4b7','reverse_zone':'#9955ff'}
+    for tr in d.get('traps',[]):
+        ax.add_patch(Rectangle((tr['x'],tr['y']),tr['width'],tr['height'],
+            fill=False,edgecolor=trapPalette.get(tr['type'],'white'),linewidth=1.7,linestyle='--'))
+        ax.text(tr['x'],tr['y']-7,tr['type'],color=trapPalette.get(tr['type'],'white'),fontsize=7)
     start=d['playerStart'];ax.scatter([start['x']],[start['y']],s=65,c='#ffbf77',marker='o',label='Player start')
     report=Path(__file__).resolve().parent/'reports'/f"level_{d['level']:02d}.csv"
     if report.is_file():
@@ -155,7 +185,8 @@ def score(d):
     saw_sweep = sum(o.get('amplitude',0)*.025 for o in d['objects'] if o['type']=='saw')
     jump_distance = sum(g['width']*.025 for g in d['ground']['gaps'])
     pressure_puzzle = 6*counter.get('crate_switch',0)
-    return round(sum(weights.get(k,0)*v for k,v in counter.items()) + fine_spikes + saw_sweep + jump_distance + pressure_puzzle + .004*d['worldWidth'] + 3*d.get('backtrackCount',0), 1)
+    trapScore = sum({'collapse_floor':5,'rising_spikes':4,'surprise_wall':4,'moving_exit':4,'reverse_zone':6,'moving_platform':3}.get(t['type'],0) for t in d.get('traps',[]))
+    return round(sum(weights.get(k,0)*v for k,v in counter.items()) + trapScore + fine_spikes + saw_sweep + jump_distance + pressure_puzzle + .004*d['worldWidth'] + 3*d.get('backtrackCount',0), 1)
 
 def main():
     ap=argparse.ArgumentParser(description='Edit and validate ESCAPE SHIFT worlds 1 & 2 levels')
@@ -166,7 +197,7 @@ def main():
     p=sub.add_parser('edit',help='Update coordinates or dimensions, with automatic backup')
     p.add_argument('level',type=int)
     selector=p.add_mutually_exclusive_group(required=True)
-    selector.add_argument('--object',dest='object_id');selector.add_argument('--gap',dest='gap_id')
+    selector.add_argument('--object',dest='object_id');selector.add_argument('--gap',dest='gap_id');selector.add_argument('--trap',dest='trap_id')
     p.add_argument('--set',action='append',required=True,metavar='FIELD=NUMBER')
     args=ap.parse_args()
     if args.command=='check':
@@ -183,6 +214,9 @@ def main():
         for item in d['ground']['gaps']:print(f'  {item["id"]:28s} x={item["x"]:6} width={item["width"]}')
         print('Objects:')
         for item in d['objects']:print(f'  {item["id"]:28s} {item["type"]:15s} x={item["x"]:6} y={item["y"]:6} w={item["width"]:5} h={item["height"]:5}')
+        print('Event traps:')
+        for t in d.get('traps',[]):
+            print(f'  {t["id"]:28s} {t["type"]:15s} x={t["x"]} y={t["y"]} trigger={t.get("trigger","player_near")} delay={t.get("delayTicks",12)}')
         print('Route:', ' → '.join(d['route']))
     elif args.command=='preview':
         d=load(args.level);errors=validate(d)

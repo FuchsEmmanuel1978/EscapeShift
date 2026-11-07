@@ -23,7 +23,8 @@ import kotlin.math.ceil
 class GameView(
     context: Context,
     private val onLevelFinished: ((Int, Boolean, () -> Boolean) -> Unit)? = null,
-    private val onLeaveResult: (() -> Unit)? = null
+    private val onLeaveResult: (() -> Unit)? = null,
+    private val onPauseChanged: ((Boolean) -> Unit)? = null
 ) : View(context) {
     private var w = 1000f // Dynamic virtual viewport width: screen fills horizontally.
     private val h = 560f
@@ -38,7 +39,23 @@ class GameView(
     private var worldTouchStartValid = false
     private val strings = GameStrings(context)
     private val design = GameDesign(context, strings)
+    private val factoryGround = FactoryGround(context)
     private val prefs = context.getSharedPreferences("escape_shift", Context.MODE_PRIVATE)
+    /** Unique coin IDs across ALL finished/unfinished levels, persisted on the phone. */
+    private val savedCoinIds = prefs.getString("all_coins_v1", "")
+        ?.split('|')?.filter { it.isNotBlank() }?.toMutableSet() ?: mutableSetOf<String>()
+    private fun rememberCoins() {
+        if (previewSession) return
+        var changed = false
+        val coinObjects = level.spec.objects.filter { it.type == "coin" }
+        for (i in coinObjects.indices) {
+            if (!level.isCoinVisible(i)) {
+                changed = savedCoinIds.add("${currentLevel}:${coinObjects[i].id}") || changed
+            }
+        }
+        if (changed) prefs.edit().putString("all_coins_v1", savedCoinIds.sorted().joinToString("|")).apply()
+    }
+
     private val debugMode = DevConfig.ENABLED &&
         (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0)
     private val debugUnlockAll = debugMode && DevConfig.UNLOCK_ALL_LEVELS
@@ -74,6 +91,12 @@ class GameView(
     private val won get() = world.won
     private var cameraX = 0f
     private var hintTime = 0f
+    private var isGamePaused = false
+    private var deathIrisElapsed = 0f
+    private var hearts = GameVisualConfig.MAX_HEARTS
+    private var respawnCount = 0
+    val isPaused: Boolean get() = isGamePaused
+    private val pauseButton get() = RectF(w - 125f, 11f, w - 22f, 54f)
 
     private val heroFrames = listOf(
         loadSprite(R.drawable.hero_walk_01),
@@ -120,13 +143,19 @@ class GameView(
         val now = System.nanoTime()
         val dt = min(0.035f, (now - lastTime) / 1_000_000_000f)
         lastTime = now
-        if (screen == Screen.PLAY && !dead && !won) update(dt)
+        if (screen == Screen.PLAY && !isGamePaused && !dead && !won) update(dt)
+        if (screen == Screen.PLAY && dead && !isGamePaused) {
+            val duration = if (hearts > 1) GameVisualConfig.RESPAWN_IRIS_SECONDS
+                else GameVisualConfig.DEATH_IRIS_DURATION_SECONDS
+            deathIrisElapsed = min(duration, deathIrisElapsed + dt)
+            if (hearts > 1 && deathIrisElapsed >= duration) respawnAfterDeath()
+        }
         if (screen == Screen.LEVELS) {
             val target = (selectedWorld - 1).toFloat()
             worldScroll += (target - worldScroll) * (1f - exp(-dt * 14f))
             if (abs(target - worldScroll) < 0.002f) worldScroll = target
         }
-        if (screen != Screen.PLAY || dead || won) {
+        if (screen != Screen.PLAY || isGamePaused || dead || won) {
             for (type in listOf("laser", "saw", "monster", "conveyor")) gameAudio.updateAmbient(type, null)
         }
         when (screen) {
@@ -162,7 +191,7 @@ class GameView(
             if (world.shiftOn != oldShift) gameAudio.oneShot("shift")
             if (world.vy < -250f && oldVy >= -1f) gameAudio.oneShot(if (world.vy < -500f) "spring" else "jump")
             if (!oldGrounded && world.grounded && oldVy > 50f) gameAudio.oneShot("land", .25f)
-            if (world.coinsCollected > oldCoins) gameAudio.oneShot("coin")
+            if (world.coinsCollected > oldCoins) { gameAudio.oneShot("coin"); rememberCoins() }
             if (world.keyCollected && !oldKey) gameAudio.oneShot("key")
             if (world.crateBoxes.map { it.left }.zip(oldCrates).any { (now, old) -> abs(now - old) > .3f } && world.ticks - lastPushSoundTick > 14) {
                 gameAudio.oneShot("crate", .22f); lastPushSoundTick = world.ticks
@@ -188,7 +217,7 @@ class GameView(
         }
         // Exactly one game result notification per attempt: victory OR defeat.
         // The callback is raised only after the physics engine ends the level.
-        if ((won || dead) && !endOfLevelReported) {
+        if ((won || (dead && hearts <= 1)) && !endOfLevelReported) {
             endOfLevelReported = true
             val resultWasVictory = won
             if (!previewSession) onLevelFinished?.invoke(currentLevel, resultWasVictory) {
@@ -216,7 +245,7 @@ class GameView(
     }
 
     fun pauseAudio() = gameAudio.pause()
-    fun resumeAudio() = gameAudio.resume()
+    fun resumeAudio() { if (!isGamePaused) gameAudio.resume() }
     fun releaseAudio() = gameAudio.release()
 
     private fun drawGame(c: Canvas) {
@@ -225,7 +254,13 @@ class GameView(
         c.save()
         c.translate(-cameraX, 0f)
 
-        for (b in level.blocks) drawPlatform(c, RectF(b.left, b.top, b.right, b.bottom))
+        for (b in level.blocks) {
+            // World 1 floor is now rendered once, in the FOREGROUND, using repeated PNG tiles.
+            // Explicit ground.gaps have no tiles and remain completely empty.
+            if (currentLevel in 1..10 && b.top == level.spec.groundY &&
+                b.bottom == level.spec.groundY + level.spec.groundDepth) continue
+            drawPlatform(c, RectF(b.left, b.top, b.right, b.bottom))
+        }
 
         for (crate in level.crateBoxes) drawCrate(c, RectF(crate.left, crate.top, crate.right, crate.bottom))
 
@@ -258,18 +293,26 @@ class GameView(
         for (i in level.monsters.indices) if (level.isMonsterAlive(i)) drawMonster(c, RectF(level.monsterBox(i).left, level.monsterBox(i).top, level.monsterBox(i).right, level.monsterBox(i).bottom))
         for (saw in level.saws) drawSaw(c, RectF(level.sawBox(saw).left, level.sawBox(saw).top, level.sawBox(saw).right, level.sawBox(saw).bottom))
         for (s in level.spikes) design.drawSpike(c, RectF(s.left, s.top, s.right, s.bottom))
+        drawDynamicTraps(c)
         for (i in level.coins.indices) if(level.isCoinVisible(i)) design.drawCoin(c, level.coins[i], level.ticks)
         if (!level.keyCollected) for (key in level.keys) drawKey(c, RectF(key.left, key.top, key.right, key.bottom))
 
         val locked = !level.exitUnlocked
         design.drawDoor(c, RectF(level.exit.left, level.exit.top, level.exit.right, level.exit.bottom), locked)
-        text(c, if (locked) (if (!level.pressureReady) strings.t("required_plate") else if (level.spec.requiresSwitch) strings.t("required_switch") else strings.t("required_key")) else strings.t("exit"), level.exit.left - 8f, level.exit.top - 17f, 24f, if (locked) orangeLight else rgb(165, 255, 214), true)
         if (hintTime < 9f && level.hasCrate) {
             val crate = level.crateBoxes.first()
             text(c, strings.t("push"), crate.left - 10f, crate.top - 19f, 17f, rgb(249, 218, 147), true)
         }
 
         drawPlayer(c)
+        if (currentLevel in 1..10) {
+            factoryGround.draw(c, level.spec, w, h, level.dynamicGroundGaps)
+            // Highlight cracking sections above the tile foreground, not behind it.
+            for (v in level.dynamicTrapViews) if (v.type == "collapse_floor" && v.state == "warning") {
+                rect(c, v.box.left, level.spec.groundY - 5f, v.box.right,
+                    level.spec.groundY + 3f, alpha(orange, 205))
+            }
+        }
         if (debugMode && DevConfig.SHOW_HITBOXES) drawHitboxes(c)
         c.restore()
 
@@ -277,15 +320,37 @@ class GameView(
         if (hintTime < 9f) drawHint(c)
         if (debugMode && DevConfig.SHOW_DEBUG_STATS) drawDebug(c)
         drawControls(c)
-        if (dead || won) drawOverlay(c)
+        if (isGamePaused && !dead && !won) drawPauseOverlay(c)
+        else if (dead && (hearts > 1 || deathIrisElapsed < GameVisualConfig.DEATH_IRIS_DURATION_SECONDS)) drawDeathIris(c)
+        else if (dead || won) drawOverlay(c)
     }
 
     private fun drawTopHud(c: Canvas) {
         design.drawMenuHeader(c, RectF(0f, 0f, w, 64f))
-        textFitted(c, strings.t("coins_count", "collected" to level.coinsCollected, "total" to level.coins.size), 22f, 42f, 28f, w * 0.32f, GameDesign.WHITE, true)
-        textFitted(c, strings.t("level_count", "n" to ((currentLevel - 1) % 10 + 1)), w * 0.38f, 40f, 25f, w * 0.24f, rgb(190, 216, 229))
-        textFitted(c, strings.t("shift_state", "state" to strings.t(if (shift) "on" else "off")), w - 350f, 40f, 25f, 205f, GameDesign.ORANGE, true)
-        design.drawMenuButton(c, RectF(w - 125f, 11f, w - 22f, 54f), strings.t("menu"), false)
+        // PNG coin symbol and persisted, deduplicated total (not a per-level score).
+        design.drawCoinHud(c, RectF(20f, 12f, 57f, 52f))
+        textFitted(c, savedCoinIds.size.toString(), 69f, 42f, 28f, w * 0.25f, GameDesign.WHITE, true)
+        // Hearts are per-attempt lives. They reset on starting or restarting a level.
+        if (currentLevel in 1..10) {
+            for (index in 0 until GameVisualConfig.MAX_HEARTS) {
+                val hx = 145f + index * 36f
+                val heartColor = if (index < hearts) orange else alpha(whiteSoft, 62)
+                val shape = Path().apply {
+                    moveTo(hx + 11f, 38f)
+                    cubicTo(hx - 11f, 26f, hx + 1f, 13f, hx + 11f, 24f)
+                    cubicTo(hx + 21f, 13f, hx + 33f, 26f, hx + 11f, 38f)
+                    close()
+                }
+                paint.style = Paint.Style.FILL
+                paint.color = heartColor
+                c.drawPath(shape, paint)
+            }
+        }
+        // Clean HUD: persistent coins, lives, and a flat, translucent pause icon.
+        rounded(c, pauseButton, 9f, alpha(whiteSoft, GameVisualConfig.PAUSE_BACKGROUND_ALPHA))
+        val iconColor = alpha(whiteSoft, GameVisualConfig.PAUSE_SYMBOL_ALPHA)
+        rect(c, pauseButton.centerX() - 12f, 20f, pauseButton.centerX() - 5f, 45f, iconColor)
+        rect(c, pauseButton.centerX() + 5f, 20f, pauseButton.centerX() + 12f, 45f, iconColor)
     }
 
     private fun drawHint(c: Canvas) {
@@ -317,7 +382,7 @@ class GameView(
 
     private fun drawControls(c: Canvas) {
         for ((id, b) in buttons) {
-            val label = when(id) { 1 -> "◀"; 2 -> "▶"; 3 -> strings.t("jump"); else -> strings.t("brand_shift") }
+            val label = when(id) { 1 -> "◀"; 2 -> "▶"; 3 -> "▲"; else -> "#" }
             design.drawControl(c, b, label, active(id) || (id == 4 && shift))
         }
     }
@@ -326,7 +391,13 @@ class GameView(
         val moving = abs(world.vx) > 8f
         val index = if (moving) ((heroAnimTime / 0.09f).toInt() % heroFrames.size) else 0
         val frame = heroFrames[index]
-        val dest = RectF(world.x - 9f, world.y - 8f, world.x + GameWorld.SIZE + 9f, world.y + GameWorld.SIZE + 11f)
+        val playerCenter = world.x + GameWorld.SIZE * .5f
+        val spriteScale = if (currentLevel in 1..10) GameVisualConfig.HERO_SCALE else 1f
+        val spriteW = (GameWorld.SIZE + 18f) * spriteScale
+        val spriteH = (GameWorld.SIZE + 19f) * spriteScale
+        val bottom = world.y + GameWorld.SIZE + 11f
+        val dest = RectF(playerCenter - spriteW * .5f, bottom - spriteH,
+            playerCenter + spriteW * .5f, bottom)
         rounded(c, RectF(world.x - 2f, world.y + GameWorld.SIZE - 3f, world.x + GameWorld.SIZE + 2f, world.y + GameWorld.SIZE + 5f), 6f, alpha(Color.BLACK, 65))
         drawBitmapFit(c, frame, dest, 255, 0f, flipX = !heroFacingRight)
     }
@@ -446,6 +517,54 @@ class GameView(
         c.restore()
     }
 
+    /** Freeze gameplay and positional audio without losing the current level state. */
+    private fun setPaused(value: Boolean) {
+        if (isGamePaused == value) return
+        isGamePaused = value
+        pressed.clear()
+        keyboardPressed.clear()
+        frameTime = 0f // no physics catch-up after reopening the pause menu
+        if (value) gameAudio.pause() else gameAudio.resume()
+        onPauseChanged?.invoke(value)
+        invalidate()
+    }
+
+    private fun drawPauseOverlay(c: Canvas) {
+        rect(c, 0f, 0f, w, h, Color.argb(198, 6, 10, 15))
+        c.save()
+        c.translate(GameViewport.centerOffset(w), 0f)
+        textCenteredFitted(c, strings.t("pause_title"), 500f, 175f, 63f, 720f, whiteSoft, true)
+        menuButton(c, 340f, 220f, strings.t("resume"), GameDesign.ORANGE)
+        menuButton(c, 340f, 310f, strings.t("restart"), GameDesign.BLACK)
+        menuButton(c, 340f, 400f, strings.t("menu"), GameDesign.BLACK)
+        c.restore()
+    }
+
+    /** A soft black vignette closes around the hero, then the GAME OVER panel appears. */
+    private fun drawDeathIris(c: Canvas) {
+        val duration = if (hearts > 1) GameVisualConfig.RESPAWN_IRIS_SECONDS
+            else GameVisualConfig.DEATH_IRIS_DURATION_SECONDS
+        val progress = (deathIrisElapsed / duration).coerceIn(0f, 1f)
+        val eased = progress * progress * (3f - 2f * progress)
+        val radius = (max(w, h) * 1.3f) * (1f - eased) + 5f
+        val cx = world.x + GameWorld.SIZE * .5f - cameraX
+        val cy = world.y + GameWorld.SIZE * .5f
+        val edge = GameVisualConfig.DEATH_IRIS_SOFT_EDGE
+        // Each annulus has its own alpha; outer parts darken sooner than the soft edge.
+        for (step in 8 downTo 0) {
+            val holeRadius = radius + step * (edge / 8f)
+            val shape = Path().apply {
+                fillType = Path.FillType.EVEN_ODD
+                addRect(0f, 0f, w, h, Path.Direction.CW)
+                addCircle(cx, cy, holeRadius, Path.Direction.CW)
+            }
+            paint.style = Paint.Style.FILL
+            paint.color = Color.argb(if (step == 0) (150 + 100 * progress).toInt().coerceIn(0, 255) else 20,
+                0, 0, 0)
+            c.drawPath(shape, paint)
+        }
+    }
+
     private fun menuButton(c: Canvas, x: Float, y: Float, label: String, color: Int) {
         design.drawMenuButton(c, RectF(x, y, x + 320f, y + 72f), label, color != GameDesign.BLACK && label != strings.t("menu") && label != strings.t("back"))
     }
@@ -470,11 +589,81 @@ class GameView(
         heroFacingRight = true
         hintTime = 0f
         cameraX = 0f
+        deathIrisElapsed = 0f
+        // Only world 1 uses the new life system; worlds 2+ retain V23.1 behavior.
+        hearts = if (currentLevel in 1..10 && !previewSession) GameVisualConfig.MAX_HEARTS else 1
+        respawnCount = 0
+        setPaused(false)
         winSaved = false
         endOfLevelReported = false
         pressed.clear()
         keyboardPressed.clear()
         screen = Screen.PLAY
+    }
+
+    /** Immediate retry: preserve heart count and global coin records, reset hazards. */
+    private fun respawnAfterDeath() {
+        hearts--
+        respawnCount++
+        world.reset()
+        pressed.clear()
+        keyboardPressed.clear()
+        frameTime = 0f
+        deathIrisElapsed = 0f
+        cameraX = 0f
+        heroAnimTime = 0f
+        lastPushSoundTick = -100
+        endOfLevelReported = false
+        hintTime = 0f
+    }
+
+    /** Flat Canvas rendering, so the existing industrial 2D style is retained. */
+    private fun drawDynamicTraps(c: Canvas) {
+        for (v in world.dynamicTrapViews) {
+            val b = RectF(v.box.left, v.box.top, v.box.right, v.box.bottom)
+            when (v.type) {
+                "collapse_floor" -> {
+                    if (v.state == "active") continue
+                    // The PNG floor is drawn over this segment by FactoryGround.
+                    if (v.state == "warning") {
+                        rect(c, b.left, b.top + 4f, b.right, b.top + 11f, orange)
+                    }
+                }
+                "moving_platform" -> drawPlatform(c, b)
+                "rising_spikes" -> {
+                    if (v.state == "hidden") continue
+                    if (v.state == "warning") {
+                        rect(c, b.left, world.spec.groundY - 5f, b.right, world.spec.groundY, alpha(orange, 140))
+                    } else {
+                        val count = kotlin.math.max(1, kotlin.math.ceil(b.width() / 27f).toInt())
+                        for (j in 0 until count) {
+                            val l = b.left + j * b.width() / count
+                            val rr = b.left + (j + 1) * b.width() / count
+                            val path = Path().apply {
+                                moveTo(l, b.bottom)
+                                lineTo((l + rr) * .5f, b.top)
+                                lineTo(rr, b.bottom)
+                                close()
+                            }
+                            paint.color = orange
+                            paint.style = Paint.Style.FILL
+                            c.drawPath(path, paint)
+                        }
+                    }
+                }
+                "surprise_wall" -> if (v.state == "active") {
+                    drawPlatform(c, b)
+                    rect(c, b.left + 3f, b.top + 3f, b.right - 3f, b.top + 8f, orange)
+                }
+                "moving_exit" -> if (v.state == "warning") {
+                    rect(c, b.left + 7f, b.top, b.right - 7f, b.top + 4f, orange)
+                }
+                "reverse_zone" -> {
+                    rect(c, b.left, b.top, b.right, b.top + 3f, alpha(cyan, 140))
+                    rect(c, b.left, b.bottom - 3f, b.right, b.bottom, alpha(cyan, 140))
+                }
+            }
+        }
     }
 
     private fun gameButtonForKey(keyCode: Int): Int? = when (keyCode) {
@@ -486,6 +675,7 @@ class GameView(
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (screen == Screen.PLAY && isGamePaused) return true
         if (debugMode && DevConfig.ALLOW_LEVEL_SHORTCUTS && screen == Screen.PLAY) {
             if (keyCode == KeyEvent.KEYCODE_PAGE_UP) { startLevel((currentLevel + 1).coerceAtMost(GameProgression.MAX_LEVEL)); return true }
             if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) { startLevel((currentLevel - 1).coerceAtLeast(1)); return true }
@@ -513,6 +703,23 @@ class GameView(
         fun centeredCoord(i: Int): Pair<Float, Float> {
             val (x, y) = coord(i)
             return Pair(x - GameViewport.centerOffset(w), y)
+        }
+        if (screen == Screen.PLAY && dead && (hearts > 1 ||
+                deathIrisElapsed < GameVisualConfig.DEATH_IRIS_DURATION_SECONDS)) return true
+        if (screen == Screen.PLAY && isGamePaused) {
+            if (event.actionMasked == MotionEvent.ACTION_UP) {
+                val (x, y) = centeredCoord(event.actionIndex)
+                if (x in 340f..660f) when {
+                    y in 220f..292f -> setPaused(false)
+                    y in 310f..382f -> reset()
+                    y in 400f..472f -> {
+                        onLeaveResult?.invoke()
+                        setPaused(false)
+                        screen = Screen.MENU
+                    }
+                }
+            }
+            return true
         }
         if (screen == Screen.PLAY && (dead || won)) {
             if (event.actionMasked == MotionEvent.ACTION_UP) {
@@ -578,8 +785,9 @@ class GameView(
             }
             return true
         }
-        if (event.actionMasked == MotionEvent.ACTION_UP && coord(event.actionIndex).let { it.first in (w - 125f)..(w - 22f) && it.second in 12f..55f }) {
-            screen = Screen.MENU; pressed.clear(); return true
+        if (event.actionMasked == MotionEvent.ACTION_UP && coord(event.actionIndex).let { pauseButton.contains(it.first, it.second) }) {
+            setPaused(true)
+            return true
         }
         pressed.clear()
         if (event.actionMasked != MotionEvent.ACTION_UP && event.actionMasked != MotionEvent.ACTION_CANCEL) {
@@ -635,7 +843,13 @@ class GameView(
     private fun drawCrate(c: Canvas, r: RectF) = design.drawCrate(c, r)
 
     private fun drawLaserColumn(c: Canvas, r: RectF, glow: Int, active: Boolean) {
-        val dest = RectF(r.left - 19f, r.top - 19f, r.right + 19f, r.bottom + 19f)
+        val baseW = r.width() + 38f
+        val baseH = r.height() + 38f
+        val laserScale = if (currentLevel in 1..10) GameVisualConfig.LASER_SCALE else 1f
+        val newW = baseW * laserScale
+        val newH = baseH * laserScale
+        val dest = RectF(r.centerX() - newW * .5f, r.centerY() - newH * .5f,
+            r.centerX() + newW * .5f, r.centerY() + newH * .5f)
         if (active) {
             rounded(c, RectF((r.left + r.right) / 2f - 13f, r.top, (r.left + r.right) / 2f + 13f, r.bottom), 7f, alpha(glow, 54))
         } else {

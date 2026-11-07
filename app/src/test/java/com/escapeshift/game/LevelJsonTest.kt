@@ -26,7 +26,7 @@ class LevelJsonTest {
     @Test fun crateDoorLasersAndPlatformAreFullyDefinedInJson() {
         val l2=LevelJsonParser.parse(json(2),2)
         assertTrue(l2.objects.any { it.type == "crate" && it.x == 201f && it.y == 400f })
-        assertTrue(l2.objects.any { it.type == "bridge" && it.width == 140f })
+        assertTrue(l2.objects.any { it.type == "bridge" && it.width == 270f })
         assertTrue(l2.objects.any { it.type == "door" && it.height == 90f })
         val l5=LevelJsonParser.parse(json(5),5)
         assertTrue(l5.objects.any { it.type == "platform" })
@@ -50,14 +50,14 @@ class LevelJsonTest {
 
     @Test fun gapWidthIsLoadedFromJsonAndCreatesDifferentFloorSegments() {
         val old=json(3)
-        val changed=old.replaceFirst("\"width\": 140", "\"width\": 160")
+        val changed=old.replaceFirst("\"width\": 270", "\"width\": 285")
         assertTrue(changed != old)
         try {
             LevelCatalog.install { n -> if (n == 3) changed else json(n) }
             val w=GameWorld(3)
-            assertEquals(160f,w.spec.gaps.single().width,0f)
-            assertEquals(460f,w.blocks.first { it.left >= 300f }.left,0f)
-            // A wider gap is not automatically solved: the existing SHIFT bridge is still 140px.
+            assertEquals(285f,w.spec.gaps.single().width,0f)
+            assertEquals(585f,w.blocks.first { it.left >= 300f }.left,0f)
+            // The bridge still has width 270: the editor must change it too.
         } finally {
             LevelCatalog.useProjectFiles()
         }

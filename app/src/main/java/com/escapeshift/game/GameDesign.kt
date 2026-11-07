@@ -20,14 +20,10 @@ class GameDesign(private val context: Context, private val strings: GameStrings)
     private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
     private fun load(id: Int): Bitmap = BitmapFactory.decodeResource(context.resources, id)
     private val spikeImage = load(R.drawable.spike_industrial)
-    private val closedDoorImage = load(R.drawable.door_closed)
-    private val openDoorImage = load(R.drawable.door_open)
     private val crateImage = load(R.drawable.crate)
     private val coinImage = load(R.drawable.coin_collectible)
     private val springImage = load(R.drawable.spring_platform)
     private val wallImages = listOf(load(R.drawable.wall_graphite), load(R.drawable.wall_orange))
-    private val controlOffImage = load(R.drawable.control_off)
-    private val controlOnImage = load(R.drawable.control_on)
 
     private fun drawImage(c: Canvas, bitmap: Bitmap, rect: RectF, transparency: Int = 255) {
         imagePaint.alpha = transparency.coerceIn(0, 255)
@@ -69,20 +65,50 @@ class GameDesign(private val context: Context, private val strings: GameStrings)
         c.drawText(s, r.centerX() - p.measureText(s) * 0.5f, r.centerY() + p.textSize * 0.35f, p)
     }
 
-    /** Shared ON/OFF 2D image-based touch controls. Hitboxes stay in GameView. */
+    /** Pure flat-2D touch controls: no PNG, no border, no shadow. */
     fun drawControl(c: Canvas, r: RectF, word: String, pressed: Boolean) {
-        val image = if (pressed) controlOnImage else controlOffImage
-        drawImage(c, image, r)
-        // Black flat label panel covers the stock ON/OFF inscription for arrows/jump.
-        val labelBox = RectF(r.left + 10f, r.top + 23f, r.right - 10f, r.bottom - 17f)
-        fill(c, labelBox.left, labelBox.top, labelBox.right, labelBox.bottom, opacity(BLACK, 197))
-        label(c, word, labelBox, if (word == "◀" || word == "▶") 31f else 21f, WHITE)
+        fill(c, r.left, r.top, r.right, r.bottom,
+            opacity(WHITE, GameVisualConfig.CONTROL_BACKGROUND_ALPHA))
+        val glyphColor = opacity(WHITE, when (word) {
+            "◀", "▶" -> GameVisualConfig.MOVE_TRIANGLE_ALPHA
+            "▲" -> GameVisualConfig.JUMP_TRIANGLE_ALPHA
+            else -> GameVisualConfig.SHIFT_HASH_ALPHA
+        })
+        // Draw actual geometric triangles so the appearance is independent of installed fonts.
+        if (word == "◀" || word == "▶" || word == "▲") {
+            val path = Path()
+            val cx = r.centerX(); val cy = r.centerY()
+            val h = 20f; val half = 16f
+            when (word) {
+                "◀" -> { path.moveTo(cx-h,cy); path.lineTo(cx+h,cy-half); path.lineTo(cx+h,cy+half) }
+                "▶" -> { path.moveTo(cx+h,cy); path.lineTo(cx-h,cy-half); path.lineTo(cx-h,cy+half) }
+                else -> { path.moveTo(cx,cy-h); path.lineTo(cx-half,cy+h); path.lineTo(cx+half,cy+h) }
+            }
+            path.close(); p.color = glyphColor; p.style = Paint.Style.FILL; c.drawPath(path,p)
+        } else {
+            label(c, "#", r, 39f, glyphColor)
+        }
     }
 
-    /** PNG door states share exactly the same layout and do not alter the exit hitbox. */
+    /** Flat 2D steel / orange closed and open door states (no perspective / sprite). */
     fun drawDoor(c: Canvas, r: RectF, locked: Boolean) {
-        drawImage(c, if (locked) closedDoorImage else openDoorImage,
-            RectF(r.left - 6f, r.top - 8f, r.right + 6f, r.bottom + 3f))
+        fill(c, r.left, r.top, r.right, r.bottom, BLACK)
+        fill(c, r.left + 3f, r.top + 3f, r.right - 3f, r.bottom - 3f, GRAPHITE)
+        fill(c, r.left + 5f, r.top + 5f, r.right - 5f, r.top + 10f, WHITE)
+        fill(c, r.left + 6f, r.bottom - 9f, r.right - 6f, r.bottom - 5f, ORANGE)
+        if (locked) {
+            fill(c, r.left + 11f, r.top + 15f, r.right - 11f, r.bottom - 14f, BLACK)
+            fill(c, r.left + 15f, r.top + 20f, r.right - 15f, r.bottom - 19f, GREY)
+            fill(c, r.left + 14f, r.top + 15f, r.left + 20f, r.bottom - 14f, ORANGE)
+            fill(c, r.right - 20f, r.top + 15f, r.right - 14f, r.bottom - 14f, ORANGE)
+            fill(c, r.right - 27f, r.centerY() - 3f, r.right - 22f, r.centerY() + 3f, WHITE)
+        } else {
+            // Two slid-open shutter leaves; the black center is the clear passage.
+            fill(c, r.left + 9f, r.top + 15f, r.right - 9f, r.bottom - 14f, BLACK)
+            fill(c, r.left + 10f, r.top + 15f, r.left + 15f, r.bottom - 14f, ORANGE)
+            fill(c, r.right - 15f, r.top + 15f, r.right - 10f, r.bottom - 14f, ORANGE)
+            fill(c, r.left + 22f, r.top + 18f, r.right - 22f, r.top + 23f, WHITE)
+        }
     }
 
     /** A panel sprite used ONLY for vertical collision walls, never the floor or aerial platforms. */
@@ -119,6 +145,8 @@ class GameDesign(private val context: Context, private val strings: GameStrings)
 
     fun drawSpike(c: Canvas, r: RectF) = drawSpikeGroup(c, r,
         when { r.width() >= 90f -> 3; r.width() >= 65f -> 2; else -> 1 })
+
+    fun drawCoinHud(c: Canvas, rect: RectF) = drawImage(c, coinImage, rect)
 
     fun drawCoin(c: Canvas, box: HitBox, ticks: Int) {
         val bob = kotlin.math.sin(ticks * 0.11).toFloat() * 3f

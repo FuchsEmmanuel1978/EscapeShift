@@ -56,7 +56,7 @@
   "world_10_title": "COSMIC CATHEDRAL",
   "world_10_subtitle": "The final frontier",
   "level_01_title": "First Jump",
-  "level_01_hint": "JUMP: avoid the spikes.",
+  "level_01_hint": "Dodge the traps, then climb to the exit!",
   "level_02_title": "The Crate",
   "level_02_hint": "Push the crate and jump onto it to clear the wall.",
   "level_03_title": "Ghost Bridge",
@@ -66,7 +66,7 @@
   "level_05_title": "High-up Keycard",
   "level_05_hint": "Climb onto the platform and find the yellow card.",
   "level_06_title": "Turn Back",
-  "level_06_hint": "Pass the locked exit, grab the card, then GO BACK.",
+  "level_06_hint": "Avoid the patrols, get the keycard, then head back.",
   "level_07_title": "Boosted Jump",
   "level_07_hint": "The spring launches you over the high wall.",
   "level_08_title": "Conveyor Pressure",
@@ -96,5 +96,8 @@
   "level_20_title": "Locked Summit",
   "level_20_hint": "Keep a crate on the plate and toggle SHIFT four times.",
   "required_plate": "PLACE A CRATE ON THE PLATE!",
-  "world_preview": "PREVIEW LEVEL"
+  "world_preview": "PREVIEW LEVEL",
+  "pause_title": "PAUSED",
+  "resume": "CONTINUE",
+  "restart": "RESTART"
 }

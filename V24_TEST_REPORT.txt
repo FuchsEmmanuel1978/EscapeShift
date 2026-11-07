@@ -1,0 +1,12 @@
+ESCAPE SHIFT V24.0 — Test report
+=================================
+Source: V22 full archive + V23 patch + V23.1 patch; additions kept separate.
+- Static JSON validation: 20/20 PASS.
+- Kotlin physics + event-trap CLI: 20/20 routes PASS (old route scripts, all traps enabled in world1).
+- TrapSmoke: PASS (collapse/reset, rising spikes, surprise wall, moving platform, moving exit, reverse controls, 20 routes).
+- Host Android Kotlin compilation with stubs: PASS.
+- Host UI smoke: 20 gameplay renders x 3 screen sizes PASS; heart/resurrection method PASS.
+- Host world navigation smoke: 10 world pages x 3 viewport sizes PASS; 10 preview level screens PASS.
+- Native Android Gradle build: NOT RUN (Android SDK unavailable in this runtime).
+- Device gameplay and Start.io ad behavior: NOT RUN; must be checked in Android Studio on a real phone.
+- Remaining roadmap: rotating mechanisms and complex puzzles, gravity flips, more adaptive solve-search.

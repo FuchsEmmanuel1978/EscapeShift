@@ -56,7 +56,7 @@
   "world_10_title": "CATHÉDRALE COSMIQUE",
   "world_10_subtitle": "Le dernier monde",
   "level_01_title": "Premier saut",
-  "level_01_hint": "SAUT : évite les pics rouges.",
+  "level_01_hint": "Évite les pièges et grimpe vers la sortie !",
   "level_02_title": "La caisse",
   "level_02_hint": "Pousse la caisse et saute dessus pour franchir le mur.",
   "level_03_title": "Le pont fantôme",
@@ -66,7 +66,7 @@
   "level_05_title": "Carte en hauteur",
   "level_05_hint": "Monte sur la plateforme et trouve la carte jaune.",
   "level_06_title": "Retour obligatoire",
-  "level_06_hint": "Passe la sortie fermée, prends la carte, puis REVIENS.",
+  "level_06_hint": "Évite les patrouilles, prends la carte, puis reviens.",
   "level_07_title": "Saut propulsé",
   "level_07_hint": "Le tremplin te propulse au-dessus du grand mur.",
   "level_08_title": "Tapis sous pression",
@@ -96,5 +96,8 @@
   "level_20_title": "Sommet verrouillé",
   "level_20_hint": "Laisse une caisse sur la plaque et alterne SHIFT 4 fois.",
   "required_plate": "CAISSE SUR LA PLAQUE !",
-  "world_preview": "NIVEAU APERÇU"
+  "world_preview": "NIVEAU APERÇU",
+  "pause_title": "PAUSE",
+  "resume": "CONTINUER",
+  "restart": "RECOMMENCER"
 }

@@ -6,7 +6,7 @@
   "hintKey": "level_05_hint",
   "intro": "UPPER_PLATFORM",
   "backtrackCount": 0,
-  "worldWidth": 1990,
+  "worldWidth": 3214,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -26,37 +26,17 @@
       "height": 19
     },
     {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 355.5,
+      "y": 332,
+      "width": 24,
+      "height": 24
+    },
+    {
       "id": "spike_01",
       "type": "spike",
       "x": 695,
-      "y": 409,
-      "width": 52,
-      "height": 35,
-      "count": 1,
-      "spacing": 0
-    },
-    {
-      "id": "key_02",
-      "type": "key",
-      "x": 950,
-      "y": 388,
-      "width": 27,
-      "height": 45,
-      "phase": 108
-    },
-    {
-      "id": "laser_red_03",
-      "type": "laser_red",
-      "x": 1205,
-      "y": 300,
-      "width": 15,
-      "height": 144,
-      "phase": 11
-    },
-    {
-      "id": "spike_04",
-      "type": "spike",
-      "x": 1460,
       "y": 409,
       "width": 52,
       "height": 35,
@@ -72,6 +52,23 @@
       "height": 20
     },
     {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 895.5,
+      "y": 325,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "key_02",
+      "type": "key",
+      "x": 950,
+      "y": 388,
+      "width": 27,
+      "height": 45,
+      "phase": 108
+    },
+    {
       "id": "platform_02",
       "type": "platform",
       "x": 1188,
@@ -80,20 +77,13 @@
       "height": 20
     },
     {
-      "id": "coin_01",
-      "type": "coin",
-      "x": 355.5,
-      "y": 332,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "coin_02",
-      "type": "coin",
-      "x": 895.5,
-      "y": 325,
-      "width": 24,
-      "height": 24
+      "id": "laser_red_03",
+      "type": "laser_red",
+      "x": 1205,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 11
     },
     {
       "id": "coin_03",
@@ -104,10 +94,79 @@
       "height": 24
     },
     {
+      "id": "spike_04",
+      "type": "spike",
+      "x": 1460,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 0
+    },
+    {
+      "id": "challenge_extra_01",
+      "type": "saw",
+      "x": 1745,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 146,
+      "amplitude": 85,
+      "period": 155,
+      "offsetX": 30
+    },
+    {
+      "id": "challenge_extra_02",
+      "type": "monster",
+      "x": 2030,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 139,
+      "amplitude": 47,
+      "period": 150,
+      "offsetX": 0
+    },
+    {
+      "id": "challenge_extra_03",
+      "type": "laser_timed",
+      "x": 2315,
+      "y": 285,
+      "width": 16,
+      "height": 159,
+      "phase": 14,
+      "period": 120,
+      "activeTicks": 58
+    },
+    {
+      "id": "exit_stair_01",
+      "type": "platform",
+      "x": 2610,
+      "y": 365,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_02",
+      "type": "platform",
+      "x": 2728,
+      "y": 291,
+      "width": 138,
+      "height": 20
+    },
+    {
+      "id": "exit_stair_03",
+      "type": "platform",
+      "x": 2846,
+      "y": 217,
+      "width": 138,
+      "height": 20
+    },
+    {
       "id": "exit_door",
       "type": "door",
-      "x": 1740,
-      "y": 354,
+      "x": 2964,
+      "y": 125,
       "width": 65,
       "height": 90
     }
@@ -116,6 +175,39 @@
     "spike_01",
     "key_02",
     "laser_red_03",
-    "spike_04"
+    "spike_04",
+    "challenge_extra_01",
+    "challenge_extra_02",
+    "challenge_extra_03"
+  ],
+  "designVersion": "world1_vertical_challenge_v22",
+  "traps": [
+    {
+      "id": "trap_05_01",
+      "type": "collapse_floor",
+      "x": 2630,
+      "y": 444,
+      "width": 80,
+      "height": 146,
+      "trigger": "player_on",
+      "radius": 20,
+      "delayTicks": 10,
+      "transitionTicks": 18
+    },
+    {
+      "id": "trap_05_02",
+      "type": "moving_platform",
+      "x": 2450,
+      "y": 325,
+      "width": 116,
+      "height": 20,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 15,
+      "transitionTicks": 18,
+      "travelX": 30,
+      "travelY": -20,
+      "periodTicks": 165
+    }
   ]
 }

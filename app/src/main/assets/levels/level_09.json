@@ -17,20 +17,12 @@
     "gaps": [
       {
         "x": 450,
-        "width": 140,
+        "width": 270,
         "id": "gap_01"
       }
     ]
   },
   "objects": [
-    {
-      "id": "starter_wall",
-      "type": "wall",
-      "x": 390,
-      "y": 328,
-      "width": 40,
-      "height": 116
-    },
     {
       "id": "starter_crate",
       "type": "crate",
@@ -40,11 +32,19 @@
       "height": 44
     },
     {
+      "id": "starter_wall",
+      "type": "wall",
+      "x": 390,
+      "y": 328,
+      "width": 40,
+      "height": 116
+    },
+    {
       "id": "starter_shift_bridge",
       "type": "bridge",
       "x": 450,
       "y": 444,
-      "width": 140,
+      "width": 270,
       "height": 20
     },
     {
@@ -57,6 +57,30 @@
       "phase": 33
     },
     {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 955,
+      "y": 356,
+      "width": 133,
+      "height": 20
+    },
+    {
+      "id": "climb_bonus_01",
+      "type": "platform",
+      "x": 970,
+      "y": 366,
+      "width": 126,
+      "height": 20
+    },
+    {
+      "id": "coin_01",
+      "type": "coin",
+      "x": 1009.5,
+      "y": 325,
+      "width": 24,
+      "height": 24
+    },
+    {
       "id": "laser_blue_02",
       "type": "laser_blue",
       "x": 1080,
@@ -64,6 +88,30 @@
       "width": 15,
       "height": 144,
       "phase": 56
+    },
+    {
+      "id": "climb_bonus_02",
+      "type": "platform",
+      "x": 1087,
+      "y": 292,
+      "width": 126,
+      "height": 20
+    },
+    {
+      "id": "climb_bonus_03",
+      "type": "platform",
+      "x": 1204,
+      "y": 218,
+      "width": 126,
+      "height": 20
+    },
+    {
+      "id": "climb_bonus_coin_1",
+      "type": "coin",
+      "x": 1240,
+      "y": 184,
+      "width": 24,
+      "height": 24
     },
     {
       "id": "spike_03",
@@ -74,6 +122,14 @@
       "height": 35,
       "count": 1,
       "spacing": 0
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1540,
+      "y": 320,
+      "width": 140,
+      "height": 20
     },
     {
       "id": "laser_timed_04",
@@ -87,6 +143,14 @@
       "activeTicks": 64
     },
     {
+      "id": "coin_02",
+      "type": "coin",
+      "x": 1598.0,
+      "y": 289,
+      "width": 24,
+      "height": 24
+    },
+    {
       "id": "spike_05",
       "type": "spike",
       "x": 1845,
@@ -97,14 +161,30 @@
       "spacing": 3
     },
     {
+      "id": "platform_03",
+      "type": "platform",
+      "x": 2065,
+      "y": 286,
+      "width": 135,
+      "height": 20
+    },
+    {
       "id": "conveyor_06",
       "type": "conveyor",
       "x": 2100,
       "y": 438,
-      "width": 135,
+      "width": 270,
       "height": 6,
       "phase": 28,
-      "speed": -145
+      "speed": -800
+    },
+    {
+      "id": "coin_03",
+      "type": "coin",
+      "x": 2120.5,
+      "y": 255,
+      "width": 24,
+      "height": 24
     },
     {
       "id": "monster_07",
@@ -113,10 +193,18 @@
       "y": 396,
       "width": 64,
       "height": 48,
-      "phase": 51,
-      "amplitude": 14,
-      "period": 130,
+      "phase": 90,
+      "amplitude": 39,
+      "period": 150,
       "offsetX": -4
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2550,
+      "y": 354,
+      "width": 65,
+      "height": 90
     },
     {
       "id": "laser_red_08",
@@ -135,62 +223,6 @@
       "width": 48,
       "height": 13,
       "phase": 97
-    },
-    {
-      "id": "platform_01",
-      "type": "platform",
-      "x": 955,
-      "y": 356,
-      "width": 133,
-      "height": 20
-    },
-    {
-      "id": "platform_02",
-      "type": "platform",
-      "x": 1540,
-      "y": 320,
-      "width": 140,
-      "height": 20
-    },
-    {
-      "id": "platform_03",
-      "type": "platform",
-      "x": 2065,
-      "y": 286,
-      "width": 135,
-      "height": 20
-    },
-    {
-      "id": "coin_01",
-      "type": "coin",
-      "x": 1009.5,
-      "y": 325,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "coin_02",
-      "type": "coin",
-      "x": 1598.0,
-      "y": 289,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "coin_03",
-      "type": "coin",
-      "x": 2120.5,
-      "y": 255,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "exit_door",
-      "type": "door",
-      "x": 2550,
-      "y": 354,
-      "width": 65,
-      "height": 90
     }
   ],
   "route": [
@@ -203,5 +235,32 @@
     "monster_07",
     "laser_red_08",
     "switch_09"
+  ],
+  "designVersion": "world1_floor_control_v22_1",
+  "traps": [
+    {
+      "id": "trap_09_01",
+      "type": "reverse_zone",
+      "x": 3000,
+      "y": 190,
+      "width": 145,
+      "height": 125,
+      "trigger": "player_enter",
+      "radius": 100,
+      "delayTicks": 0,
+      "transitionTicks": 18
+    },
+    {
+      "id": "trap_09_02",
+      "type": "collapse_floor",
+      "x": 2420,
+      "y": 444,
+      "width": 78,
+      "height": 146,
+      "trigger": "player_on",
+      "radius": 20,
+      "delayTicks": 11,
+      "transitionTicks": 18
+    }
   ]
 }
