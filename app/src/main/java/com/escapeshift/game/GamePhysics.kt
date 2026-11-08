@@ -57,6 +57,9 @@ data class MonsterSpawn(
 class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = null) {
     companion object {
         const val STEP = 1f / 60f
+        // Input grace periods are expressed in fixed physics ticks (60 Hz).
+        const val JUMP_BUFFER_TICKS = 6 // 100 ms
+        const val COYOTE_TICKS = 4 // 67 ms
         const val SPEED = 250f
         const val JUMP_SPEED = -420f
         const val SPRING_SPEED = -655f
@@ -85,6 +88,9 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     }
     private val crateConfig = crateConfigs.firstOrNull()
     private var cratePositions = crateConfigs.map { it.x }.toMutableList()
+    // A crate's JSON y is its SPAWN position, not a permanently fixed height.
+    private var crateYs = crateConfigs.map { it.y }.toMutableList()
+    private var crateVys = MutableList(crateConfigs.size) { 0f }
     private var carriedCrateIndex: Int? = null
     private val lockedCrateIndices = mutableSetOf<Int>()
     private var interactPrevious = false
@@ -96,7 +102,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     /** All crate hitboxes, including those used on pressure plates. */
     val crateBoxes: List<HitBox> get() = crateConfigs.indices.map { i ->
         val config = crateConfigs[i]; val px = cratePositions[i]
-        HitBox(px, if (carriedCrateIndex == i) y - config.height - 7f else config.y, px + config.width, if (carriedCrateIndex == i) y - 7f else config.y + config.height)
+        HitBox(px, if (carriedCrateIndex == i) y - config.height - 7f else crateYs[i], px + config.width, if (carriedCrateIndex == i) y - 7f else crateYs[i] + config.height)
     }
     val crateSwitches = objects("crate_switch").map { it.box }
     fun isPlateActive(index: Int): Boolean = crateBoxes.any { crate ->
@@ -135,12 +141,14 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     }
     /** The player can jump up THROUGH platforms, then stand on top. */
     val oneWayPlatforms: List<HitBox> = objects("platform").map { it.box }
+    private val staticSolids: List<HitBox> = blocks - oneWayPlatforms
+    private val fixedSpikeBoxes: List<HitBox> = objects("spike").flatMap { SpikeElements.boxes(it) }
     val activePlatforms get() = oneWayPlatforms + traps.platforms() + physicalPuzzle?.movingPlatforms().orEmpty() + listOfNotNull(physicalPuzzle?.sliderBox) + advancedPuzzle?.platformBoxes().orEmpty()
     val dynamicTrapViews get() = traps.views()
     val dynamicGroundGaps get() = spec.gaps + traps.collapsedGaps()
     private val movingSpikes = MovingSpikes(objects("moving_spikes"))
     /** Includes the existing static triangles and any bait triangles, at live positions. */
-    val spikes: List<HitBox> get() = objects("spike").flatMap { SpikeElements.boxes(it) } + movingSpikes.boxes()
+    val spikes: List<HitBox> get() = fixedSpikeBoxes + movingSpikes.boxes()
     val lasers = objects("laser_red").map { it.box }
     val invertedLasers = objects("laser_blue").map { it.box }
     val timedLasers = objects("laser_timed").map { challenge(it, ChallengeType.TIMED_LASER) }
@@ -172,6 +180,8 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     var elapsed = 0f; private set
     var ticks = 0; private set
     private var jumpPrevious = false
+    private var jumpBufferTicks = 0
+    private var coyoteTicks = 0
     private var shiftPrevious = false
     private var springCooldown = 0
     private var beltLeap = false
@@ -185,7 +195,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val exitUnlocked get() = (!spec.requiresKey || keyCollected) &&
         (switches.isEmpty() || switchActivated) && pressureReady && (physicalPuzzle?.isSolved ?: true) &&
         (advancedPuzzle?.isSolved ?: true)
-    fun solids(): List<HitBox> = (blocks - oneWayPlatforms + traps.solids() + advancedPuzzle?.wallBoxes().orEmpty()).let { if (shiftOn && bridge != null) it + bridge else it }
+    fun solids(): List<HitBox> = (staticSolids + traps.solids() + advancedPuzzle?.wallBoxes().orEmpty()).let { if (shiftOn && bridge != null) it + bridge else it }
     fun sawBox(saw: Challenge, t: Int = ticks): HitBox {
         val offset = saw.amplitude * sin((t + saw.phase) * (2 * Math.PI / saw.period.toDouble())).toFloat()
         val left = saw.x + saw.offsetX + offset
@@ -203,10 +213,12 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     fun reset() {
         x = spec.startX; y = spec.startY; vx = 0f; vy = 0f; grounded = false
         cratePositions = crateConfigs.map { it.x }.toMutableList()
+        crateYs = crateConfigs.map { it.y }.toMutableList()
+        crateVys = MutableList(crateConfigs.size) { 0f }
         carriedCrateIndex = null; lockedCrateIndices.clear(); interactPrevious = false
         shiftOn = false; dead = false; won = false; keyCollected = false; switchActivated = false
         switchTouched = BooleanArray(switches.size)
-        elapsed = 0f; ticks = 0; jumpPrevious = false; shiftPrevious = false; springCooldown = 0; beltLeap = false
+        elapsed = 0f; ticks = 0; jumpPrevious = false; jumpBufferTicks = 0; coyoteTicks = 0; shiftPrevious = false; springCooldown = 0; beltLeap = false
         monsterAlive = MutableList(monsters.size) { true }
         coinTaken = BooleanArray(coins.size)
         traps.reset()
@@ -234,7 +246,9 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             if (idx != null) {
                 // Drop at the right edge of the hero, using actual world coordinates.
                 cratePositions[idx] = (x + SIZE + 5f).coerceIn(0f, spec.worldRight - crateConfigs[idx].width)
-                carriedCrateIndex = null  // Ground-height hitbox must be read after dropping, not while still carried.
+                crateYs[idx] = y - crateConfigs[idx].height - 7f
+                crateVys[idx] = 0f
+                carriedCrateIndex = null
                 val c = crateBoxes[idx]
                 val cx = (c.left + c.right) / 2f
                 val onLatch = advancedPuzzle.plan.devices.any { d ->
@@ -254,7 +268,11 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
                 if (near != null) { carriedCrateIndex = near; lockedCrateIndices.remove(near) }
             }
         }
-        val justJumped = input.jump && !jumpPrevious && grounded
+        // Buffer brief presses and allow a short edge-of-platform grace period.
+        // Still require a NEW press: holding jump cannot cause automatic repeated jumps.
+        if (input.jump && !jumpPrevious) jumpBufferTicks = JUMP_BUFFER_TICKS
+        val canJump = grounded || coyoteTicks > 0
+        val justJumped = jumpBufferTicks > 0 && canJump
         if (justJumped) {
             // The long belts cannot be crossed by walking: approach and jump with momentum.
             beltLeap = levelNumber in 1..10 && conveyorSpeeds.any { (box, _) ->
@@ -263,9 +281,12 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             }
             vy = JUMP_SPEED
             grounded = false
+            coyoteTicks = 0
+            jumpBufferTicks = 0
         }
         vx = SPEED * GameVisualConfig.HERO_SPEED_MULTIPLIER * direction * (if (beltLeap && !grounded) GameVisualConfig.WORLD1_BELT_JUMP_MULTIPLIER else 1f) + conveyorBoost
         jumpPrevious = input.jump
+        if (jumpBufferTicks > 0) jumpBufferTicks--
         val oldBox = playerBox
         val platformBefore = traps.platforms()
         traps.update(oldBox, oldBox, justJumped, vx)
@@ -328,6 +349,9 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             }
         }
         carriedCrateIndex?.let { i -> cratePositions[i] = x + 4f }
+        // Re-evaluate gravity/support after horizontal pushes: a box leaving
+        // a platform starts falling on this very physics tick.
+        updateCratePhysics()
         // Push advanced-world movable bridges and springs by real contact.
         advancedPuzzle?.let { puzzle ->
             for (device in puzzle.devices.filter { it.kind == "sliding_platform" || it.kind == "movable_spring" }) {
@@ -367,6 +391,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         vy = (vy + (if (advancedPuzzle?.gravityActive == true) -GRAVITY else GRAVITY) * STEP).coerceIn(-800f, 800f)
         val previousBottom = y + SIZE
         val previousTop = y
+        val wasGrounded = grounded
         y += vy * STEP
         grounded = false
         for (solid in solids() + activePlatforms + crateBoxes.filterIndexed { i, _ -> i != carriedCrateIndex }) {
@@ -387,6 +412,13 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
                 y = solid.bottom
                 vy = 0f
             }
+        }
+        // A missed ledge should not immediately cancel a jump pressed a few frames late.
+        coyoteTicks = when {
+            grounded -> COYOTE_TICKS
+            justJumped -> 0
+            wasGrounded -> COYOTE_TICKS - 1
+            else -> (coyoteTicks - 1).coerceAtLeast(0)
         }
         if (grounded) beltLeap = false
         if (springCooldown > 0) springCooldown--
@@ -432,27 +464,103 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         if (!dead && player.intersects(exit) && exitUnlocked) won = true
     }
 
-    private fun pushCrate(index: Int, amount: Float): Float {
-        if (amount == 0f) return 0f
-        val config = crateConfigs[index]
-        val old = cratePositions[index]
-        var target = (old + amount).coerceAtLeast(0f)
-        for (solid in blocks) {
-            if (solid.bottom <= config.y || solid.top >= config.y + config.height) continue
-            val targetBox = HitBox(target, config.y, target + config.width, config.y + config.height)
-            if (targetBox.intersects(solid)) {
-                if (amount > 0f) target = min(target, solid.left - config.width)
-                else target = max(target, solid.right)
+    /** Apply gravity to loose crates, with one-way platform and crate stacking support. */
+    private fun updateCratePhysics() {
+        // Compute lower crates first, so a falling box can land on an updated box.
+        val indices = crateConfigs.indices.sortedByDescending { crateYs[it] + crateConfigs[it].height }
+        val supports = solids() + activePlatforms
+        for (i in indices) {
+            if (i == carriedCrateIndex) continue
+            val c = crateConfigs[i]
+            val previousBottom = crateYs[i] + c.height
+            val velocity = (crateVys[i] + GRAVITY * STEP).coerceAtMost(800f)
+            val nextBottom = previousBottom + velocity * STEP
+            var landingTop = Float.POSITIVE_INFINITY
+            val x0 = cratePositions[i]
+            val x1 = x0 + c.width
+            for (support in supports) {
+                if (x1 <= support.left || x0 >= support.right) continue
+                if (previousBottom <= support.top + 2f && nextBottom >= support.top) {
+                    landingTop = min(landingTop, support.top)
+                }
+            }
+            for (j in crateConfigs.indices) {
+                if (j == i || j == carriedCrateIndex) continue
+                val other = crateConfigs[j]
+                val otherX = cratePositions[j]
+                if (x1 <= otherX || x0 >= otherX + other.width) continue
+                val otherTop = crateYs[j]
+                if (previousBottom <= otherTop + 2f && nextBottom >= otherTop) {
+                    landingTop = min(landingTop, otherTop)
+                }
+            }
+            if (landingTop.isFinite()) {
+                crateYs[i] = landingTop - c.height
+                crateVys[i] = 0f
+            } else {
+                crateYs[i] += velocity * STEP
+                crateVys[i] = velocity
             }
         }
-        for (other in crateBoxes.filterIndexed { i, _ -> i != index }) {
-            val targetBox = HitBox(target, config.y, target + config.width, config.y + config.height)
-            if (targetBox.intersects(other)) {
-                if (amount > 0f) target = min(target, other.left - config.width)
-                else target = max(target, other.right)
-            }
-        }
-        cratePositions[index] = target
-        return target - old
     }
+
+    /**
+     * Move a stack as one rigid horizontal group while its crates remain in contact.
+     * Each supported crate inherits the horizontal movement of the crate underneath.
+     * All members share the same permitted displacement so the stack cannot pull apart
+     * or tunnel through a wall / another crate.
+     */
+    private fun pushCrate(index: Int, amount: Float): Float {
+        if (amount == 0f || index in lockedCrateIndices || index == carriedCrateIndex) return 0f
+
+        // A crate belongs to this push if it is resting directly on a moving crate.
+        val moving = mutableSetOf(index)
+        var added: Boolean
+        do {
+            added = false
+            for (upper in crateConfigs.indices) {
+                if (upper in moving || upper == carriedCrateIndex) continue
+                val upperBox = crateBoxes[upper]
+                val supported = moving.any { lower ->
+                    val lowerBox = crateBoxes[lower]
+                    val horizontalOverlap = min(upperBox.right, lowerBox.right) -
+                        max(upperBox.left, lowerBox.left)
+                    horizontalOverlap > 1f &&
+                        kotlin.math.abs(upperBox.bottom - lowerBox.top) <= 2.5f
+                }
+                if (supported) {
+                    moving.add(upper)
+                    added = true
+                }
+            }
+        } while (added)
+
+        if (moving.any { it in lockedCrateIndices }) return 0f
+        var permitted = amount
+        for (i in moving) {
+            val current = crateBoxes[i]
+            // World bounds apply to every crate in the moving stack.
+            if (amount > 0f) permitted = min(permitted, worldRight - current.right)
+            else permitted = max(permitted, -current.left)
+
+            val obstacles = blocks + crateBoxes.filterIndexed { j, _ -> j !in moving && j != carriedCrateIndex }
+            for (obstacle in obstacles) {
+                // Only horizontally block overlapping vertical ranges.
+                if (current.bottom <= obstacle.top + 0.01f ||
+                    current.top >= obstacle.bottom - 0.01f) continue
+                if (amount > 0f && current.right <= obstacle.left + 0.01f &&
+                    current.right + permitted > obstacle.left) {
+                    permitted = min(permitted, obstacle.left - current.right)
+                } else if (amount < 0f && current.left >= obstacle.right - 0.01f &&
+                    current.left + permitted < obstacle.right) {
+                    permitted = max(permitted, obstacle.right - current.left)
+                }
+            }
+        }
+        permitted = if (amount > 0f) permitted.coerceIn(0f, amount)
+                    else permitted.coerceIn(amount, 0f)
+        for (i in moving) cratePositions[i] += permitted
+        return permitted
+    }
+
 }

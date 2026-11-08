@@ -1,12 +1,13 @@
+
 {
   "schemaVersion": 1,
   "world": 1,
   "level": 6,
   "titleKey": "level_06_title",
   "hintKey": "level_06_hint",
-  "intro": "SHIFT_BRIDGE",
-  "backtrackCount": 3,
-  "worldWidth": 2640,
+  "intro": "OPEN",
+  "backtrackCount": 1,
+  "worldWidth": 4000,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -14,202 +15,411 @@
   "ground": {
     "y": 444,
     "depth": 146,
-    "gaps": [
-      {
-        "x": 300,
-        "width": 270,
-        "id": "gap_01"
-      }
-    ]
+    "gaps": []
   },
   "objects": [
     {
-      "id": "starter_shift_bridge",
-      "type": "bridge",
-      "x": 300,
-      "y": 444,
-      "width": 270,
-      "height": 20
-    },
-    {
-      "id": "climb_bonus_01",
-      "type": "platform",
-      "x": 600,
-      "y": 366,
-      "width": 126,
-      "height": 20
-    },
-    {
-      "id": "laser_red_01",
-      "type": "laser_red",
-      "x": 675,
-      "y": 300,
-      "width": 15,
-      "height": 144,
-      "phase": 102
-    },
-    {
-      "id": "climb_bonus_02",
-      "type": "platform",
-      "x": 717,
-      "y": 292,
-      "width": 126,
-      "height": 20
-    },
-    {
-      "id": "climb_bonus_03",
-      "type": "platform",
-      "x": 834,
-      "y": 218,
-      "width": 126,
-      "height": 20
-    },
-    {
-      "id": "climb_bonus_coin_1",
-      "type": "coin",
-      "x": 870,
-      "y": 184,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "platform_01",
-      "type": "platform",
-      "x": 915,
-      "y": 352,
-      "width": 123,
-      "height": 20
+      "id": "spike_01",
+      "type": "spike",
+      "x": 310,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
     },
     {
       "id": "spike_02",
       "type": "spike",
-      "x": 930,
-      "y": 421,
-      "width": 34,
-      "height": 23,
-      "count": 2,
-      "spacing": 3
+      "x": 560,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
     },
     {
-      "id": "coin_01",
-      "type": "coin",
-      "x": 964.5,
-      "y": 321,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "laser_timed_03",
-      "type": "laser_timed",
-      "x": 1185,
-      "y": 285,
-      "width": 16,
-      "height": 159,
-      "phase": 28,
-      "period": 120,
-      "activeTicks": 64
-    },
-    {
-      "id": "platform_02",
-      "type": "platform",
-      "x": 1408,
-      "y": 318,
-      "width": 134,
-      "height": 20
+      "id": "spike_03",
+      "type": "spike",
+      "x": 810,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
     },
     {
       "id": "spike_04",
       "type": "spike",
-      "x": 1440,
-      "y": 398,
-      "width": 58,
-      "height": 46,
+      "x": 1060,
+      "y": 409,
+      "width": 52,
+      "height": 35,
       "count": 1,
-      "spacing": 0
+      "spacing": 6
     },
     {
-      "id": "coin_02",
-      "type": "coin",
-      "x": 1463.0,
-      "y": 287,
-      "width": 24,
-      "height": 24
+      "id": "spike_05",
+      "type": "spike",
+      "x": 1310,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
+    },
+    {
+      "id": "spike_06",
+      "type": "spike",
+      "x": 1600,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
+    },
+    {
+      "id": "spike_07",
+      "type": "spike",
+      "x": 1850,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
+    },
+    {
+      "id": "spike_08",
+      "type": "spike",
+      "x": 2100,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
+    },
+    {
+      "id": "spike_09",
+      "type": "spike",
+      "x": 2400,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
+    },
+    {
+      "id": "spike_10",
+      "type": "spike",
+      "x": 2700,
+      "y": 409,
+      "width": 52,
+      "height": 35,
+      "count": 1,
+      "spacing": 6
     },
     {
       "id": "exit_door",
       "type": "door",
-      "x": 1565,
+      "x": 3000,
       "y": 354,
       "width": 65,
       "height": 90
     },
     {
-      "id": "key_05",
-      "type": "key",
-      "x": 2315,
-      "y": 388,
-      "width": 27,
-      "height": 45,
-      "phase": 74
+      "id": "puzzle_crate_01",
+      "type": "crate",
+      "x": 3160,
+      "y": 400,
+      "width": 46,
+      "height": 44
     },
     {
-      "id": "challenge_extra_01",
-      "type": "saw",
-      "x": 1710,
-      "y": 405,
-      "width": 33,
-      "height": 39,
-      "phase": 50,
-      "amplitude": 76,
-      "period": 170,
-      "offsetX": 25
+      "id": "puzzle_platform_01",
+      "type": "platform",
+      "x": 3290,
+      "y": 380,
+      "width": 185,
+      "height": 20
     },
     {
-      "id": "challenge_extra_02",
-      "type": "monster",
-      "x": 2010,
-      "y": 396,
-      "width": 64,
-      "height": 48,
-      "phase": 30,
-      "amplitude": 52,
-      "period": 155,
-      "offsetX": 0
+      "id": "puzzle_crate_02",
+      "type": "crate",
+      "x": 3380,
+      "y": 296,
+      "width": 46,
+      "height": 44
+    },
+    {
+      "id": "button_platform_01",
+      "type": "platform",
+      "x": 3730,
+      "y": 275,
+      "width": 200,
+      "height": 20
+    },
+    {
+      "id": "door_switch_01",
+      "type": "switch",
+      "x": 3810,
+      "y": 205,
+      "width": 45,
+      "height": 40,
+      "targetId": "exit_door"
     }
   ],
   "route": [
-    "laser_red_01",
+    "spike_01",
     "spike_02",
-    "laser_timed_03",
+    "spike_03",
     "spike_04",
-    "challenge_extra_01",
-    "challenge_extra_02",
-    "key_05"
+    "spike_05",
+    "spike_06",
+    "spike_07",
+    "spike_08",
+    "spike_09",
+    "spike_10"
   ],
-  "designVersion": "world1_floor_control_v22_1",
+  "designVersion": "world1_level6_collapse_chain_single_spikes_v30",
   "traps": [
     {
-      "id": "trap_06_01",
-      "type": "rising_spikes",
-      "x": 2350,
-      "y": 170,
-      "width": 52,
-      "height": 32,
+      "id": "collapse_01",
+      "type": "collapse_floor",
+      "x": 150,
+      "y": 444,
+      "width": 140,
+      "height": 146,
       "trigger": "player_near",
       "radius": 85,
-      "delayTicks": 22,
+      "delayTicks": 50,
       "transitionTicks": 18
     },
     {
-      "id": "trap_06_02",
-      "type": "surprise_wall",
-      "x": 1850,
-      "y": 393,
-      "width": 36,
-      "height": 51,
-      "trigger": "player_jump",
+      "id": "collapse_02",
+      "type": "collapse_floor",
+      "x": 290,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
       "radius": 85,
-      "delayTicks": 30,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_03",
+      "type": "collapse_floor",
+      "x": 430,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_04",
+      "type": "collapse_floor",
+      "x": 570,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 28,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_05",
+      "type": "collapse_floor",
+      "x": 710,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_06",
+      "type": "collapse_floor",
+      "x": 850,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_07",
+      "type": "collapse_floor",
+      "x": 990,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_08",
+      "type": "collapse_floor",
+      "x": 1130,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_09",
+      "type": "collapse_floor",
+      "x": 1270,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_10",
+      "type": "collapse_floor",
+      "x": 1410,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_11",
+      "type": "collapse_floor",
+      "x": 1550,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_12",
+      "type": "collapse_floor",
+      "x": 1690,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_13",
+      "type": "collapse_floor",
+      "x": 1830,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_14",
+      "type": "collapse_floor",
+      "x": 1970,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_15",
+      "type": "collapse_floor",
+      "x": 2110,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_16",
+      "type": "collapse_floor",
+      "x": 2250,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_17",
+      "type": "collapse_floor",
+      "x": 2390,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_18",
+      "type": "collapse_floor",
+      "x": 2530,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_19",
+      "type": "collapse_floor",
+      "x": 2670,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
+      "transitionTicks": 18
+    },
+    {
+      "id": "collapse_20",
+      "type": "collapse_floor",
+      "x": 2810,
+      "y": 444,
+      "width": 140,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 50,
       "transitionTicks": 18
     }
   ]

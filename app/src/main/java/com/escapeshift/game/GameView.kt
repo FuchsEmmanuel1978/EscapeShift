@@ -76,6 +76,8 @@ class GameView(
     private var heroFacingRight = true
     private val pressed = mutableSetOf<Int>()
     private val keyboardPressed = mutableSetOf<Int>()
+    // A tap can start and end between two 60 Hz physics ticks; preserve its rising edge.
+    private var pendingJumpPress = false
     private fun active(id: Int): Boolean = id in pressed || id in keyboardPressed
     private var world = GameWorld(currentLevel)
     private val gameAudio = GameAudio(context)
@@ -170,7 +172,8 @@ class GameView(
 
     private fun update(dt: Float) {
         hintTime += dt
-        frameTime += dt
+        // Never accumulate a large backlog after a slow frame (otherwise inputs feel late).
+        frameTime = min(frameTime + dt, GameWorld.STEP * 4f)
         var ticks = 0
         while (frameTime >= GameWorld.STEP && ticks < 4 && !dead && !won) {
             val oldShift = world.shiftOn
@@ -185,11 +188,13 @@ class GameView(
                 GameInput(
                     left = active(1),
                     right = active(2),
-                    jump = active(3),
+                    jump = active(3) || pendingJumpPress,
                     shift = active(4),
                     interact = active(5)
                 )
             )
+            // Consume queued input only after the world has actually advanced.
+            pendingJumpPress = false
             if (world.shiftOn != oldShift) gameAudio.oneShot("shift")
             if (world.vy < -250f && oldVy >= -1f) gameAudio.oneShot(if (world.vy < -500f) "spring" else "jump")
             if (!oldGrounded && world.grounded && oldVy > 50f) gameAudio.oneShot("land", .25f)
@@ -662,6 +667,7 @@ class GameView(
         isGamePaused = value
         pressed.clear()
         keyboardPressed.clear()
+        pendingJumpPress = false
         frameTime = 0f // no physics catch-up after reopening the pause menu
         if (value) gameAudio.pause() else gameAudio.resume()
         onPauseChanged?.invoke(value)
@@ -737,6 +743,7 @@ class GameView(
         endOfLevelReported = false
         pressed.clear()
         keyboardPressed.clear()
+        pendingJumpPress = false
         screen = Screen.PLAY
     }
 
@@ -747,6 +754,7 @@ class GameView(
         world.reset()
         pressed.clear()
         keyboardPressed.clear()
+        pendingJumpPress = false
         frameTime = 0f
         deathIrisElapsed = 0f
         cameraX = 0f
@@ -822,6 +830,7 @@ class GameView(
         }
         val button = gameButtonForKey(keyCode) ?: return super.onKeyDown(keyCode, event)
         if (screen == Screen.PLAY) {
+            if (button == 3 && !active(3)) pendingJumpPress = true
             keyboardPressed.add(button)
             invalidate()
             return true
@@ -929,6 +938,7 @@ class GameView(
             setPaused(true)
             return true
         }
+        val jumpWasPressed = active(3)
         pressed.clear()
         if (event.actionMasked != MotionEvent.ACTION_UP && event.actionMasked != MotionEvent.ACTION_CANCEL) {
             for (i in 0 until event.pointerCount) {
@@ -937,6 +947,7 @@ class GameView(
                 for ((id, b) in buttons) if (b.contains(x, y)) pressed.add(id)
             }
         }
+        if (!jumpWasPressed && active(3)) pendingJumpPress = true
         invalidate()
         return true
     }

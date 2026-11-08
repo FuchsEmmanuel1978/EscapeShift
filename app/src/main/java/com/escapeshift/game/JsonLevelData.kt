@@ -157,7 +157,8 @@ object LevelJsonParser {
         }
         require(objects.count { it.type == "door" } == 1) { "Exactly one door is required" }
         require(objects.count { it.type == "bridge" } <= 1)
-        require(objects.count { it.type == "crate" } <= if (declaredWorld == 1) 1 else 3)
+        val maxCrates = if (declaredWorld == 1 && level != 6) 1 else 3
+        require(objects.count { it.type == "crate" } <= maxCrates) { "Level $level has too many crates (max $maxCrates)" }
         require(objects.count { it.type == "crate_switch" } <= 2)
         val traps = (root["traps"]?.let { list(it, "traps") } ?: emptyList<Any?>()).mapIndexed { index, value ->
             val t = map(value, "traps[$index]")

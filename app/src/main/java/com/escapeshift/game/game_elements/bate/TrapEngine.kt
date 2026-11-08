@@ -36,10 +36,38 @@ class TrapEngine(private val definitions: List<TrapDefinition>) {
     private data class State(var firedAt: Int = -1)
     private val states = MutableList(definitions.size) { State() }
     var tickCount: Int = 0; private set
+    private val floorDefs = definitions.filter { it.type == "collapse_floor" }
+    // Rebuild once per physics tick, not for every collision/render accessor.
+    private var cachedViews: List<TrapView> = emptyList()
+    private var cachedSolids: List<HitBox> = emptyList()
+    private var cachedPlatforms: List<HitBox> = emptyList()
+    private var cachedSpikes: List<HitBox> = emptyList()
+    private var cachedCollapsedGaps: List<GroundGap> = emptyList()
+
+    init { refreshCache() }
+
+    private fun refreshCache() {
+        cachedViews = definitions.indices.map { viewAt(it) }
+        cachedSolids = buildList {
+            for (i in definitions.indices) {
+                val def = definitions[i]
+                when (def.type) {
+                    "collapse_floor" -> if (!activated(def, states[i])) add(cachedViews[i].box)
+                    "surprise_wall" -> if (activated(def, states[i])) add(cachedViews[i].box)
+                }
+            }
+        }
+        cachedPlatforms = definitions.indices.filter { definitions[it].type == "moving_platform" }.map { cachedViews[it].box }
+        cachedSpikes = definitions.indices.filter { definitions[it].type == "rising_spikes" && activated(definitions[it], states[it]) }.map { cachedViews[it].box }
+        cachedCollapsedGaps = definitions.indices.filter {
+            definitions[it].type == "collapse_floor" && activated(definitions[it], states[it])
+        }.map { GroundGap(definitions[it].id, definitions[it].x, definitions[it].width) }
+    }
 
     fun reset() {
         tickCount = 0
         states.forEach { it.firedAt = -1 }
+        refreshCache()
     }
 
     private fun progress(def: TrapDefinition, s: State): Float {
@@ -74,6 +102,7 @@ class TrapEngine(private val definitions: List<TrapDefinition>) {
             }
             if (eligible) s.firedAt = tickCount
         }
+        refreshCache()
     }
 
     /** World-space position for a trap, used consistently for rendering and collision. */
@@ -103,30 +132,12 @@ class TrapEngine(private val definitions: List<TrapDefinition>) {
         })
     }
 
-    fun views(): List<TrapView> = definitions.indices.map { viewAt(it) }
-    fun floorDefinitions(): List<TrapDefinition> = definitions.filter { it.type == "collapse_floor" }
-    fun collapsedGaps(): List<GroundGap> = definitions.indices.filter {
-        definitions[it].type == "collapse_floor" && activated(definitions[it], states[it])
-    }.map { GroundGap(definitions[it].id, definitions[it].x, definitions[it].width) }
-
-    fun solids(): List<HitBox> = definitions.indices.mapNotNull { i ->
-        val def = definitions[i]; val view = viewAt(i)
-        when (def.type) {
-            "collapse_floor" -> view.box.takeUnless { activated(def, states[i]) }
-            "surprise_wall" -> view.box.takeIf { activated(def, states[i]) }
-            else -> null
-        }
-    }
-
-    fun platforms(): List<HitBox> = definitions.indices.mapNotNull { i ->
-        val d = definitions[i]
-        viewAt(i).box.takeIf { d.type == "moving_platform" }
-    }
-
-    fun spikes(): List<HitBox> = definitions.indices.mapNotNull { i ->
-        val d = definitions[i]
-        viewAt(i).box.takeIf { d.type == "rising_spikes" && activated(d, states[i]) }
-    }
+    fun views(): List<TrapView> = cachedViews
+    fun floorDefinitions(): List<TrapDefinition> = floorDefs
+    fun collapsedGaps(): List<GroundGap> = cachedCollapsedGaps
+    fun solids(): List<HitBox> = cachedSolids
+    fun platforms(): List<HitBox> = cachedPlatforms
+    fun spikes(): List<HitBox> = cachedSpikes
 
     fun exit(base: HitBox): HitBox {
         val i = definitions.indexOfFirst { it.type == "moving_exit" }
