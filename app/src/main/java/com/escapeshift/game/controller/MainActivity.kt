@@ -30,7 +30,7 @@ class MainActivity : Activity() {
         // Install the Android assets loader BEFORE constructing any GameWorld.
         // The same JSONs are used by the app and the desktop level simulator.
         LevelCatalog.install { number ->
-            assets.open("levels/${LevelCatalog.filename(number)}")
+            assets.open(LevelCatalog.assetPath(number))
                 .bufferedReader(Charsets.UTF_8).use { it.readText() }
         }
         WorldPreviewCatalog.install { number ->

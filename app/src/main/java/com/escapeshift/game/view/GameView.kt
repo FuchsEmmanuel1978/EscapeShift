@@ -271,7 +271,7 @@ class GameView(
 
         for (crate in level.crateBoxes) drawCrate(c, RectF(crate.left, crate.top, crate.right, crate.bottom))
 
-        level.bridge?.let {
+        level.bridges.forEach {
             val bridgeColor = if (shift) cyan else rgb(56, 71, 78)
             drawBridge(c, RectF(it.left, it.top, it.right, it.bottom), bridgeColor, shift)
         }
@@ -796,6 +796,26 @@ class GameView(
                             paint.style = Paint.Style.FILL
                             c.drawPath(path, paint)
                         }
+                    }
+                }
+                "push_block" -> {
+                    if (v.state == "warning") {
+                        // Location is disclosed briefly before the unexpected shove.
+                        rect(c, b.left, b.top + b.height() / 2f - 3f,
+                            b.right, b.top + b.height() / 2f + 3f, alpha(orange, 135))
+                    } else if (v.state == "active") {
+                        // Industrial block, visually different from regular walls and spikes.
+                        rect(c, b.left, b.top, b.right, b.bottom, steelDark)
+                        rect(c, b.left + 3f, b.top + 3f, b.right - 3f, b.bottom - 3f, orange)
+                        rect(c, b.left + 7f, b.top + 7f, b.right - 7f, b.bottom - 7f, steelMid)
+                        val direction = if (world.spec.traps.first { it.id == v.id }.travelX > 0f) 1f else -1f
+                        val midX = (b.left + b.right) / 2f
+                        val midY = (b.top + b.bottom) / 2f
+                        val tipX = midX + direction * min(17f, b.width() * .30f)
+                        val tailX = midX - direction * min(14f, b.width() * .26f)
+                        strokeLine(c, tailX, midY, tipX, midY, whiteSoft, 4f)
+                        strokeLine(c, tipX - direction * 9f, midY - 9f, tipX, midY, whiteSoft, 4f)
+                        strokeLine(c, tipX - direction * 9f, midY + 9f, tipX, midY, whiteSoft, 4f)
                     }
                 }
                 "surprise_wall" -> if (v.state == "active") {

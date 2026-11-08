@@ -1,0 +1,376 @@
+
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 8,
+  "titleKey": "level_08_title",
+  "hintKey": "level_08_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 4700,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "id": "gap_01",
+        "x": 780,
+        "width": 260
+      },
+      {
+        "id": "gap_02",
+        "x": 1920,
+        "width": 310
+      },
+      {
+        "id": "gap_03",
+        "x": 3700,
+        "width": 270
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "monster_01",
+      "type": "monster",
+      "x": 350,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 0,
+      "amplitude": 65,
+      "period": 170,
+      "offsetX": 0
+    },
+    {
+      "id": "shift_bridge_01",
+      "type": "bridge",
+      "x": 780,
+      "y": 444,
+      "width": 260,
+      "height": 20
+    },
+    {
+      "id": "laser_01",
+      "type": "laser_timed",
+      "x": 400,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 0,
+      "period": 120,
+      "activeTicks": 65
+    },
+    {
+      "id": "monster_02",
+      "type": "monster",
+      "x": 1370,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 45,
+      "amplitude": 75,
+      "period": 190,
+      "offsetX": 0
+    },
+    {
+      "id": "platform_01",
+      "type": "platform",
+      "x": 1530,
+      "y": 355,
+      "width": 155,
+      "height": 20
+    },
+    {
+      "id": "platform_02",
+      "type": "platform",
+      "x": 1710,
+      "y": 315,
+      "width": 155,
+      "height": 20
+    },
+    {
+      "id": "shift_bridge_02",
+      "type": "bridge",
+      "x": 1920,
+      "y": 444,
+      "width": 310,
+      "height": 20
+    },
+    {
+      "id": "laser_shift_02",
+      "type": "laser_blue",
+      "x": 2360,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 0
+    },
+    {
+      "id": "monster_03",
+      "type": "monster",
+      "x": 2550,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 90,
+      "amplitude": 65,
+      "period": 180,
+      "offsetX": 0
+    },
+    {
+      "id": "spring_01",
+      "type": "spring",
+      "x": 2720,
+      "y": 424,
+      "width": 65,
+      "height": 20
+    },
+    {
+      "id": "wall_01",
+      "type": "wall",
+      "x": 2890,
+      "y": 270,
+      "width": 45,
+      "height": 174
+    },
+    {
+      "id": "platform_03",
+      "type": "platform",
+      "x": 3020,
+      "y": 355,
+      "width": 160,
+      "height": 20
+    },
+    {
+      "id": "monster_04",
+      "type": "monster",
+      "x": 3250,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 120,
+      "amplitude": 80,
+      "period": 200,
+      "offsetX": 0
+    },
+    {
+      "id": "laser_shift_03",
+      "type": "laser_red",
+      "x": 3450,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 0
+    },
+    {
+      "id": "platform_04",
+      "type": "platform",
+      "x": 3550,
+      "y": 350,
+      "width": 150,
+      "height": 20
+    },
+    {
+      "id": "shift_bridge_03",
+      "type": "bridge",
+      "x": 3700,
+      "y": 444,
+      "width": 270,
+      "height": 20
+    },
+    {
+      "id": "monster_05",
+      "type": "monster",
+      "x": 4070,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 70,
+      "amplitude": 90,
+      "period": 175,
+      "offsetX": 0
+    },
+    {
+      "id": "laser_shift_04",
+      "type": "laser_blue",
+      "x": 4300,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 0
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 4590,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "monster_01",
+    "laser_01",
+    "monster_02",
+    "laser_shift_02",
+    "monster_03",
+    "spring_01",
+    "wall_01",
+    "monster_04",
+    "laser_shift_03",
+    "monster_05",
+    "laser_shift_04"
+  ],
+  "designVersion": "world1_level8_surprise_spikes_shift_spring_v33",
+  "traps": [
+    {
+      "id": "collapse_01",
+      "type": "collapse_floor",
+      "x": 510,
+      "y": 444,
+      "width": 100,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 95,
+      "delayTicks": 18,
+      "transitionTicks": 15
+    },
+    {
+      "id": "rising_spikes_01",
+      "type": "rising_spikes",
+      "x": 670,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 90,
+      "delayTicks": 8,
+      "transitionTicks": 12
+    },
+    {
+      "id": "rising_spikes_02",
+      "type": "rising_spikes",
+      "x": 1080,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 95,
+      "delayTicks": 7,
+      "transitionTicks": 12
+    },
+    {
+      "id": "collapse_02",
+      "type": "collapse_floor",
+      "x": 1260,
+      "y": 444,
+      "width": 110,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 15,
+      "transitionTicks": 15
+    },
+    {
+      "id": "rising_spikes_03",
+      "type": "rising_spikes",
+      "x": 1630,
+      "y": 412,
+      "width": 60,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 9,
+      "transitionTicks": 12
+    },
+    {
+      "id": "rising_spikes_04",
+      "type": "rising_spikes",
+      "x": 2260,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 95,
+      "delayTicks": 8,
+      "transitionTicks": 12
+    },
+    {
+      "id": "collapse_03",
+      "type": "collapse_floor",
+      "x": 2450,
+      "y": 444,
+      "width": 95,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 90,
+      "delayTicks": 16,
+      "transitionTicks": 15
+    },
+    {
+      "id": "rising_spikes_05",
+      "type": "rising_spikes",
+      "x": 3130,
+      "y": 412,
+      "width": 60,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 8,
+      "transitionTicks": 12
+    },
+    {
+      "id": "rising_spikes_06",
+      "type": "rising_spikes",
+      "x": 3510,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 90,
+      "delayTicks": 6,
+      "transitionTicks": 12
+    },
+    {
+      "id": "collapse_04",
+      "type": "collapse_floor",
+      "x": 4010,
+      "y": 444,
+      "width": 105,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 14,
+      "transitionTicks": 15
+    },
+    {
+      "id": "rising_spikes_07",
+      "type": "rising_spikes",
+      "x": 4200,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 95,
+      "delayTicks": 7,
+      "transitionTicks": 12
+    },
+    {
+      "id": "rising_spikes_08",
+      "type": "rising_spikes",
+      "x": 4440,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 85,
+      "delayTicks": 6,
+      "transitionTicks": 12
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+
+{
+  "schemaVersion": 1,
+  "world": 1,
+  "level": 7,
+  "titleKey": "level_07_title",
+  "hintKey": "level_07_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 4400,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "id": "gap_middle_01",
+        "x": 1450,
+        "width": 780
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "saw_01",
+      "type": "saw",
+      "x": 650,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 0,
+      "amplitude": 165,
+      "period": 160,
+      "offsetX": 30
+    },
+    {
+      "id": "laser_shift_01",
+      "type": "laser_red",
+      "x": 1050,
+      "y": 300,
+      "width": 15,
+      "height": 144,
+      "phase": 0
+    },
+    {
+      "id": "saw_02",
+      "type": "saw",
+      "x": 1260,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 65,
+      "amplitude": 150,
+      "period": 145,
+      "offsetX": 30
+    },
+    {
+      "id": "puzzle_crate_01",
+      "type": "crate",
+      "x": 2470,
+      "y": 400,
+      "width": 46,
+      "height": 44
+    },
+    {
+      "id": "saw_03",
+      "type": "saw",
+      "x": 2780,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 35,
+      "amplitude": 200,
+      "period": 250,
+      "offsetX": 30
+    },
+    {
+      "id": "saw_05",
+      "type": "saw",
+      "x": 3730,
+      "y": 405,
+      "width": 33,
+      "height": 39,
+      "phase": 125,
+      "amplitude": 180,
+      "period": 250,
+      "offsetX": 30
+    },
+    {
+      "id": "final_wall_01",
+      "type": "wall",
+      "x": 4120,
+      "y": 330,
+      "width": 45,
+      "height": 114
+    },
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 4290,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [
+    "saw_01",
+    "laser_shift_01",
+    "saw_02",
+    "saw_03",
+    "saw_05",
+    "final_wall_01"
+  ],
+  "designVersion": "world1_level7_sliding_platforms_saws_crate_v32",
+  "traps": [
+    {
+      "id": "moving_platform_01",
+      "type": "moving_platform",
+      "x": 1440,
+      "y": 390,
+      "width": 150,
+      "height": 20,
+      "trigger": "player_near",
+      "radius": 180,
+      "delayTicks": 0,
+      "transitionTicks": 18,
+      "travelX": 130,
+      "travelY": 0,
+      "periodTicks": 180
+    },
+    {
+      "id": "moving_platform_02",
+      "type": "moving_platform",
+      "x": 1600,
+      "y": 350,
+      "width": 150,
+      "height": 20,
+      "trigger": "player_near",
+      "radius": 180,
+      "delayTicks": 0,
+      "transitionTicks": 18,
+      "travelX": -130,
+      "travelY": 0,
+      "periodTicks": 150
+    },
+    {
+      "id": "moving_platform_03",
+      "type": "moving_platform",
+      "x": 1760,
+      "y": 310,
+      "width": 150,
+      "height": 20,
+      "trigger": "player_near",
+      "radius": 180,
+      "delayTicks": 0,
+      "transitionTicks": 18,
+      "travelX": 150,
+      "travelY": 0,
+      "periodTicks": 170
+    },
+    {
+      "id": "moving_platform_04",
+      "type": "moving_platform",
+      "x": 1920,
+      "y": 350,
+      "width": 150,
+      "height": 20,
+      "trigger": "player_near",
+      "radius": 180,
+      "delayTicks": 0,
+      "transitionTicks": 18,
+      "travelX": -130,
+      "travelY": 0,
+      "periodTicks": 155
+    },
+    {
+      "id": "moving_platform_05",
+      "type": "moving_platform",
+      "x": 2080,
+      "y": 390,
+      "width": 150,
+      "height": 20,
+      "trigger": "player_near",
+      "radius": 180,
+      "delayTicks": 0,
+      "transitionTicks": 18,
+      "travelX": 130,
+      "travelY": 0,
+      "periodTicks": 190
+    },
+    {
+      "id": "rising_spikes_02",
+      "type": "rising_spikes",
+      "x": 3900,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 90,
+      "delayTicks": 36,
+      "transitionTicks": 12
+    }
+  ]
+}

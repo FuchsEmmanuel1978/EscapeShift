@@ -4,7 +4,7 @@ import java.io.File
 import java.util.Locale
 import com.escapeshift.game.game_elements.GameElementRegistry
 
-/** The only source of level geometry: app/src/main/assets/levels/level_XX.json. */
+/** The only source of level geometry: app/src/main/assets/levels/world_XX/level_YY.json. */
 data class LevelObject(
     val id: String,
     val type: String,
@@ -34,16 +34,20 @@ object LevelCatalog {
     private val cache = mutableMapOf<Int, LevelSpec>()
     private val fallbackSource: (Int) -> String = { n ->
         val file = listOf(
-            File("app/src/main/assets/levels"),
-            File("src/main/assets/levels"),
-            File("../app/src/main/assets/levels")
-        ).map { File(it, filename(n)) }.firstOrNull { it.isFile }
-            ?: error("Missing ${filename(n)}. Install the Android asset loader or run from the project root.")
+            File("app/src/main/assets"),
+            File("src/main/assets"),
+            File("../app/src/main/assets")
+        ).map { File(it, assetPath(n)) }.firstOrNull { it.isFile }
+            ?: error("Missing ${assetPath(n)}. Install the Android asset loader or run from the project root.")
         file.readText(Charsets.UTF_8)
     }
     private var source: (Int) -> String = fallbackSource
 
     fun filename(number: Int): String = "level_${number.toString().padStart(2, '0')}.json"
+
+    // One directory per world, levels 1-10, 11-20, 21-30, 31-40.
+    fun worldFolder(number: Int): String = "world_${((number - 1) / 10 + 1).toString().padStart(2, '0')}"
+    fun assetPath(number: Int): String = "levels/${worldFolder(number)}/${filename(number)}"
 
     @Synchronized fun install(readJson: (Int) -> String) {
         source = readJson
@@ -156,7 +160,7 @@ object LevelJsonParser {
             obj
         }
         require(objects.count { it.type == "door" } == 1) { "Exactly one door is required" }
-        require(objects.count { it.type == "bridge" } <= 1)
+        // Multiple SHIFT bridges are allowed; all use the same SHIFT toggle.
         val maxCrates = if (declaredWorld == 1 && level != 6) 1 else 3
         require(objects.count { it.type == "crate" } <= maxCrates) { "Level $level has too many crates (max $maxCrates)" }
         require(objects.count { it.type == "crate_switch" } <= 2)
@@ -164,7 +168,7 @@ object LevelJsonParser {
             val t = map(value, "traps[$index]")
             val id = str(t["id"], "traps[$index].id")
             val type = str(t["type"], "$id.type")
-            require(type in setOf("collapse_floor", "rising_spikes", "surprise_wall", "moving_platform", "moving_exit", "reverse_zone")) {
+            require(type in setOf("collapse_floor", "rising_spikes", "surprise_wall", "moving_platform", "moving_exit", "reverse_zone", "push_block")) {
                 "Unknown trap type $type on $id"
             }
             require(id.matches(Regex("[a-zA-Z0-9_]+")) && seenIds.add(id)) { "Invalid or duplicated trap ID $id" }
@@ -182,6 +186,14 @@ object LevelJsonParser {
             ).also { d ->
                 require(d.width > 0f && d.height > 0f && d.x >= 0f && d.x + d.width <= worldWidth)
                 require(d.radius >= 0f && d.delayTicks >= 0 && d.durationTicks >= 0 && d.transitionTicks > 0 && d.periodTicks > 0)
+                if (d.type == "push_block") {
+                    require(d.travelX != 0f && d.travelY == 0f) {
+                        "$id: push_block requires non-zero travelX and travelY == 0"
+                    }
+                    require(d.x + d.travelX >= 0f && d.x + d.width + d.travelX <= worldWidth) {
+                        "$id: push_block must remain inside worldWidth while moving"
+                    }
+                }
                 if (d.type == "collapse_floor") {
                     require(d.y == groundY) { "$id: collapse floor must start at groundY" }
                     require(gaps.none { g -> d.x < g.x + g.width && g.x < d.x + d.width }) {

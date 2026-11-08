@@ -6,6 +6,7 @@ import kotlin.math.sin
 import com.escapeshift.game.game_elements.adventure.SpikeElements
 import com.escapeshift.game.game_elements.adventure.SpikeCollision
 import com.escapeshift.game.game_elements.bate.MovingSpikes
+import com.escapeshift.game.game_elements.bate.PushBlock
 import com.escapeshift.game.game_elements.puzzle.LaserElements
 
 data class HitBox(val left: Float, val top: Float, val right: Float, val bottom: Float) {
@@ -122,7 +123,8 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         val xx = s.x + s.amplitude * sin((atTick + s.phase) * (2 * Math.PI / s.period.toDouble())).toFloat()
         return HitBox(xx, yy, xx + s.width, yy + s.height)
     }
-    val bridge: HitBox? = objects("bridge").firstOrNull()?.box
+    val bridges: List<HitBox> = objects("bridge").map { it.box }
+    val bridge: HitBox? get() = bridges.firstOrNull() // Compatibility for existing callers
     private val initialExit = objects("door").single().box
     val exit: HitBox get() = traps.exit(initialExit)
 
@@ -195,7 +197,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val exitUnlocked get() = (!spec.requiresKey || keyCollected) &&
         (switches.isEmpty() || switchActivated) && pressureReady && (physicalPuzzle?.isSolved ?: true) &&
         (advancedPuzzle?.isSolved ?: true)
-    fun solids(): List<HitBox> = (staticSolids + traps.solids() + advancedPuzzle?.wallBoxes().orEmpty()).let { if (shiftOn && bridge != null) it + bridge else it }
+    fun solids(): List<HitBox> = (staticSolids + traps.solids() + advancedPuzzle?.wallBoxes().orEmpty()).let { if (shiftOn) it + bridges else it }
     fun sawBox(saw: Challenge, t: Int = ticks): HitBox {
         val offset = saw.amplitude * sin((t + saw.phase) * (2 * Math.PI / saw.period.toDouble())).toFloat()
         val left = saw.x + saw.offsetX + offset
@@ -289,6 +291,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         if (jumpBufferTicks > 0) jumpBufferTicks--
         val oldBox = playerBox
         val platformBefore = traps.platforms()
+        val pushBlocksBefore = traps.pushBlocks()
         traps.update(oldBox, oldBox, justJumped, vx)
         // Carry the player along the platform they were standing on.
         val platformAfter = traps.platforms()
@@ -329,6 +332,10 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         previousAdvancedPlatforms = latestAdvanced
         val dx = vx * STEP
         x += dx
+        // Animated blocks shove the hero sideways even if no direction key is held.
+        // They are not one-hit-kill hazards: falling through a gap is the danger.
+        x = PushBlock.resolveHorizontal(oldBox, playerBox, pushBlocksBefore,
+            traps.pushBlocks(), worldRight)
         for (i in crateConfigs.indices) {
             if (carriedCrateIndex != null) continue // carrying: other crates stay in place rather than getting dragged across the room
             val crate = crateBoxes[i]
@@ -394,7 +401,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         val wasGrounded = grounded
         y += vy * STEP
         grounded = false
-        for (solid in solids() + activePlatforms + crateBoxes.filterIndexed { i, _ -> i != carriedCrateIndex }) {
+        for (solid in solids() + activePlatforms + traps.pushBlocks().map { it.box } + crateBoxes.filterIndexed { i, _ -> i != carriedCrateIndex }) {
             if (!playerBox.intersects(solid)) continue
             if (vy >= 0f && previousBottom <= solid.top + 2f) {
                 y = solid.top - SIZE
