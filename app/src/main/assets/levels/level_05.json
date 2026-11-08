@@ -1,3 +1,4 @@
+
 {
   "schemaVersion": 1,
   "world": 1,
@@ -6,7 +7,7 @@
   "hintKey": "level_05_hint",
   "intro": "UPPER_PLATFORM",
   "backtrackCount": 0,
-  "worldWidth": 3214,
+  "worldWidth": 3500,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -14,200 +15,210 @@
   "ground": {
     "y": 444,
     "depth": 146,
-    "gaps": []
+    "gaps": [
+      {
+        "id": "gap_01",
+        "x": 2390,
+        "width": 300
+      }
+    ]
   },
   "objects": [
     {
-      "id": "starter_upper_platform",
-      "type": "platform",
-      "x": 320,
-      "y": 363,
-      "width": 95,
-      "height": 19
-    },
-    {
-      "id": "coin_01",
-      "type": "coin",
-      "x": 355.5,
-      "y": 332,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "spike_01",
-      "type": "spike",
-      "x": 695,
-      "y": 409,
-      "width": 52,
-      "height": 35,
-      "count": 1,
-      "spacing": 0
-    },
-    {
-      "id": "platform_01",
-      "type": "platform",
-      "x": 835,
-      "y": 356,
-      "width": 145,
-      "height": 20
-    },
-    {
-      "id": "coin_02",
-      "type": "coin",
-      "x": 895.5,
-      "y": 325,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "key_02",
-      "type": "key",
-      "x": 950,
-      "y": 388,
-      "width": 27,
-      "height": 45,
-      "phase": 108
-    },
-    {
-      "id": "platform_02",
-      "type": "platform",
-      "x": 1188,
-      "y": 318,
-      "width": 138,
-      "height": 20
-    },
-    {
-      "id": "laser_red_03",
-      "type": "laser_red",
-      "x": 1205,
-      "y": 300,
-      "width": 15,
-      "height": 144,
-      "phase": 11
-    },
-    {
-      "id": "coin_03",
-      "type": "coin",
-      "x": 1245.0,
-      "y": 287,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "spike_04",
-      "type": "spike",
-      "x": 1460,
-      "y": 409,
-      "width": 52,
-      "height": 35,
-      "count": 1,
-      "spacing": 0
-    },
-    {
-      "id": "challenge_extra_01",
-      "type": "saw",
-      "x": 1745,
-      "y": 405,
-      "width": 33,
-      "height": 39,
-      "phase": 146,
-      "amplitude": 85,
-      "period": 155,
-      "offsetX": 30
-    },
-    {
-      "id": "challenge_extra_02",
+      "id": "monster_01",
       "type": "monster",
-      "x": 2030,
+      "x": 260,
       "y": 396,
       "width": 64,
       "height": 48,
-      "phase": 139,
-      "amplitude": 47,
+      "phase": 0,
+      "amplitude": 35,
       "period": 150,
       "offsetX": 0
     },
     {
-      "id": "challenge_extra_03",
-      "type": "laser_timed",
-      "x": 2315,
-      "y": 285,
-      "width": 16,
-      "height": 159,
-      "phase": 14,
-      "period": 120,
-      "activeTicks": 58
+      "id": "monster_02",
+      "type": "monster",
+      "x": 470,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 35,
+      "amplitude": 40,
+      "period": 140,
+      "offsetX": 0
     },
     {
-      "id": "exit_stair_01",
-      "type": "platform",
-      "x": 2610,
-      "y": 365,
-      "width": 138,
-      "height": 20
+      "id": "monster_03",
+      "type": "monster",
+      "x": 680,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 70,
+      "amplitude": 45,
+      "period": 160,
+      "offsetX": 0
     },
     {
-      "id": "exit_stair_02",
-      "type": "platform",
-      "x": 2728,
-      "y": 291,
-      "width": 138,
-      "height": 20
+      "id": "monster_04",
+      "type": "monster",
+      "x": 890,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 105,
+      "amplitude": 40,
+      "period": 135,
+      "offsetX": 0
     },
     {
-      "id": "exit_stair_03",
-      "type": "platform",
-      "x": 2846,
-      "y": 217,
-      "width": 138,
-      "height": 20
+      "id": "monster_05",
+      "type": "monster",
+      "x": 1100,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 25,
+      "amplitude": 50,
+      "period": 155,
+      "offsetX": 0
+    },
+    {
+      "id": "monster_06",
+      "type": "monster",
+      "x": 1310,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 85,
+      "amplitude": 45,
+      "period": 145,
+      "offsetX": 0
+    },
+    {
+      "id": "monster_07",
+      "type": "monster",
+      "x": 1520,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 120,
+      "amplitude": 50,
+      "period": 165,
+      "offsetX": 0
+    },
+    {
+      "id": "monster_08",
+      "type": "monster",
+      "x": 1730,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 45,
+      "amplitude": 45,
+      "period": 140,
+      "offsetX": 0
+    },
+    {
+      "id": "monster_09",
+      "type": "monster",
+      "x": 1940,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 95,
+      "amplitude": 55,
+      "period": 150,
+      "offsetX": 0
+    },
+    {
+      "id": "monster_10",
+      "type": "monster",
+      "x": 2150,
+      "y": 396,
+      "width": 64,
+      "height": 48,
+      "phase": 135,
+      "amplitude": 50,
+      "period": 160,
+      "offsetX": 0
+    },
+    {
+      "id": "moving_spikes_01",
+      "type": "moving_spikes",
+      "x": 2880,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 3,
+      "spacing": 4,
+      "triggerDistance": 115,
+      "travelDistance": 100,
+      "speed": 190
     },
     {
       "id": "exit_door",
       "type": "door",
-      "x": 2964,
-      "y": 125,
+      "x": 3110,
+      "y": 354,
       "width": 65,
       "height": 90
+    },
+    {
+      "id": "moving_spikes_02",
+      "type": "moving_spikes",
+      "x": 3200,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 3,
+      "spacing": 4,
+      "triggerDistance": 115,
+      "travelDistance": 90,
+      "speed": 190
+    },
+    {
+      "id": "door_switch_01",
+      "type": "switch",
+      "x": 3420,
+      "y": 404,
+      "width": 45,
+      "height": 40
     }
   ],
   "route": [
-    "spike_01",
-    "key_02",
-    "laser_red_03",
-    "spike_04",
-    "challenge_extra_01",
-    "challenge_extra_02",
-    "challenge_extra_03"
+    "monster_01",
+    "monster_02",
+    "monster_03",
+    "monster_04",
+    "monster_05",
+    "monster_06",
+    "monster_07",
+    "monster_08",
+    "monster_09",
+    "monster_10",
+    "gap_01",
+    "moving_spikes_01",
+    "moving_spikes_02",
+    "door_switch_01"
   ],
-  "designVersion": "world1_vertical_challenge_v22",
+  "designVersion": "world1_level5_monsters_moving_spikes_switch_v28",
   "traps": [
     {
-      "id": "trap_05_01",
-      "type": "collapse_floor",
-      "x": 2630,
-      "y": 444,
-      "width": 80,
-      "height": 146,
-      "trigger": "player_on",
-      "radius": 20,
-      "delayTicks": 10,
-      "transitionTicks": 18
-    },
-    {
-      "id": "trap_05_02",
+      "id": "moving_platform_01",
       "type": "moving_platform",
-      "x": 2450,
-      "y": 325,
-      "width": 116,
+      "x": 2370,
+      "y": 380,
+      "width": 140,
       "height": 20,
       "trigger": "player_near",
-      "radius": 100,
-      "delayTicks": 15,
+      "radius": 150,
+      "delayTicks": 0,
       "transitionTicks": 18,
-      "travelX": 30,
-      "travelY": -20,
-      "periodTicks": 165
+      "travelX": 260,
+      "travelY": 0,
+      "periodTicks": 220
     }
   ]
 }
