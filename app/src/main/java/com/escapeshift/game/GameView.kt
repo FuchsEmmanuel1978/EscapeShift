@@ -18,6 +18,7 @@ import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.exp
 import kotlin.math.ceil
+import com.escapeshift.game.game_elements.puzzle.LaserElements
 
 /** Foreground gameplay uses Canvas; the industrial background is a parallax bitmap. */
 class GameView(
@@ -271,10 +272,10 @@ class GameView(
         }
 
         for (laser in level.lasers) {
-            drawLaserColumn(c, RectF(laser.left, laser.top, laser.right, laser.bottom), red, active = !shift)
+            drawLaserColumn(c, RectF(laser.left, laser.top, laser.right, laser.bottom), red, active = LaserElements.redActive(shift))
         }
         for (laser in level.invertedLasers) {
-            drawLaserColumn(c, RectF(laser.left, laser.top, laser.right, laser.bottom), blue, active = shift)
+            drawLaserColumn(c, RectF(laser.left, laser.top, laser.right, laser.bottom), blue, active = LaserElements.blueActive(shift))
         }
         for (laser in level.timedLasers) {
             drawLaserColumn(c, RectF(level.timedLaserBox(laser).left, level.timedLaserBox(laser).top, level.timedLaserBox(laser).right, level.timedLaserBox(laser).bottom), orangeLight, active = level.timedLaserActive(laser))

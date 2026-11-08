@@ -3,6 +3,10 @@ package com.escapeshift.game
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
+import com.escapeshift.game.game_elements.adventure.SpikeElements
+import com.escapeshift.game.game_elements.adventure.SpikeCollision
+import com.escapeshift.game.game_elements.bate.MovingSpikes
+import com.escapeshift.game.game_elements.puzzle.LaserElements
 
 data class HitBox(val left: Float, val top: Float, val right: Float, val bottom: Float) {
     fun intersects(other: HitBox): Boolean = left < other.right && right > other.left && top < other.bottom && bottom > other.top
@@ -134,12 +138,9 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val activePlatforms get() = oneWayPlatforms + traps.platforms() + physicalPuzzle?.movingPlatforms().orEmpty() + listOfNotNull(physicalPuzzle?.sliderBox) + advancedPuzzle?.platformBoxes().orEmpty()
     val dynamicTrapViews get() = traps.views()
     val dynamicGroundGaps get() = spec.gaps + traps.collapsedGaps()
-    val spikes: List<HitBox> = objects("spike").flatMap { o ->
-        (0 until o.count).map { index ->
-            val left = o.x + index * (o.width + o.spacing)
-            HitBox(left, o.y, left + o.width, o.y + o.height)
-        }
-    }
+    private val movingSpikes = MovingSpikes(objects("moving_spikes"))
+    /** Includes the existing static triangles and any bait triangles, at live positions. */
+    val spikes: List<HitBox> get() = objects("spike").flatMap { SpikeElements.boxes(it) } + movingSpikes.boxes()
     val lasers = objects("laser_red").map { it.box }
     val invertedLasers = objects("laser_blue").map { it.box }
     val timedLasers = objects("laser_timed").map { challenge(it, ChallengeType.TIMED_LASER) }
@@ -209,6 +210,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         monsterAlive = MutableList(monsters.size) { true }
         coinTaken = BooleanArray(coins.size)
         traps.reset()
+        movingSpikes.reset()
         physicalPuzzle?.reset()
         advancedPuzzle?.reset()
         previousPuzzlePlatforms = physicalPuzzle?.movingPlatforms().orEmpty()
@@ -219,6 +221,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         if (dead || won) return
         ticks++
         elapsed += STEP
+        movingSpikes.update(playerBox, STEP, worldRight)
         if (input.shift && !shiftPrevious) shiftOn = !shiftOn
         shiftPrevious = input.shift
         val rawDirection = (if (input.right) 1 else 0) - (if (input.left) 1 else 0)
@@ -415,14 +418,13 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
                 }
             }
         }
-        if (y > 650f || spikes.any { player.intersects(it) } ||
-            (!shiftOn && lasers.any { player.intersects(it) }) ||
-            (shiftOn && invertedLasers.any { player.intersects(it) }) ||
+        if (y > 650f || spikes.any { SpikeCollision.touches(player, it) } ||
+            LaserElements.isDangerous(lasers, invertedLasers, player, shiftOn) ||
             timedLasers.any { timedLaserActive(it) && player.intersects(timedLaserBox(it)) } ||
             saws.any { player.intersects(sawBox(it)) } ||
-            traps.spikes().any { player.intersects(it) } ||
+            traps.spikes().any { SpikeCollision.touches(player, it) } ||
             traps.views().any { it.type == "surprise_wall" && it.state == "active" && player.intersects(it.box) } ||
-            advancedPuzzle?.spikeBoxes()?.any { player.intersects(it) } == true
+            advancedPuzzle?.spikeBoxes()?.any { SpikeCollision.touches(player, it) } == true
         ) dead = true
         physicalPuzzle?.update(player, crateBoxes)
         advancedPuzzle?.tick(player, crateBoxes.mapIndexed { i, box -> if (i == carriedCrateIndex) HitBox(-9000f,-9000f,-8000f,-8000f) else box }, !grounded, vx)

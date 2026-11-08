@@ -2,6 +2,7 @@ package com.escapeshift.game
 
 import java.io.File
 import java.util.Locale
+import com.escapeshift.game.game_elements.GameElementRegistry
 
 /** The only source of level geometry: app/src/main/assets/levels/level_XX.json. */
 data class LevelObject(
@@ -18,7 +19,9 @@ data class LevelObject(
     val period: Int = 120,
     val activeTicks: Int = 64,
     val offsetX: Float = 0f,
-    val speed: Float = -145f
+    val speed: Float = -145f,
+    val triggerDistance: Float = 115f,
+    val travelDistance: Float = 135f
 ) {
     val box get() = HitBox(x, y, x + width, y + height)
 }
@@ -59,15 +62,11 @@ object LevelCatalog {
 
 /** Strict JSON schema validation: fail with an actionable error instead of silently changing collisions. */
 object LevelJsonParser {
-    private val supported = setOf(
-        "wall", "platform", "crate", "bridge", "spike", "laser_red", "laser_blue",
-        "laser_timed", "spring", "key", "coin", "switch", "crate_switch", "snowflake", "conveyor", "saw", "monster", "door"
-    )
-    private val routeTypes = setOf(
-        "spike", "laser_red", "laser_blue", "laser_timed", "spring", "key", "switch", "conveyor", "saw", "monster", "wall"
-    )
+    private val supported = GameElementRegistry.supported
+    private val routeTypes = GameElementRegistry.routeTypes
     private val challengeTypes = mapOf(
         "spike" to ChallengeType.SPIKE,
+        "moving_spikes" to ChallengeType.SPIKE,
         "laser_red" to ChallengeType.RED_LASER,
         "laser_blue" to ChallengeType.BLUE_LASER,
         "laser_timed" to ChallengeType.TIMED_LASER,
@@ -139,12 +138,20 @@ object LevelJsonParser {
                 number(o["width"], "$id.width"), number(o["height"], "$id.height"),
                 optInt(o, "count", 1), optNum(o, "spacing", 0f), optInt(o, "phase", 0),
                 optNum(o, "amplitude", 0f), optInt(o, "period", if (type == "saw") 155 else if (type == "monster") 130 else 120),
-                optInt(o, "activeTicks", 64), optNum(o, "offsetX", 0f), optNum(o, "speed", -145f)
+                optInt(o, "activeTicks", 64), optNum(o, "offsetX", 0f),
+                optNum(o, "speed", if (type == "moving_spikes") 190f else -145f),
+                optNum(o, "triggerDistance", 115f), optNum(o, "travelDistance", 135f)
             )
             require(obj.x >= 0f && obj.width > 0f && obj.height > 0f) { "Bad dimensions on $id" }
             require(obj.count in 1..3 && obj.spacing >= 0f) { "count must be 1..3 and spacing >=0 on $id" }
             require(obj.period > 0 && obj.activeTicks in 1..obj.period) { "Bad period/activeTicks on $id" }
-            val right = obj.x + obj.width * obj.count + obj.spacing * (obj.count - 1)
+            if (type == "moving_spikes") {
+                require(obj.triggerDistance >= 0f && obj.travelDistance >= 0f && obj.speed > 0f) {
+                    "$id: moving_spikes requires triggerDistance >= 0, travelDistance >= 0 and speed > 0"
+                }
+            }
+            val right = obj.x + obj.width * obj.count + obj.spacing * (obj.count - 1) +
+                if (type == "moving_spikes") obj.travelDistance else 0f
             require(right <= worldWidth + 0.01f) { "$id extends beyond worldWidth" }
             obj
         }
