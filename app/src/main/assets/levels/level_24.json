@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 24,
+  "titleKey": "level_24_title",
+  "hintKey": "level_24_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2480,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": false,
+    "title": "Poids total",
+    "concepts": [
+      "three_body_weight",
+      "latched_platform",
+      "spring_crate"
+    ],
+    "goal": [
+      {
+        "var": "flag:lift_lowered",
+        "eq": true
+      },
+      {
+        "var": "flag:spring_ready",
+        "eq": true
+      }
+    ],
+    "hint": "Deux caisses et le héros sur la plaque : verrouille le plateau puis récupère une caisse.",
+    "devices": [
+      {
+        "id": "plateA",
+        "kind": "heavy_pressure_plate",
+        "x": 550,
+        "y": 433,
+        "width": 175,
+        "height": 11,
+        "requiredWeight": 3
+      },
+      {
+        "id": "crateA",
+        "kind": "crate",
+        "x": 220,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1
+      },
+      {
+        "id": "crateB",
+        "kind": "crate",
+        "x": 310,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1
+      },
+      {
+        "id": "liftA",
+        "kind": "lowering_platform",
+        "x": 1180,
+        "y": 300,
+        "width": 165,
+        "height": 20
+      },
+      {
+        "id": "springA",
+        "kind": "spring",
+        "x": 1650,
+        "y": 428,
+        "width": 85,
+        "height": 16
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "press",
+          "target": "latch"
+        },
+        "if": [
+          {
+            "var": "at:crateA",
+            "eq": "plateA"
+          },
+          {
+            "var": "at:crateB",
+            "eq": "plateA"
+          },
+          {
+            "var": "hero:plateA",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:lift_lowered": true
+        },
+        "message": "Le poids total abaisse et verrouille le plateau."
+      },
+      {
+        "on": {
+          "action": "press",
+          "target": "activate_spring"
+        },
+        "if": [
+          {
+            "var": "flag:lift_lowered",
+            "eq": true
+          },
+          {
+            "var": "at:crateB",
+            "eq": "springA"
+          }
+        ],
+        "set": {
+          "flag:spring_ready": true
+        },
+        "message": "Le tremplin est calé par la caisse."
+      }
+    ],
+    "solution": [
+      {
+        "action": "place",
+        "target": "crateA",
+        "value": "plateA"
+      },
+      {
+        "action": "place",
+        "target": "crateB",
+        "value": "plateA"
+      },
+      {
+        "action": "stand",
+        "target": "plateA"
+      },
+      {
+        "action": "press",
+        "target": "latch"
+      },
+      {
+        "action": "leave",
+        "target": "plateA"
+      },
+      {
+        "action": "place",
+        "target": "crateB",
+        "value": "springA"
+      },
+      {
+        "action": "press",
+        "target": "activate_spring"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only"
+  },
+  "experimental": {
+    "status": "physical_beta",
+    "rendering": "existing industrial 2D Canvas design",
+    "physics": "AdvancedPuzzle in GameWorld",
+    "validationScope": "physical contact and puzzle-logic regression; complete playtest pending"
+  }
+}

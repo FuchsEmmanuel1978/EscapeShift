@@ -7,7 +7,7 @@ fun main(args: Array<String>) {
     val root = File(args.firstOrNull() ?: "app/src/main/assets/levels")
     require(root.isDirectory) { "Levels folder not found: ${root.absolutePath}" }
     LevelCatalog.install { n -> File(root, LevelCatalog.filename(n)).readText(Charsets.UTF_8) }
-    val selected = args.getOrNull(1)?.toIntOrNull()?.let { listOf(it) } ?: (1..LevelCatalog.MAX_LEVEL).toList()
+    val selected = args.getOrNull(1)?.toIntOrNull()?.let { listOf(it) } ?: (1..20).toList()
     var failed = 0
     for (level in selected) {
         val data = LevelCatalog.create(level)

@@ -13,7 +13,7 @@ object GameVisualConfig {
     const val PAUSE_SYMBOL_ALPHA = 200
     const val DEATH_IRIS_DURATION_SECONDS = 1.05f
     const val DEATH_IRIS_SOFT_EDGE = 80f
-    const val HERO_SCALE = 1.50f             // visual sprite only; collision size unchanged
+    const val HERO_SCALE = 1.20f             // visual sprite only; collision size unchanged
     const val LASER_SCALE = 1.25f            // visual sprite only; hitbox unchanged
     const val GROUND_TILE_SCREEN_FRACTION = 0.10f
     const val GROUND_TILE_HEIGHT_FRACTION = 0.20f

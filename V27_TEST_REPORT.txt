@@ -1,0 +1,27 @@
+ESCAPE SHIFT V27 — Rapport d'essais (2026-11-07)
+
+Base V26. Périmètre jouable ajouté : niveaux 24–30 uniquement.
+
+[PASS]  Kotlin source compile with simulated Android and Start.io interfaces
+[PASS]  20/20 existing routes (1–20) with GameWorld/LevelPlaytester
+[PASS]   3/3 physical puzzle routes (21–23) with GameWorld.tick()
+[PASS]   7/7 added physical puzzle routes (24–30) with GameWorld.tick()
+        24 heavy plate + 2 crates + hero + spring
+        25 10 crates / 5 pads (correct combination)
+        26 wheel 135deg + gap crossing
+        27 primes in order; 4,6,9,12,15 avoided
+        28 two crates + adjustable walls + movable spring
+        29 O,V,E,R in order, decoys avoided
+        30 U21,13 + gravity + reversed controls
+[PASS]  30/30 active level JSON static validations
+[PASS]  15/15 Python logic lab regression tests (includes prototypes 31–40)
+[PASS]  World 4 remains preview/prototype only in navigation
+[PASS]  Initial doors are locked on new levels
+
+Testing boundaries:
+- Kotlin tests run in local JVM using simulated Android interfaces. No native Android APK build here.
+- The successful seven trajectories were run with real GameWorld.tick() physics,
+  NOT with state teleportation. The test robot is scripted; it is not a general solver.
+- Local JUnit assertions were run using a minimal test stub; run Gradle
+  :app:testDebugUnitTest inside Android Studio for standard JUnit execution.
+- Need in-device UX review of puzzles and Android Studio build on Xiaomi 12.

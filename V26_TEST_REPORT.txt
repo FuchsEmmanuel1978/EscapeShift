@@ -1,0 +1,25 @@
+ESCAPE SHIFT V26 — RAPPORT DE VALIDATION
+Date: 2026-11-07
+
+Base source: V25 (niveaux 1..20 réels, 21..40 prototypes logiques).
+Modifications: niveaux 21,22,23 raccordés à GameWorld pour la physique.
+
+PASS — Kotlin compilé avec interfaces Android simulées (application entière).
+PASS — 20/20 parcours anciens via GameWorld + LevelPlaytester, aucun changement JSON pour 1..20.
+PASS — 21 (pont, aller-retour, plaque caisse) : 684 ticks jusqu'à la victoire.
+PASS — 22 (roue, bouton, laser temporisé) : 307 ticks jusqu'à la victoire.
+PASS — 23 (2 caisses, boutons 1+4, 3 plateformes) : 487 ticks jusqu'à la victoire.
+PASS — 23/23 fichiers de niveau physique : validation JSON Python.
+PASS — 20/20 prototypes logiques du Puzzle Lab 21..40 (compatibilité de l'ancien simulateur logique).
+PASS — 10/10 langues : 110 clés communes avec les textes des 3 nouveaux niveaux.
+PASS — 3 aperçus PNG du monde 3 générés depuis les JSON.
+PASS — 3 portes initialement verrouillées dans les tests du moteur.
+
+LIMITES
+- Le SDK Android complet et un téléphone ne sont pas disponibles ici : la compilation APK/AAB native et l'ergonomie tactile restent à vérifier dans Android Studio/Xiaomi.
+- Les niveaux 24..40 restent purement logiques et non jouables.
+- Le parcours gagnant scénarisé est une preuve d'existence d'une solution, pas une évaluation subjective de la difficulté ni un test exhaustif de toutes les actions.
+- Le laboratoire logique V25 est conservé comme référence séparée, mais le runtime physique des niveaux 21..23 est désormais géré par PhysicalPuzzle.kt et ses appareils puzzle.devices.
+
+Commande Windows depuis le projet : .\tools\levels\test_levels.bat
+Commande direct : java -jar tools/levels/physical_puzzle_playtest.jar app/src/main/assets/levels

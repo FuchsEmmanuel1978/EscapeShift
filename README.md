@@ -1,107 +1,77 @@
-# ESCAPE SHIFT V22 — Monde 1 rehaussé
+# ESCAPE SHIFT V27 — Monde 3 : énigmes physiques 24 à 30
 
-**Document principal : [README_V22.md](README_V22.md).** Cette version repart de la V21, conserve les 10 panoramas et les niveaux enneigés 11..20, mais élève la difficulté des niveaux 1..10.
+**Base : V26.** Livraison limitée aux niveaux **24–30**, sans changement de design, de fonds, de musique, de publicités ni de traduction des anciens textes. Les niveaux 1–23 restent disponibles. Les niveaux 31–40 restent des **prototypes logiques non jouables** ; seul le premier niveau de ces mondes peut servir à l'aperçu de fond.
 
----
+## Jouer dans Android Studio
 
-## Historique V20
+1. Décompresser le projet complet dans `C:\Dev\EscapeShift_V27` (hors OneDrive).
+2. Ouvrir le dossier dans Android Studio, synchroniser Gradle et exécuter `app` en **Debug**.
+3. Dans **MONDES**, faire glisser jusqu'au monde **3 (Désert égyptien)**.
+4. Choisir une des dix cases : niveaux **21–30**. Le mode debug peut déverrouiller toutes les cases selon `DevConfig.UNLOCK_ALL_LEVELS`.
+5. Commandes habituelles : gauche, droite, saut, SHIFT. **ACT** (bouton au-dessus de SHIFT) sert à soulever/déposer une caisse ou à tourner une roue proche. Ce bouton apparaît seulement sur les niveaux contenant le nouveau moteur d'énigmes.
 
-# ESCAPE SHIFT V20 — Monde 2 / Cimes enneigées
+**Important :** la touche ACT ne téléporte jamais une caisse : on la prend près du héros, on la transporte dans la scène, et on la dépose devant lui. Les caisses déposées sur une plaque sont verrouillées pour éviter qu'une collision les fasse glisser accidentellement. Le héros peut sauter par-dessus. Le joueur doit atteindre réellement la porte après avoir résolu l'énigme.
 
-Base technique : V19 JSON (elle-même basée sur V18.1). Le système d'énigmes de l'ancienne V19 n'est PAS réintroduit.
+## Niveaux ajoutés
 
-## Quoi de neuf
+| Niveau | Objectif | Condition physique pour ouvrir |
+|---|---|---|
+| **24** | Deux caisses et héros sur une grosse plaque, puis caisse sur le tremplin | Poids total au moins 3 atteint, puis `crateB` placée sur `springA` |
+| **25** | Mastermind physique : 10 caisses / 5 plaques | Les caisses 02, 04, 06, 08, 10 sur les plaques 1–5 ; feedback `N/5` sans révéler lesquelles |
+| **26** | Régler une roue pour aligner les plateformes puis franchir un trou | Angle de roue = **135°**, puis véritable traversée du trou |
+| **27** | Ramasser les nombres premiers dans l'ordre | `2, 3, 5, 7, 11, 13, 17` sans toucher aux nombres composites |
+| **28** | Deux caisses règlent des murs, tremplin à pousser | `crateA` sur `plateB`, `crateB` sur `plateA`, tremplin au `targetX` |
+| **29** | Trouver le mot lié à GAME | Ramasser **O → V → E → R** ; mauvaise lettre = verrouillage de la tentative |
+| **30** | Test de suites + gravité + commandes inversées | Ramasser **U21** et **13**, traverser physiquement les deux zones |
 
-- Mondes 1 et 2 jouables : niveaux 1 à 20, toujours 10 niveaux par monde.
-- Les niveaux 11 à 20 sont définis **uniquement** dans `app/src/main/assets/levels/level_11.json` … `level_20.json`.
-- Fond monde 2 : `app/src/main/res/drawable-nodpi/world_02_snow.png` (panorama 3:1 et parallaxe).
-- Scies, caisses, monstres, murs, pics simples/doubles/triples, trous et lasers : mêmes sprites V19.
-- Flocons : objets JSON `snowflake`, dessinés par de simples cercles blancs animés. Ils sont **décoratifs et non mortels en V20**. Il n'y a pas de sprite à remplacer à ce stade.
-- Jusqu'à 3 caisses indépendantes par niveau ; collision et poussée physiques.
-- Nouvel objet `crate_switch` (plaque de pression) : une caisse doit rester dessus. Les niveaux 17 à 20 exigent aussi les boutons `switch` du héros pour déverrouiller la porte.
-- Deux boutons manuels distincts doivent désormais être tous activés pour ouvrir la porte dans les niveaux 17 à 20.
-- SHIFT requis 1, 2, 3 ou 4 fois selon le niveau, contrôlé par des lasers rouges/bleus.
-- Progression sauvegardée : finir le niveau 10 débloque 11 ; finir 19 débloque 20 ; NEXT respecte les verrous.
-- Titres et indices des niveaux 11..20 ajoutés aux 10 fichiers de langue intégrés dans `app/src/main/assets/i18n`.
+### JSON éditables
 
-## Édition simple d'un niveau
+Les coordonnées et dimensions sont définies dans :
 
-Chaque objet possède un identifiant stable et une géométrie :
-
-```json
-{"id":"saw_01", "type":"saw", "x": 2520, "y": 410,
- "width": 30, "height": 34, "amplitude": 50, "period": 160, "phase": 16}
+```
+app/src/main/assets/levels/level_24.json
+...
+app/src/main/assets/levels/level_30.json
 ```
 
-Pour déplacer la scie du niveau 17 :
+Sous `puzzle.devices` : `id`, `kind`, `x`, `y`, `width`, `height`, `requiredWeight`, `weight`, `angles`, `targetX`, etc. Les suites sont dans `puzzle.sequences` ; le Mastermind dans `puzzle.combination`.
+
+Les rubriques `puzzle.rules` et `puzzle.solution` sont encore utilisées **par le simulateur logique expérimental**, tandis que les interactions du jeu Android sont calculées par `AdvancedPuzzle.kt` à partir des vraies positions et collisions. Ne pas croire qu'une modification de `puzzle.solution` modifie la physique.
+
+## Exemples de commandes
 
 ```powershell
-py tools/levels/level_tools.py edit 17 --object saw_01 --set x=2550
-```
-
-Pour augmenter la largeur du trou du niveau 18 :
-
-```powershell
-py tools/levels/level_tools.py edit 18 --gap gap_01 --set width=155
-```
-
-La commande crée un backup dans `tools/levels/backups/`. Les changements de JSON embarqués nécessitent de reconstruire et réinstaller l'APK pour être visibles sur le Xiaomi.
-
-## Simulateur de jeu
-
-Avec Android Studio / JDK / Gradle fonctionnels :
-
-```powershell
+# Depuis le dossier racine du projet
+py tools/levels/level_tools.py list 28
+py tools/levels/level_tools.py edit 28 --device springA --set targetX=2010
+py tools/levels/level_tools.py check
+py tools/puzzles/test_puzzles.py
 .\tools\levels\test_levels.bat
 ```
 
-Cette commande lance la validation statique, les tests unitaires **avec les vraies règles physiques**, puis le joueur virtuel et produit les CSV dans `tools/levels/reports`.
+Dans Android Studio, le test JUnit `World3AdvancedPhysicalTest` contient **sept parcours gagnants reproductibles**, tous avec `GameWorld.tick(GameInput(...))`, sans téléportation. **Après modification des JSON, relancer ces tests** : le passage d'un simulateur scénarisé peut être invalidé par un nouvel emplacement d'obstacle.
 
-Pour un niveau particulier, via Java (JDK du PC) :
+## Architecture de la V27
 
-```powershell
-java -jar tools/levels/level_simulator.jar app/src/main/assets/levels 18
-```
+- `AdvancedPuzzle.kt` : règles des plaques, roues, séquences, gravité, commandes inversées et portes.
+- `GamePhysics.kt` : transport de caisses, collisions avec murs et plateformes, saut et déplacement réel.
+- `GameView.kt` : dessin des objets avec le style 2D existant et bouton ACT.
+- `JsonLevelData.kt` : charge les dispositifs déclarés dans les JSON.
+- `WorldCatalog.kt` : uniquement les mondes 1, 2 et les niveaux 21–30 du monde 3 sont jouables ; monde 4 non développé.
+- `World3AdvancedPhysicalTest.kt` : sept parcours de non-régression de bout en bout et test des portes verrouillées.
+- `tools/puzzles` : simulateur de logique des 20 énigmes (à distinguer du test physique).
 
-Pour étudier les phases d'une scie (optionnel) :
+## Vérifications réalisées
 
-```powershell
-py tools/levels/calibrate_saw.py 18 saw_02 --step 8
-py tools/levels/calibrate_saw.py 18 saw_02 --step 8 --apply
-```
+- Compilation Kotlin avec interfaces Android simulées : **réussie**.
+- Niveaux historiques **1 à 20** : **20/20** parcours gagnants avec `LevelPlaytester`.
+- Niveaux **21 à 23** : **3/3** parcours gagnants via `GameWorld.tick`.
+- Niveaux **24 à 30** : **7/7** parcours gagnants via `GameWorld.tick` ; les portes ne s'ouvrent pas au départ.
+- Validation statique des niveaux **1 à 30** : **30/30**.
+- Tests Python du laboratoire logique : **15/15**.
 
-`--apply` crée une sauvegarde, et ne choisit qu'une phase qui fait réussir la simulation. Un bot qui échoue ne prouve pas qu'un niveau est mathématiquement impossible : le bot est une stratégie déterministe, pas un solveur général.
+**Non vérifié ici :** compilation native Android/AAB, performance sur Xiaomi, accessibilité des touches pour un enfant, équilibre de difficulté. Les parcours scénarisés prouvent *au moins une solution*, pas toutes les solutions possibles, ni leur simplicité. Tester d'abord sur téléphone avant publication Google Play.
 
-Prévisualisation 2D (nécessite matplotlib) :
+## Préserver le dépôt GitHub et Google Play
 
-```powershell
-py tools/levels/level_tools.py preview 20
-```
-
-## Structure JSON
-
-- `world` : 1 ou 2 ; `level` : 1..20.
-- `ground.gaps` : trous, leurs positions et largeurs ; il n'existe pas de bloc graphique de trou.
-- `objects` : murs, caisses, portes, plateformes, pics, scies, monstres, lasers, boutons, plaques `crate_switch`, flocons, pièces.
-- `route` : liste ordonnée des identifiants des défis du joueur virtuel. Les caisses devant les grands murs sont traitées par une phase d'approche spécifique.
-- `difficulty` : cible de game design (documentaire), les collisions sont calculées depuis `objects`.
-- `world2Modules` : décrit la correspondance caisse / mur pour les outils d'édition (le moteur utilise les coordonnées d'objets).
-
-Pour les scies : `amplitude` est le déplacement maximal de chaque côté (amplitude 80 = course 160 unités de bord à bord). Pour les pics : `count` entre 1 et 3 et `spacing` définissent les copies.
-
-La plaque s'active si une caisse couvre sa zone ; un joueur qui marche dessus ne l'active pas. Les interrupteurs manuels, eux, s'activent au contact du joueur.
-
-## Statut des tests
-
-- 20/20 parcours terminés avec le bot utilisant `GameWorld`.
-- 47/47 tests Kotlin automatisés en environnement Android simulé.
-- Affichage Android simulé : 20/20 niveaux et 3 ratios d'écran.
-- Difficulté estimée croissante sur le monde 2 : cf. `tools/levels/WORLD2_DIFFICULTY.csv`.
-
-Le vrai APK Android n'a pas été compilé dans cet environnement : **faire Build → Rebuild Project et tester sur le Xiaomi 12** avant GitHub et Google Play. Avant toute publication publique, actualiser le `targetSdk` selon les exigences Google Play en vigueur et vérifier la monétisation Start.io, notamment selon le public cible.
-
-Ne jamais mettre le fichier `.jks`, `key.properties` ou les mots de passe dans le dépôt GitHub.
-
-## Nouvelle version V24.0
-
-Voir [README_V24.md](README_V24.md) pour les pièges conditionnels, les cœurs, les 10 JSON du monde 1, le simulateur et la commande d'édition.
+Créer une branche `feature/world3-physical-24-30`. Conserver hors du dépôt les clés `.jks` et les secrets. Le fichier `StartioConfig.kt` peut devoir être reconfiguré sur une nouvelle copie complète ; n'y publier aucun secret privé. Ne pas remplacer la version déjà diffusée sur Google Play sans validation du jeu sur téléphone.

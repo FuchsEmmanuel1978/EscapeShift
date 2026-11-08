@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 40,
+  "titleKey": "level_40_title",
+  "hintKey": "level_40_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2820,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2682,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Le coffre des quatre lois",
+    "concepts": [
+      "iq_series",
+      "weight_balance",
+      "wheel_angle",
+      "word_code",
+      "moving_bridge"
+    ],
+    "goal": [
+      {
+        "var": "sequence:series",
+        "eq": 1
+      },
+      {
+        "var": "flag:weight_ok",
+        "eq": true
+      },
+      {
+        "var": "flag:wheel_ok",
+        "eq": true
+      },
+      {
+        "var": "flag:word_ok",
+        "eq": true
+      },
+      {
+        "var": "flag:bridge_ok",
+        "eq": true
+      }
+    ],
+    "hint": "Suite x(x+1), somme des poids, angle de roue, mot contraire HOT/COLD et pont final.",
+    "devices": [
+      {
+        "id": "panelA",
+        "kind": "sequence_board",
+        "x": 210,
+        "y": 300,
+        "width": 230,
+        "height": 60,
+        "text": "2 6 12 20 ?"
+      },
+      {
+        "id": "30",
+        "kind": "number_token",
+        "x": 560,
+        "y": 390,
+        "width": 45,
+        "height": 45
+      },
+      {
+        "id": "28",
+        "kind": "number_token",
+        "x": 650,
+        "y": 390,
+        "width": 45,
+        "height": 45
+      },
+      {
+        "id": "crate2",
+        "kind": "crate",
+        "x": 780,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 2
+      },
+      {
+        "id": "crate3",
+        "kind": "crate",
+        "x": 880,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 3
+      },
+      {
+        "id": "padA",
+        "kind": "heavy_pressure_plate",
+        "x": 1120,
+        "y": 433,
+        "width": 140,
+        "height": 11,
+        "requiredWeight": 5
+      },
+      {
+        "id": "wheelA",
+        "kind": "rotating_wheel",
+        "x": 1450,
+        "y": 365,
+        "width": 80,
+        "height": 80
+      },
+      {
+        "id": "wordA",
+        "kind": "word_board",
+        "x": 1720,
+        "y": 300,
+        "width": 140,
+        "height": 60,
+        "text": "HOT"
+      },
+      {
+        "id": "bridgeA",
+        "kind": "sliding_platform",
+        "x": 1980,
+        "y": 410,
+        "width": 160,
+        "height": 22
+      },
+      {
+        "id": "gapA",
+        "kind": "ground_gap",
+        "x": 2180,
+        "y": 444,
+        "width": 200,
+        "height": 140
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2612,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "press",
+          "target": "weigh"
+        },
+        "if": [
+          {
+            "var": "at:crate2",
+            "eq": "padA"
+          },
+          {
+            "var": "at:crate3",
+            "eq": "padA"
+          },
+          {
+            "var": "sequence:series",
+            "eq": 1
+          }
+        ],
+        "set": {
+          "flag:weight_ok": true
+        },
+        "message": "La somme vaut 5."
+      },
+      {
+        "on": {
+          "action": "rotate",
+          "target": "wheelA",
+          "value": 90
+        },
+        "if": [
+          {
+            "var": "flag:weight_ok",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:wheel_ok": true
+        },
+        "message": "Angle 90° validé."
+      },
+      {
+        "on": {
+          "action": "press",
+          "target": "wordA",
+          "value": "COLD"
+        },
+        "if": [
+          {
+            "var": "flag:wheel_ok",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:word_ok": true
+        },
+        "message": "HOT a pour contraire COLD."
+      },
+      {
+        "on": {
+          "action": "push",
+          "target": "bridgeA",
+          "value": "gapA"
+        },
+        "if": [
+          {
+            "var": "flag:word_ok",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:bridge_ok": true
+        },
+        "message": "Pont abaissé."
+      }
+    ],
+    "solution": [
+      {
+        "action": "collect",
+        "target": "30"
+      },
+      {
+        "action": "place",
+        "target": "crate2",
+        "value": "padA"
+      },
+      {
+        "action": "place",
+        "target": "crate3",
+        "value": "padA"
+      },
+      {
+        "action": "press",
+        "target": "weigh"
+      },
+      {
+        "action": "rotate",
+        "target": "wheelA",
+        "value": 90
+      },
+      {
+        "action": "press",
+        "target": "wordA",
+        "value": "COLD"
+      },
+      {
+        "action": "push",
+        "target": "bridgeA",
+        "value": "gapA"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "Prototype de cinq modules successifs ; ajouter des indices pour la langue avant sa publication.",
+    "validationScope": "logical_state_machine_only",
+    "sequences": [
+      {
+        "id": "series",
+        "items": [
+          "30"
+        ],
+        "decoys": [
+          "28"
+        ],
+        "failOnWrong": true
+      }
+    ]
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}

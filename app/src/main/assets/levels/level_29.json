@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 29,
+  "titleKey": "level_29_title",
+  "hintKey": "level_29_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2480,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": false,
+    "title": "GAME → OVER",
+    "concepts": [
+      "word_association",
+      "ordered_letters",
+      "distractors"
+    ],
+    "goal": [
+      {
+        "var": "sequence:over",
+        "eq": 4
+      }
+    ],
+    "hint": "Le mot indiqué est GAME. Quel mot célèbre le complète ? Collecte O V E R dans cet ordre.",
+    "devices": [
+      {
+        "id": "O1",
+        "kind": "letter_token",
+        "x": 300,
+        "y": 398,
+        "width": 40,
+        "height": 44,
+        "letter": "O"
+      },
+      {
+        "id": "V1",
+        "kind": "letter_token",
+        "x": 580,
+        "y": 355,
+        "width": 40,
+        "height": 44,
+        "letter": "V"
+      },
+      {
+        "id": "E1",
+        "kind": "letter_token",
+        "x": 860,
+        "y": 398,
+        "width": 40,
+        "height": 44,
+        "letter": "E"
+      },
+      {
+        "id": "R1",
+        "kind": "letter_token",
+        "x": 1140,
+        "y": 355,
+        "width": 40,
+        "height": 44,
+        "letter": "R"
+      },
+      {
+        "id": "E2",
+        "kind": "letter_token",
+        "x": 1420,
+        "y": 398,
+        "width": 40,
+        "height": 44,
+        "letter": "E"
+      },
+      {
+        "id": "X1",
+        "kind": "letter_token",
+        "x": 1700,
+        "y": 355,
+        "width": 40,
+        "height": 44,
+        "letter": "X"
+      },
+      {
+        "id": "doorA",
+        "kind": "word_exit",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90,
+        "word": "GAME"
+      }
+    ],
+    "rules": [],
+    "solution": [
+      {
+        "action": "collect",
+        "target": "O1"
+      },
+      {
+        "action": "collect",
+        "target": "V1"
+      },
+      {
+        "action": "collect",
+        "target": "E1"
+      },
+      {
+        "action": "collect",
+        "target": "R1"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only",
+    "sequences": [
+      {
+        "id": "over",
+        "items": [
+          "O1",
+          "V1",
+          "E1",
+          "R1"
+        ],
+        "decoys": [
+          "E2",
+          "X1"
+        ],
+        "failOnWrong": true
+      }
+    ]
+  },
+  "experimental": {
+    "status": "physical_beta",
+    "rendering": "existing industrial 2D Canvas design",
+    "physics": "AdvancedPuzzle in GameWorld",
+    "validationScope": "physical contact and puzzle-logic regression; complete playtest pending"
+  }
+}

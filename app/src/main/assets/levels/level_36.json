@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 36,
+  "titleKey": "level_36_title",
+  "hintKey": "level_36_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2612,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Mélange et palindrome",
+    "concepts": [
+      "mastermind",
+      "word_palindrome",
+      "crate_buttons"
+    ],
+    "goal": [
+      {
+        "var": "solved:code",
+        "eq": true
+      },
+      {
+        "var": "flag:palindrome",
+        "eq": true
+      }
+    ],
+    "hint": "Trouve la combinaison de caisses, puis confirme le palindrome.",
+    "devices": [
+      {
+        "id": "crate1",
+        "kind": "crate",
+        "x": 315,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1
+      },
+      {
+        "id": "crate2",
+        "kind": "crate",
+        "x": 400,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1
+      },
+      {
+        "id": "crate3",
+        "kind": "crate",
+        "x": 485,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1
+      },
+      {
+        "id": "crate4",
+        "kind": "crate",
+        "x": 570,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1
+      },
+      {
+        "id": "crate5",
+        "kind": "crate",
+        "x": 655,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1
+      },
+      {
+        "id": "pad1",
+        "kind": "code_button",
+        "x": 1265,
+        "y": 433,
+        "width": 76,
+        "height": 11
+      },
+      {
+        "id": "pad2",
+        "kind": "code_button",
+        "x": 1410,
+        "y": 433,
+        "width": 76,
+        "height": 11
+      },
+      {
+        "id": "pad3",
+        "kind": "code_button",
+        "x": 1555,
+        "y": 433,
+        "width": 76,
+        "height": 11
+      },
+      {
+        "id": "panelA",
+        "kind": "word_board",
+        "x": 850,
+        "y": 270,
+        "width": 150,
+        "height": 45,
+        "text": "RADAR"
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "press",
+          "target": "check_word",
+          "value": "RADAR"
+        },
+        "if": [
+          {
+            "var": "solved:code",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:palindrome": true
+        },
+        "message": "RADAR se lit dans les deux sens."
+      }
+    ],
+    "solution": [
+      {
+        "action": "submit",
+        "target": "code",
+        "value": {
+          "pad1": "crate5",
+          "pad2": "crate3",
+          "pad3": "crate1"
+        }
+      },
+      {
+        "action": "press",
+        "target": "check_word",
+        "value": "RADAR"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only",
+    "combination": {
+      "id": "code",
+      "pads": [
+        "pad1",
+        "pad2",
+        "pad3"
+      ],
+      "target": {
+        "pad1": "crate5",
+        "pad2": "crate3",
+        "pad3": "crate1"
+      },
+      "feedback": "count_correct_positions_only",
+      "maxGuesses": 8
+    }
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}

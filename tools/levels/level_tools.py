@@ -16,13 +16,13 @@ BACKUPS = Path(__file__).resolve().parent / 'backups'
 
 SUPPORTED = {'wall','platform','crate','bridge','spike','laser_red','laser_blue','laser_timed','spring','key','coin','switch','conveyor','saw','monster','door','crate_switch','snowflake'}
 ROUTEABLE = {'spike','laser_red','laser_blue','laser_timed','spring','key','switch','conveyor','saw','monster','wall'}
-INT_FIELDS = {'count', 'phase', 'period', 'activeTicks', 'delayTicks', 'durationTicks', 'transitionTicks', 'periodTicks'}
-NUMBER_FIELDS = {'x','y','width','height','count','spacing','phase','period','activeTicks','amplitude','offsetX','speed', 'radius', 'delayTicks', 'durationTicks', 'transitionTicks', 'periodTicks', 'travelX', 'travelY', 'thresholdSpeed'}
+INT_FIELDS = {'count', 'phase', 'period', 'activeTicks', 'delayTicks', 'durationTicks', 'transitionTicks', 'periodTicks','windowTicks','syncPeriodTicks','unsyncPeriodTicks'}
+NUMBER_FIELDS = {'x','y','width','height','count','spacing','phase','period','activeTicks','amplitude','offsetX','speed', 'radius', 'delayTicks', 'durationTicks', 'transitionTicks', 'periodTicks', 'travelX', 'travelY', 'thresholdSpeed','targetX','travel','windowTicks','baseSpeed','speedFactor','syncedTravel','unsyncedTravel','syncPeriodTicks','unsyncPeriodTicks'}
 TRAP_TYPES = {'collapse_floor', 'rising_spikes', 'surprise_wall', 'moving_platform', 'moving_exit', 'reverse_zone'}
 TRIGGERS = {'player_near', 'player_on', 'player_jump', 'approach_fast', 'player_enter'}
 
 def path_for(n):
-    if not 1 <= n <= 20: raise ValueError('Only levels 1..20 exist')
+    if not 1 <= n <= 30: raise ValueError('Only physical levels 1..30 are supported')
     return LEVELS / f'level_{n:02d}.json'
 
 def load(n):
@@ -94,18 +94,41 @@ def validate(d):
         expect(ident in types, f'route element {ident} missing')
         if ident in types:expect(types[ident] in ROUTEABLE|{'gap'},f'{ident} cannot be a route checkpoint')
     expect(0<=d.get('backtrackCount',0)<=len(route),'bad backtrackCount')
+    if d.get('level') in (21,22,23):
+        puzzle=d.get('puzzle',{})
+        devices=puzzle.get('devices',[])
+        required={21:{'sliding_platform':1,'ground_gap':1,'crate':1,'pressure_button':1},
+                  22:{'pushable_wheel':1,'timed_button':1,'laser':1},
+                  23:{'crate':2,'speed_button':4,'moving_platform':3}}[d['level']]
+        kind_counts=Counter(v.get('kind') for v in devices)
+        for kind,count in required.items(): expect(kind_counts[kind]==count,f'puzzle requires {count} x {kind}')
+        for dev in devices:
+            ident=dev.get('id')
+            expect(bool(ident) and ident not in seen,f'duplicate puzzle device ID {ident}')
+            seen.add(ident)
+            x,y,w,h=[dev.get(k) for k in ('x','y','width','height')]
+            valid=all(isinstance(v,(int,float)) for v in (x,y,w,h))
+            expect(valid and x>=0 and w>0 and h>0 and x+w<=width,f'invalid puzzle device bounds: {ident}')
+            for key in ('windowTicks','syncPeriodTicks','unsyncPeriodTicks'):
+                expect(isinstance(dev.get(key,1),int) and dev.get(key,1)>0, f'{ident}: {key} must be positive')
+        if d['level']==21:
+            gd=next(v for v in devices if v['kind']=='ground_gap')
+            expect(any(abs(g['x']-gd['x'])<.01 and abs(g['width']-gd['width'])<.01 for g in ground['gaps']),
+                   'ground.gaps must agree with puzzle ground_gap')
     return errors
 
-def edit(level,object_id,gap_id,trap_id,assignments):
+def edit(level,object_id,gap_id,trap_id,device_id,assignments):
     d=load(level)
     if object_id:
         matches=[o for o in d['objects'] if o.get('id')==object_id]
     elif trap_id:
         matches=[o for o in d.get('traps',[]) if o.get('id')==trap_id]
+    elif device_id:
+        matches=[o for o in d.get('puzzle',{}).get('devices',[]) if o.get('id')==device_id]
     else:
         matches=[o for o in d['ground']['gaps'] if o.get('id')==gap_id]
     if len(matches)!=1:
-        raise ValueError(f'Unknown object/gap/trap: {object_id or gap_id or trap_id}')
+        raise ValueError(f'Unknown object/gap/trap: {object_id or gap_id or trap_id or device_id}')
     target=matches[0]
     for a in assignments:
         if '=' not in a:raise ValueError(f'Use FIELD=NUMBER, got {a}')
@@ -160,6 +183,15 @@ def preview(d,output):
         ax.add_patch(Rectangle((tr['x'],tr['y']),tr['width'],tr['height'],
             fill=False,edgecolor=trapPalette.get(tr['type'],'white'),linewidth=1.7,linestyle='--'))
         ax.text(tr['x'],tr['y']-7,tr['type'],color=trapPalette.get(tr['type'],'white'),fontsize=7)
+    palettePuzzle={'sliding_platform':'#e89d43','pushable_wheel':'#f3ad52','ground_gap':'#202832',
+                   'crate':'#c6813d','pressure_button':'#55cfd3','timed_button':'#e6ae68',
+                   'speed_button':'#a3def0','laser':'#ee5656','moving_platform':'#59e0cc','exit_gate':'#72dc98'}
+    for dev in d.get('puzzle',{}).get('devices',[]):
+        if dev['kind'] in {'ground_gap','exit_gate'}:continue
+        x,y,w,h=[dev[k] for k in ('x','y','width','height')]
+        ax.add_patch(Rectangle((x,y),w,h,edgecolor=palettePuzzle.get(dev['kind'],'white'),
+                   facecolor=palettePuzzle.get(dev['kind'],'white'),alpha=.7))
+        ax.text(x,y-8,dev['id'],fontsize=7,color='white',rotation=35)
     start=d['playerStart'];ax.scatter([start['x']],[start['y']],s=65,c='#ffbf77',marker='o',label='Player start')
     report=Path(__file__).resolve().parent/'reports'/f"level_{d['level']:02d}.csv"
     if report.is_file():
@@ -169,7 +201,7 @@ def preview(d,output):
         ax.plot([float(row['x']) for row in rows],[float(row['y']) for row in rows],color='#60c6e7',alpha=.75,lw=1.2,label='Scripted winning path (last test)')
     ax.set_xlim(0,world_width)
     ax.set_ylim(max(600,gy+gd+15),min(-30,start['y']-150))
-    ax.set_title(f"ESCAPE SHIFT  |  World 1, Level {d['level']:02d}  |  {len(d['objects'])} objects",color='white')
+    ax.set_title(f"ESCAPE SHIFT  |  World {d["world"]}, Level {d['level']:02d}  |  {len(d['objects'])} objects",color='white')
     ax.set_xlabel('x  —  world units',color='white');ax.set_ylabel('y (downwards)',color='white')
     ax.tick_params(colors='white');ax.grid(alpha=.12)
     ax.legend(loc='upper right',facecolor='#1a2532',labelcolor='white')
@@ -189,20 +221,20 @@ def score(d):
     return round(sum(weights.get(k,0)*v for k,v in counter.items()) + trapScore + fine_spikes + saw_sweep + jump_distance + pressure_puzzle + .004*d['worldWidth'] + 3*d.get('backtrackCount',0), 1)
 
 def main():
-    ap=argparse.ArgumentParser(description='Edit and validate ESCAPE SHIFT worlds 1 & 2 levels')
+    ap=argparse.ArgumentParser(description='Edit and validate ESCAPE SHIFT levels 1..30')
     sub=ap.add_subparsers(dest='command',required=True)
-    sub.add_parser('check',help='Validate all 20 JSON files')
+    sub.add_parser('check',help='Validate all 30 physical JSON files')
     p=sub.add_parser('list',help='List objects and gaps for one level');p.add_argument('level',type=int)
     p=sub.add_parser('preview',help='Draw a level layout PNG');p.add_argument('level',type=int);p.add_argument('--out',default=None)
     p=sub.add_parser('edit',help='Update coordinates or dimensions, with automatic backup')
     p.add_argument('level',type=int)
     selector=p.add_mutually_exclusive_group(required=True)
-    selector.add_argument('--object',dest='object_id');selector.add_argument('--gap',dest='gap_id');selector.add_argument('--trap',dest='trap_id')
+    selector.add_argument('--object',dest='object_id');selector.add_argument('--gap',dest='gap_id');selector.add_argument('--trap',dest='trap_id');selector.add_argument('--device',dest='device_id')
     p.add_argument('--set',action='append',required=True,metavar='FIELD=NUMBER')
     args=ap.parse_args()
     if args.command=='check':
         fail=False
-        for n in range(1,21):
+        for n in range(1,31):
             d=load(n);errors=validate(d);status='PASS' if not errors else 'FAIL'
             print(f'Level {n:02d}: {status}  objects={len(d["objects"])}  gaps={len(d["ground"]["gaps"])}  difficulty_proxy={score(d)}')
             for e in errors:print(' -',e)
@@ -217,11 +249,13 @@ def main():
         print('Event traps:')
         for t in d.get('traps',[]):
             print(f'  {t["id"]:28s} {t["type"]:15s} x={t["x"]} y={t["y"]} trigger={t.get("trigger","player_near")} delay={t.get("delayTicks",12)}')
+        print('Puzzle devices:')
+        for v in d.get('puzzle',{}).get('devices',[]): print(f'  {v["id"]:28s} {v["kind"]:19s} x={v["x"]} y={v["y"]} width={v["width"]}')
         print('Route:', ' → '.join(d['route']))
     elif args.command=='preview':
         d=load(args.level);errors=validate(d)
         if errors:raise ValueError('\n'.join(errors))
         preview(d,args.out or str(Path(__file__).resolve().parent/'previews'/f'level_{args.level:02d}.png'))
-    elif args.command=='edit':edit(args.level,args.object_id,args.gap_id,args.set)
+    elif args.command=='edit':edit(args.level,args.object_id,args.gap_id,args.trap_id,args.device_id,args.set)
 
 if __name__=='__main__':main()

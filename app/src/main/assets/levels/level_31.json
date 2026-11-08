@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 31,
+  "titleKey": "level_31_title",
+  "hintKey": "level_31_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2612,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Pont de sucre pondéré",
+    "concepts": [
+      "bridge_push",
+      "weighted_plate",
+      "prime_choice"
+    ],
+    "goal": [
+      {
+        "var": "flag:bridge_set",
+        "eq": true
+      },
+      {
+        "var": "flag:five_weight",
+        "eq": true
+      }
+    ],
+    "hint": "Deux caisses pèsent 2 et 3 : fabrique 5 pour sortir.",
+    "devices": [
+      {
+        "id": "bridgeA",
+        "kind": "sliding_platform",
+        "x": 610,
+        "y": 400,
+        "width": 170,
+        "height": 22
+      },
+      {
+        "id": "gapA",
+        "kind": "ground_gap",
+        "x": 840,
+        "y": 444,
+        "width": 215,
+        "height": 140
+      },
+      {
+        "id": "crate2",
+        "kind": "crate",
+        "x": 260,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 2
+      },
+      {
+        "id": "crate3",
+        "kind": "crate",
+        "x": 330,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 3
+      },
+      {
+        "id": "plateA",
+        "kind": "weighted_button",
+        "x": 1540,
+        "y": 432,
+        "width": 110,
+        "height": 12,
+        "requiredWeight": 5
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "push",
+          "target": "bridgeA",
+          "value": "gapA"
+        },
+        "if": [],
+        "set": {
+          "flag:bridge_set": true
+        },
+        "message": "Pont déplacé."
+      },
+      {
+        "on": {
+          "action": "press",
+          "target": "weigh"
+        },
+        "if": [
+          {
+            "var": "at:crate2",
+            "eq": "plateA"
+          },
+          {
+            "var": "at:crate3",
+            "eq": "plateA"
+          },
+          {
+            "var": "flag:bridge_set",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:five_weight": true
+        },
+        "message": "2+3=5 : sortie déverrouillée."
+      }
+    ],
+    "solution": [
+      {
+        "action": "push",
+        "target": "bridgeA",
+        "value": "gapA"
+      },
+      {
+        "action": "place",
+        "target": "crate2",
+        "value": "plateA"
+      },
+      {
+        "action": "place",
+        "target": "crate3",
+        "value": "plateA"
+      },
+      {
+        "action": "press",
+        "target": "weigh"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only"
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}

@@ -92,7 +92,7 @@ class GamePhysicsTest {
 
     @Test fun debugConfigIsExplicitAndLevelsRemainReal() {
         assertTrue(DevConfig.START_LEVEL in 1..10)
-        assertTrue(GameProgression.MAX_LEVEL==20)
+        assertTrue(GameProgression.MAX_LEVEL==30)
         assertFalse(GameProgression.isPlayable(9,1))
         assertTrue(GameProgression.isPlayable(9,9))
     }

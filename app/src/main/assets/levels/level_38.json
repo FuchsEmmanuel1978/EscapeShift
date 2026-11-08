@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 38,
+  "titleKey": "level_38_title",
+  "hintKey": "level_38_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2612,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Engrenage et équilibre",
+    "concepts": [
+      "wheel_angle",
+      "weighted_walls",
+      "spring_alignment"
+    ],
+    "goal": [
+      {
+        "var": "flag:wheel_ok",
+        "eq": true
+      },
+      {
+        "var": "flag:walls_ok",
+        "eq": true
+      },
+      {
+        "var": "flag:spring_ok",
+        "eq": true
+      }
+    ],
+    "hint": "270° pour la roue, puis caisses sur plaques opposées et tremplin.",
+    "devices": [
+      {
+        "id": "wheelA",
+        "kind": "rotating_wheel",
+        "x": 290,
+        "y": 365,
+        "width": 80,
+        "height": 80
+      },
+      {
+        "id": "crateA",
+        "kind": "crate",
+        "x": 580,
+        "y": 401,
+        "width": 48,
+        "height": 43
+      },
+      {
+        "id": "crateB",
+        "kind": "crate",
+        "x": 690,
+        "y": 401,
+        "width": 48,
+        "height": 43
+      },
+      {
+        "id": "padA",
+        "kind": "pressure_button",
+        "x": 1090,
+        "y": 433,
+        "width": 85,
+        "height": 11
+      },
+      {
+        "id": "padB",
+        "kind": "pressure_button",
+        "x": 1240,
+        "y": 433,
+        "width": 85,
+        "height": 11
+      },
+      {
+        "id": "wallA",
+        "kind": "lift_wall",
+        "x": 1580,
+        "y": 280,
+        "width": 62,
+        "height": 164
+      },
+      {
+        "id": "springA",
+        "kind": "movable_spring",
+        "x": 1980,
+        "y": 430,
+        "width": 95,
+        "height": 14
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "rotate",
+          "target": "wheelA",
+          "value": 270
+        },
+        "if": [],
+        "set": {
+          "flag:wheel_ok": true
+        },
+        "message": "Premier engrenage verrouillé."
+      },
+      {
+        "on": {
+          "action": "press",
+          "target": "align_walls"
+        },
+        "if": [
+          {
+            "var": "flag:wheel_ok",
+            "eq": true
+          },
+          {
+            "var": "at:crateA",
+            "eq": "padB"
+          },
+          {
+            "var": "at:crateB",
+            "eq": "padA"
+          }
+        ],
+        "set": {
+          "flag:walls_ok": true
+        },
+        "message": "Murs alignés."
+      },
+      {
+        "on": {
+          "action": "move",
+          "target": "springA",
+          "value": "spotA"
+        },
+        "if": [
+          {
+            "var": "flag:walls_ok",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:spring_ok": true
+        },
+        "message": "Tremplin aligné."
+      }
+    ],
+    "solution": [
+      {
+        "action": "rotate",
+        "target": "wheelA",
+        "value": 270
+      },
+      {
+        "action": "place",
+        "target": "crateA",
+        "value": "padB"
+      },
+      {
+        "action": "place",
+        "target": "crateB",
+        "value": "padA"
+      },
+      {
+        "action": "press",
+        "target": "align_walls"
+      },
+      {
+        "action": "move",
+        "target": "springA",
+        "value": "spotA"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only"
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}

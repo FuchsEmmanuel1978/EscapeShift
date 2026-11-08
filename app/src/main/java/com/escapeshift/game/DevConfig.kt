@@ -7,6 +7,6 @@ object DevConfig {
     const val SHOW_HITBOXES = false       // Cadres de collision pendant le jeu
     const val SHOW_DEBUG_STATS = true     // Position / niveau / nombre d'actions
     const val FORCE_LANGUAGE = ""       // "" = langue Android; debug uniquement, ex: "ja", "de", "pt-BR"
-    const val START_LEVEL = 1            // Niveau lancé par le bouton JOUER (1..20)
+    const val START_LEVEL = 1            // Niveau lancé par le bouton JOUER (1..23)
     const val ALLOW_LEVEL_SHORTCUTS = true // Sur clavier : PageUp / PageDown
 }

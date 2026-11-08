@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 39,
+  "titleKey": "level_39_title",
+  "hintKey": "level_39_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2612,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Le mot qui ouvre la trappe",
+    "concepts": [
+      "letter_collection",
+      "weight_plate",
+      "false_door"
+    ],
+    "goal": [
+      {
+        "var": "sequence:sweet",
+        "eq": 5
+      },
+      {
+        "var": "flag:weight_ok",
+        "eq": true
+      },
+      {
+        "var": "flag:fake_revealed",
+        "eq": true
+      }
+    ],
+    "hint": "Le mot SWEET, une caisse, puis la révélation d’une fausse porte.",
+    "devices": [
+      {
+        "id": "letter_0",
+        "kind": "letter_token",
+        "x": 230,
+        "y": 385,
+        "width": 42,
+        "height": 45,
+        "letter": "S"
+      },
+      {
+        "id": "letter_1",
+        "kind": "letter_token",
+        "x": 445,
+        "y": 385,
+        "width": 42,
+        "height": 45,
+        "letter": "W"
+      },
+      {
+        "id": "letter_2",
+        "kind": "letter_token",
+        "x": 660,
+        "y": 385,
+        "width": 42,
+        "height": 45,
+        "letter": "E"
+      },
+      {
+        "id": "letter_3",
+        "kind": "letter_token",
+        "x": 875,
+        "y": 385,
+        "width": 42,
+        "height": 45,
+        "letter": "E"
+      },
+      {
+        "id": "letter_4",
+        "kind": "letter_token",
+        "x": 1090,
+        "y": 385,
+        "width": 42,
+        "height": 45,
+        "letter": "T"
+      },
+      {
+        "id": "crateA",
+        "kind": "crate",
+        "x": 1440,
+        "y": 401,
+        "width": 48,
+        "height": 43
+      },
+      {
+        "id": "padA",
+        "kind": "pressure_button",
+        "x": 1780,
+        "y": 433,
+        "width": 100,
+        "height": 11
+      },
+      {
+        "id": "fakeDoor",
+        "kind": "false_exit",
+        "x": 2100,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "place",
+          "target": "crateA",
+          "value": "padA"
+        },
+        "if": [
+          {
+            "var": "sequence:sweet",
+            "eq": 5
+          }
+        ],
+        "set": {
+          "flag:weight_ok": true
+        },
+        "message": "La plaque s’active."
+      },
+      {
+        "on": {
+          "action": "press",
+          "target": "reveal"
+        },
+        "if": [
+          {
+            "var": "flag:weight_ok",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:fake_revealed": true
+        },
+        "message": "La première porte était un leurre."
+      }
+    ],
+    "solution": [
+      {
+        "action": "collect",
+        "target": "letter_0"
+      },
+      {
+        "action": "collect",
+        "target": "letter_1"
+      },
+      {
+        "action": "collect",
+        "target": "letter_2"
+      },
+      {
+        "action": "collect",
+        "target": "letter_3"
+      },
+      {
+        "action": "collect",
+        "target": "letter_4"
+      },
+      {
+        "action": "place",
+        "target": "crateA",
+        "value": "padA"
+      },
+      {
+        "action": "press",
+        "target": "reveal"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only",
+    "sequences": [
+      {
+        "id": "sweet",
+        "items": [
+          "letter_0",
+          "letter_1",
+          "letter_2",
+          "letter_3",
+          "letter_4"
+        ],
+        "decoys": [],
+        "failOnWrong": true
+      }
+    ]
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}

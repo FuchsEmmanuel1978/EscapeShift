@@ -1,0 +1,41 @@
+ESCAPE SHIFT V25 — RAPPORT DE VALIDATION
+Date : 2026-11-07
+Base : V24.0, avec les 20 niveaux existants préservés.
+
+MONDE 3 : level_21.json — level_30.json (10 prototypes)
+MONDE 4 : level_31.json — level_40.json (10 combinaisons)
+
+Résultats vérifiés :
+- Validation statique et solutions logiques Python : 20/20 PASS.
+- Moteur Kotlin ExperimentalPuzzleEngine, mêmes JSON : 20/20 PASS.
+- 15 tests Python unittest : PASS.
+- Portes verrouillées sans solution : 20/20 (tests négatifs).
+- Le laser du niveau 22 s'éteint puis se réactive à l'expiration.
+- Tests mauvais nombres, mauvais mots, roues, poids et Mastermind : PASS.
+- Anciens niveaux 1 à 20 : 20/20 PASS avec le simulateur physique V24.
+- JSON des niveaux 1 à 20 : inchangés à l'octet.
+
+VALIDATION QUI RESTE À FAIRE :
+- Impossible de qualifier les sauts physiques des niveaux 21 à 40 : pas encore
+  de gestion de leurs nouveaux mécanismes dans GameWorld.
+- Pas de binding Android des commandes tactiles avec ExperimentalPuzzleEngine.
+- Pas de test sur Xiaomi 12 ni d'APK natif compilé dans cet environnement.
+- Ne PAS annoncer ces 20 puzzles comme jouables dans Google Play.
+
+LOGS PYTHON (fin) :
+level_39: PASS  9 devices  8 actions
+level_40: PASS  11 devices  8 actions
+
+LOGIC PASS 20 / 20
+
+LOGS PHYSIQUE (fin) :
+N18 PASS  1178 ticks (19.63 s)  jumps=13 shifts=3  reversals=0   obstacles=31
+N19 PASS  1455 ticks (24.25 s)  jumps=16 shifts=3  reversals=0   obstacles=35
+N20 PASS  1718 ticks (28.63 s)  jumps=16 shifts=4  reversals=0   obstacles=37
+Summary: 20/20 winning runs
+
+UNITTEST :
+----------------------------------------------------------------------
+Ran 15 tests in 0.007s
+
+OK

@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 21,
+  "titleKey": "level_21_title",
+  "hintKey": "level_21_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 1960,
+  "playerStart": {
+    "x": 525,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "id": "gapA_ground",
+        "x": 850,
+        "width": 350
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 1650,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "La poutre et le détour",
+    "concepts": [
+      "bridge_push",
+      "return_trip",
+      "crate_switch"
+    ],
+    "goal": [
+      {
+        "var": "flag:bridge_set",
+        "eq": true
+      },
+      {
+        "var": "flag:returned",
+        "eq": true
+      },
+      {
+        "var": "flag:crate_plate",
+        "eq": true
+      }
+    ],
+    "hint": "Pousse le pont sur le trou, franchis-le, reviens chercher la caisse et pose-la sur la plaque avant de repartir.",
+    "devices": [
+      {
+        "id": "bridgeA",
+        "kind": "sliding_platform",
+        "x": 615,
+        "y": 434,
+        "width": 356,
+        "height": 14,
+        "to": [
+          "start",
+          "gap"
+        ],
+        "targetX": 850
+      },
+      {
+        "id": "gapA",
+        "kind": "ground_gap",
+        "x": 850,
+        "y": 444,
+        "width": 350,
+        "height": 146
+      },
+      {
+        "id": "crateA",
+        "kind": "crate",
+        "x": 208,
+        "y": 401,
+        "width": 46,
+        "height": 43
+      },
+      {
+        "id": "plateA",
+        "kind": "pressure_button",
+        "x": 505,
+        "y": 432,
+        "width": 82,
+        "height": 12
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 1650,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "push",
+          "target": "bridgeA",
+          "value": "gap"
+        },
+        "if": [],
+        "set": {
+          "flag:bridge_set": true
+        },
+        "message": "Le plateau couvre désormais le trou."
+      },
+      {
+        "on": {
+          "action": "return",
+          "target": "gapA"
+        },
+        "if": [
+          {
+            "var": "flag:bridge_set",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:returned": true
+        },
+        "message": "Le héros revient chercher la caisse."
+      },
+      {
+        "on": {
+          "action": "push",
+          "target": "crateA",
+          "value": "plateA"
+        },
+        "if": [
+          {
+            "var": "flag:returned",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:crate_plate": true
+        },
+        "message": "La caisse maintient la porte ouverte."
+      }
+    ],
+    "solution": [
+      {
+        "action": "push",
+        "target": "bridgeA",
+        "value": "gap"
+      },
+      {
+        "action": "cross",
+        "target": "gapA"
+      },
+      {
+        "action": "return",
+        "target": "gapA"
+      },
+      {
+        "action": "push",
+        "target": "crateA",
+        "value": "plateA"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "GameWorld_physics_plus_puzzle_state"
+  },
+  "experimental": {
+    "status": "physical_playtest",
+    "rendering": "2D Canvas existing style",
+    "physics": "integrated with GameWorld",
+    "worldPreview": "unchanged",
+    "goal": "Play and solve using normal touch controls"
+  }
+}

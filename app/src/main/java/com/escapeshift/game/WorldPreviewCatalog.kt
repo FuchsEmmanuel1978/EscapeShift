@@ -2,9 +2,9 @@ package com.escapeshift.game
 
 import java.io.File
 
-/** Nine first-level previews. Original world-2 JSON levels 11..20 are left intact. */
+/** Showcase first-level previews for world 2 and worlds 4..10. World 3 levels 21..23 are now real. */
 object WorldPreviewCatalog {
-    private val previewLevels = (2..10).map { (it - 1) * 10 + 1 }.toSet()
+    private val previewLevels = (listOf(2) + (4..10)).map { (it - 1) * 10 + 1 }.toSet()
     private var readJson: (Int) -> String = { number ->
         val name = filename(number)
         val file = listOf(

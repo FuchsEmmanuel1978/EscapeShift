@@ -9,10 +9,12 @@ class WorldCatalogTest {
         assertEquals(100, WorldCatalog.totalSlots())
         assertTrue(WorldCatalog.worlds.map { it.number } == (1..10).toList())
     }
-    @Test fun firstLevelPreviewForEveryNewWorld() {
+    @Test fun previewsOutsideImplementedWorlds() {
         for (world in 1..10) for (level in 1..10)
-            assertEquals(world <= 2 || level == 1, WorldCatalog.isPlayable(world, level))
-        for (world in 2..10) assertTrue(WorldCatalog.isPreviewLevel((world - 1) * 10 + 1))
+            assertEquals(world <= 2 || (world == 3 && level <= 10) || (world > 3 && level == 1), WorldCatalog.isPlayable(world, level))
+        for (world in 4..10) assertTrue(WorldCatalog.isPreviewLevel((world - 1) * 10 + 1))
+        assertFalse(WorldCatalog.isPreviewLevel(11))
+        assertFalse(WorldCatalog.isPreviewLevel(21))
         assertFalse(WorldCatalog.isPreviewLevel(12))
     }
     @Test fun swipeClampsAndRejectsVerticalMovements() {

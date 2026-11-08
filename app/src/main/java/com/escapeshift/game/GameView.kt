@@ -117,7 +117,7 @@ class GameView(
         2 to RectF(143f, 448f, 240f, 532f),
         3 to RectF(w - 263f, 448f, w - 160f, 532f),
         4 to RectF(w - 144f, 448f, w - 25f, 532f)
-    )
+    ) + (if (world.advancedPuzzle != null) mapOf(5 to RectF(w - 144f, 351f, w - 25f, 435f)) else emptyMap())
     private val level get() = world
 
     private val steelDark = rgb(16, 19, 23)
@@ -185,7 +185,8 @@ class GameView(
                     left = active(1),
                     right = active(2),
                     jump = active(3),
-                    shift = active(4)
+                    shift = active(4),
+                    interact = active(5)
                 )
             )
             if (world.shiftOn != oldShift) gameAudio.oneShot("shift")
@@ -293,6 +294,8 @@ class GameView(
         for (i in level.monsters.indices) if (level.isMonsterAlive(i)) drawMonster(c, RectF(level.monsterBox(i).left, level.monsterBox(i).top, level.monsterBox(i).right, level.monsterBox(i).bottom))
         for (saw in level.saws) drawSaw(c, RectF(level.sawBox(saw).left, level.sawBox(saw).top, level.sawBox(saw).right, level.sawBox(saw).bottom))
         for (s in level.spikes) design.drawSpike(c, RectF(s.left, s.top, s.right, s.bottom))
+        drawPhysicalPuzzle(c)
+        drawAdvancedPuzzle(c)
         drawDynamicTraps(c)
         for (i in level.coins.indices) if(level.isCoinVisible(i)) design.drawCoin(c, level.coins[i], level.ticks)
         if (!level.keyCollected) for (key in level.keys) drawKey(c, RectF(key.left, key.top, key.right, key.bottom))
@@ -323,6 +326,142 @@ class GameView(
         if (isGamePaused && !dead && !won) drawPauseOverlay(c)
         else if (dead && (hearts > 1 || deathIrisElapsed < GameVisualConfig.DEATH_IRIS_DURATION_SECONDS)) drawDeathIris(c)
         else if (dead || won) drawOverlay(c)
+    }
+
+
+    /** Flat 2D prototypes using existing industrial colors; no new sprite assets. */
+    private fun drawPhysicalPuzzle(c: Canvas) {
+        val puzzle = level.physicalPuzzle ?: return
+        puzzle.sliderBox?.let { b ->
+            val r = RectF(b.left, b.top, b.right, b.bottom)
+            rect(c, r.left, r.top, r.right, r.bottom, steelMid)
+            rect(c, r.left, r.top, r.right, r.top + 5f, orangeLight)
+            rect(c, r.left + 9f, r.bottom - 5f, r.right - 9f, r.bottom - 2f, whiteSoft)
+        }
+        puzzle.wheelBox?.let { b ->
+            val cx = (b.left + b.right) / 2f; val cy = (b.top + b.bottom) / 2f
+            val rad = (b.right - b.left) / 2f
+            paint.color = steelDark; paint.style = Paint.Style.FILL
+            c.drawCircle(cx, cy, rad, paint)
+            paint.color = orangeLight
+            c.drawCircle(cx, cy, rad * .78f, paint)
+            paint.color = steelMid
+            c.drawCircle(cx, cy, rad * .59f, paint)
+            paint.color = whiteSoft
+            c.drawCircle(cx, cy, 6f, paint)
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 3f
+            paint.color = whiteSoft
+            val angle = ((b.left - 330f) / rad) * 57.3f
+            c.save(); c.translate(cx, cy); c.rotate(angle)
+            c.drawLine(-18f, 0f, 18f, 0f, paint)
+            c.drawLine(0f, -18f, 0f, 18f, paint)
+            c.restore(); paint.style = Paint.Style.FILL
+        }
+        for (i in puzzle.buttonBoxes.indices) {
+            val pad = puzzle.buttonBoxes[i]
+            drawPressurePlate(c, RectF(pad.left, pad.top, pad.right, pad.bottom), puzzle.buttonStates[i])
+            text(c, (i + 1).toString(), pad.left + 8f, pad.top - 9f, 17f, whiteSoft, true)
+        }
+        puzzle.laserBox?.let { b ->
+            drawLaserColumn(c, RectF(b.left, b.top, b.right, b.bottom), red, puzzle.laserActive)
+            if (!puzzle.laserActive) {
+                val seconds = (puzzle.laserRemainingTicks / 60f)
+                text(c, "%.1fs".format(java.util.Locale.US, seconds), b.left - 9f, b.top - 14f, 18f, orangeLight, true)
+            }
+        }
+        for ((index,b) in puzzle.movingPlatforms().withIndex()) {
+            drawPlatform(c, RectF(b.left, b.top, b.right, b.bottom))
+            rect(c, b.left + 10f, b.top + 5f, b.right - 10f, b.top + 8f, if (puzzle.isSynced) cyan else orangeLight)
+            text(c, (index + 1).toString(), b.left + 10f, b.top - 10f, 16f, whiteSoft, true)
+        }
+        val status = when (currentLevel) {
+            21 -> strings.t("puzzle_bridge_status", "bridge" to if(puzzle.isBridgePlaced) "✓" else "·",
+                "return" to if(puzzle.isReturning) "✓" else "·")
+            22 -> strings.t("puzzle_laser_status", "crossed" to if(puzzle.isLaserCrossed) "✓" else "·")
+            23 -> strings.t("puzzle_sync_status", "pads" to if(puzzle.isSynced) "✓" else "·",
+                "landed" to puzzle.landedCount)
+            else -> ""
+        }
+        if (status.isNotEmpty()) {
+            val px = (level.x - 140f).coerceIn(45f, level.worldRight - 300f)
+            rounded(c, RectF(px, 92f, px + 375f, 121f), 5f, alpha(steelDark, 180))
+            text(c, status, px + 9f, 112f, 17f, whiteSoft)
+        }
+    }
+
+
+    /** Experimental puzzles use only familiar 2D Canvas shapes and existing crates. */
+    private fun drawAdvancedPuzzle(c: Canvas) {
+        val puzzle = level.advancedPuzzle ?: return
+        val p = level.playerBox
+        for ((i, crate) in puzzle.crateDevices.withIndex()) {
+            val cb = level.crateBoxes.getOrNull(i) ?: continue
+            val label = if (crate.symbol.isNotBlank()) crate.symbol else crate.id.removePrefix("crate")
+            rounded(c, RectF(cb.left + 4f, cb.top - 25f, cb.right - 4f, cb.top - 5f), 4f, alpha(steelDark, 215))
+            textFitted(c, label, cb.left + 7f, cb.top - 10f, 15f, (cb.right - cb.left) - 14f, whiteSoft, true)
+        }
+        for (d in puzzle.devices) {
+            val b = puzzle.box(d)
+            val r = RectF(b.left, b.top, b.right, b.bottom)
+            when (d.kind) {
+                "crate", "ground_gap", "exit_gate", "word_exit" -> Unit // Already represented by the game world / ground.
+                "heavy_pressure_plate", "weight_button", "weighted_button", "pressure_button", "inverse_button", "speed_button", "code_button" -> {
+                    drawPressurePlate(c, r, puzzle.isPressed(d.id, p, level.crateBoxes))
+                    text(c, d.id, r.left, r.top - 8f, 15f, whiteSoft, true)
+                }
+                "rotating_wheel" -> {
+                    val rad = r.width() * 0.48f
+                    paint.color = steelMid; paint.style = Paint.Style.FILL
+                    c.drawCircle(r.centerX(), r.centerY(), rad, paint)
+                    paint.color = orangeLight
+                    c.drawCircle(r.centerX(), r.centerY(), rad * .76f, paint)
+                    paint.color = steelDark
+                    c.drawCircle(r.centerX(), r.centerY(), rad * .6f, paint)
+                    c.save(); c.translate(r.centerX(), r.centerY()); c.rotate(puzzle.wheelAngle(d.id).toFloat())
+                    rect(c, -rad*.67f, -3f, rad*.67f, 3f, whiteSoft)
+                    rect(c, -3f, -rad*.67f, 3f, rad*.67f, whiteSoft)
+                    c.restore()
+                    text(c, "${puzzle.wheelAngle(d.id)}°", r.left - 5f, r.top - 10f, 17f, orangeLight, true)
+                }
+                "movable_spring", "spring" -> drawSpring(c, r)
+                "lift_wall" -> if (puzzle.wallBoxes().any { it == b }) drawPlatform(c, r)
+                "surprise_wall" -> drawPlatform(c, RectF(r.left, r.top, r.right, r.bottom))
+                "moving_spike" -> design.drawSpike(c, r)
+                "sliding_platform", "moving_platform", "adjustable_platform", "lowering_platform" -> Unit // drawn below
+                "number_token", "letter_token", "iq_token" -> if (!puzzle.isCollected(d.id)) {
+                    rounded(c, r, 5f, orange)
+                    rounded(c, RectF(r.left + 3f, r.top + 3f, r.right - 3f, r.bottom - 3f), 4f, steelDark)
+                    val tokenLabel = when (d.kind) {
+                        "number_token" -> d.id.removePrefix("n")
+                        "letter_token" -> if (d.symbol.isNotEmpty()) d.symbol else d.id.take(1)
+                        else -> if (d.symbol.isNotEmpty()) d.symbol else d.id
+                    }
+                    textFitted(c, tokenLabel, r.left + 5f, r.centerY() + 6f, 20f, r.width() - 9f, whiteSoft, true)
+                }
+                "word_board", "sequence_board" -> {
+                    rounded(c, r, 6f, alpha(steelDark, 235))
+                    rect(c, r.left + 3f, r.top + 4f, r.right - 3f, r.top + 8f, orange)
+                    textFitted(c, d.text, r.left + 10f, r.centerY() + 9f, 21f, r.width() - 18f, whiteSoft, true)
+                }
+                "gravity_zone", "reverse_controls_zone" -> {
+                    rounded(c, r, 5f, alpha(if (d.kind == "gravity_zone") cyan else orange, 46))
+                    text(c, if (d.kind == "gravity_zone") "G ↑" else "⇄", r.left + 7f, r.top + 28f, 19f, whiteSoft, true)
+                }
+                "false_exit" -> {
+                    design.drawDoor(c, r, true)
+                    text(c, "?", r.left + 22f, r.top + 40f, 27f, orangeLight, true)
+                }
+            }
+        }
+        for (b in puzzle.platformBoxes()) drawPlatform(c, RectF(b.left, b.top, b.right, b.bottom))
+        if (puzzle.feedback.isNotBlank() || puzzle.sequenceStatus.isNotBlank()) {
+            val label = (puzzle.feedback + "  " + puzzle.sequenceStatus).trim()
+            val xx = (level.x - 110f).coerceIn(70f, level.worldRight - 440f)
+            rounded(c, RectF(xx, 96f, xx + 410f, 131f), 7f, alpha(steelDark, 220))
+            textFitted(c, label, xx + 11f, 120f, 18f, 385f, whiteSoft, true)
+        }
+        if (level.carryingCrate) text(c, "ACT", level.x - 6f, level.y - 52f, 15f, orangeLight, true)
     }
 
     private fun drawTopHud(c: Canvas) {
@@ -382,7 +521,7 @@ class GameView(
 
     private fun drawControls(c: Canvas) {
         for ((id, b) in buttons) {
-            val label = when(id) { 1 -> "◀"; 2 -> "▶"; 3 -> "▲"; else -> "#" }
+            val label = when(id) { 1 -> "◀"; 2 -> "▶"; 3 -> "▲"; 5 -> strings.t("puzzle_action"); else -> "#" }
             design.drawControl(c, b, label, active(id) || (id == 4 && shift))
         }
     }
@@ -506,8 +645,7 @@ class GameView(
         textCenteredFitted(c, strings.t(if (won) "win_title" else "lose_title"), 500f, 190f, 75f, 780f, GameDesign.ORANGE, true)
         textCenteredFitted(
             c,
-            if (won && currentLevel == GameProgression.MAX_LEVEL) strings.t("all_complete")
-            else if (won) strings.t("level_complete", "n" to currentLevel)
+            if (won) strings.t("level_complete", "n" to currentLevel)
             else strings.t("lose_message"),
             500f, 246f, 24f, 790f, whiteSoft
         )
@@ -671,6 +809,7 @@ class GameView(
         KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_D -> 2
         KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_W, KeyEvent.KEYCODE_SPACE -> 3
         KeyEvent.KEYCODE_S -> 4
+        KeyEvent.KEYCODE_E, KeyEvent.KEYCODE_ENTER -> 5
         else -> null
     }
 

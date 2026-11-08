@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 27,
+  "titleKey": "level_27_title",
+  "hintKey": "level_27_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2480,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": false,
+    "title": "Les nombres premiers",
+    "concepts": [
+      "prime_filter",
+      "ordered_collection",
+      "decoy_failure"
+    ],
+    "goal": [
+      {
+        "var": "sequence:primes",
+        "eq": 7
+      }
+    ],
+    "hint": "Récupère les nombres premiers en ordre croissant. Le dernier est 17, inscrit sur la porte.",
+    "devices": [
+      {
+        "id": "n2",
+        "kind": "number_token",
+        "x": 220,
+        "y": 315,
+        "width": 36,
+        "height": 36,
+        "value": 2
+      },
+      {
+        "id": "n3",
+        "kind": "number_token",
+        "x": 385,
+        "y": 395,
+        "width": 36,
+        "height": 36,
+        "value": 3
+      },
+      {
+        "id": "n5",
+        "kind": "number_token",
+        "x": 550,
+        "y": 315,
+        "width": 36,
+        "height": 36,
+        "value": 5
+      },
+      {
+        "id": "n7",
+        "kind": "number_token",
+        "x": 715,
+        "y": 395,
+        "width": 36,
+        "height": 36,
+        "value": 7
+      },
+      {
+        "id": "n11",
+        "kind": "number_token",
+        "x": 880,
+        "y": 315,
+        "width": 36,
+        "height": 36,
+        "value": 11
+      },
+      {
+        "id": "n13",
+        "kind": "number_token",
+        "x": 1045,
+        "y": 395,
+        "width": 36,
+        "height": 36,
+        "value": 13
+      },
+      {
+        "id": "n17",
+        "kind": "number_token",
+        "x": 1210,
+        "y": 315,
+        "width": 36,
+        "height": 36,
+        "value": 17
+      },
+      {
+        "id": "n4",
+        "kind": "number_token",
+        "x": 1375,
+        "y": 395,
+        "width": 36,
+        "height": 36,
+        "value": 4
+      },
+      {
+        "id": "n6",
+        "kind": "number_token",
+        "x": 1540,
+        "y": 315,
+        "width": 36,
+        "height": 36,
+        "value": 6
+      },
+      {
+        "id": "n9",
+        "kind": "number_token",
+        "x": 1705,
+        "y": 395,
+        "width": 36,
+        "height": 36,
+        "value": 9
+      },
+      {
+        "id": "n12",
+        "kind": "number_token",
+        "x": 1870,
+        "y": 315,
+        "width": 36,
+        "height": 36,
+        "value": 12
+      },
+      {
+        "id": "n15",
+        "kind": "number_token",
+        "x": 2035,
+        "y": 395,
+        "width": 36,
+        "height": 36,
+        "value": 15
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90,
+        "number": 17
+      }
+    ],
+    "rules": [],
+    "solution": [
+      {
+        "action": "collect",
+        "target": "n2"
+      },
+      {
+        "action": "collect",
+        "target": "n3"
+      },
+      {
+        "action": "collect",
+        "target": "n5"
+      },
+      {
+        "action": "collect",
+        "target": "n7"
+      },
+      {
+        "action": "collect",
+        "target": "n11"
+      },
+      {
+        "action": "collect",
+        "target": "n13"
+      },
+      {
+        "action": "collect",
+        "target": "n17"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "Sur mobile, il faudra tester la lisibilité des nombres et l’ordre spatial de collecte.",
+    "validationScope": "logical_state_machine_only",
+    "sequences": [
+      {
+        "id": "primes",
+        "items": [
+          "n2",
+          "n3",
+          "n5",
+          "n7",
+          "n11",
+          "n13",
+          "n17"
+        ],
+        "decoys": [
+          "n4",
+          "n6",
+          "n9",
+          "n12",
+          "n15"
+        ],
+        "failOnWrong": true
+      }
+    ]
+  },
+  "experimental": {
+    "status": "physical_beta",
+    "rendering": "existing industrial 2D Canvas design",
+    "physics": "AdvancedPuzzle in GameWorld",
+    "validationScope": "physical contact and puzzle-logic regression; complete playtest pending"
+  }
+}

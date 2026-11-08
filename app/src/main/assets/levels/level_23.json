@@ -1,0 +1,228 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 23,
+  "titleKey": "level_23_title",
+  "hintKey": "level_23_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2700,
+  "playerStart": {
+    "x": 80,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "id": "gap_sync",
+        "x": 1400,
+        "width": 570
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2475,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Deux caisses, quatre boutons",
+    "concepts": [
+      "crate_choice",
+      "moving_platform_speed",
+      "rhythm_jumps"
+    ],
+    "goal": [
+      {
+        "var": "flag:speed_sync",
+        "eq": true
+      },
+      {
+        "var": "flag:three_jumps",
+        "eq": true
+      }
+    ],
+    "hint": "Pose une caisse sur le bouton 1 et une sur le 4. Traverse les 3 plateformes dans l’ordre.",
+    "devices": [
+      {
+        "id": "pad1",
+        "kind": "speed_button",
+        "x": 625,
+        "y": 432,
+        "width": 76,
+        "height": 12,
+        "speedFactor": 1.4
+      },
+      {
+        "id": "pad2",
+        "kind": "speed_button",
+        "x": 780,
+        "y": 432,
+        "width": 76,
+        "height": 12,
+        "speedFactor": 0.7
+      },
+      {
+        "id": "pad3",
+        "kind": "speed_button",
+        "x": 935,
+        "y": 432,
+        "width": 76,
+        "height": 12,
+        "speedFactor": 1.1
+      },
+      {
+        "id": "pad4",
+        "kind": "speed_button",
+        "x": 1130,
+        "y": 432,
+        "width": 76,
+        "height": 12,
+        "speedFactor": 0.9
+      },
+      {
+        "id": "crateA",
+        "kind": "crate",
+        "x": 240,
+        "y": 401,
+        "width": 48,
+        "height": 43
+      },
+      {
+        "id": "crateB",
+        "kind": "crate",
+        "x": 1020,
+        "y": 401,
+        "width": 48,
+        "height": 43
+      },
+      {
+        "id": "platform1",
+        "kind": "moving_platform",
+        "x": 1410,
+        "y": 390,
+        "width": 146,
+        "height": 18,
+        "baseSpeed": 130,
+        "syncedTravel": 16,
+        "unsyncedTravel": 90,
+        "syncPeriodTicks": 190,
+        "unsyncPeriodTicks": 60
+      },
+      {
+        "id": "platform2",
+        "kind": "moving_platform",
+        "x": 1615,
+        "y": 350,
+        "width": 146,
+        "height": 18,
+        "baseSpeed": 170,
+        "syncedTravel": 16,
+        "unsyncedTravel": 90,
+        "syncPeriodTicks": 190,
+        "unsyncPeriodTicks": 60
+      },
+      {
+        "id": "platform3",
+        "kind": "moving_platform",
+        "x": 1820,
+        "y": 310,
+        "width": 146,
+        "height": 18,
+        "baseSpeed": 190,
+        "syncedTravel": 16,
+        "unsyncedTravel": 90,
+        "syncPeriodTicks": 190,
+        "unsyncPeriodTicks": 60
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2475,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "press",
+          "target": "sync"
+        },
+        "if": [
+          {
+            "var": "at:crateA",
+            "eq": "pad1"
+          },
+          {
+            "var": "at:crateB",
+            "eq": "pad4"
+          }
+        ],
+        "set": {
+          "flag:speed_sync": true
+        },
+        "message": "Les trois plateformes sont synchronisées."
+      },
+      {
+        "on": {
+          "action": "jump",
+          "target": "sequence_3"
+        },
+        "if": [
+          {
+            "var": "flag:speed_sync",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:three_jumps": true
+        },
+        "message": "La cadence est bonne."
+      }
+    ],
+    "solution": [
+      {
+        "action": "place",
+        "target": "crateA",
+        "value": "pad1"
+      },
+      {
+        "action": "place",
+        "target": "crateB",
+        "value": "pad4"
+      },
+      {
+        "action": "press",
+        "target": "sync"
+      },
+      {
+        "action": "jump",
+        "target": "sequence_3"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "GameWorld_physics_plus_puzzle_state"
+  },
+  "experimental": {
+    "status": "physical_playtest",
+    "rendering": "2D Canvas existing style",
+    "physics": "integrated with GameWorld",
+    "worldPreview": "unchanged",
+    "goal": "Play and solve using normal touch controls"
+  }
+}

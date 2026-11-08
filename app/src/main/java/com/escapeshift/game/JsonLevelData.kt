@@ -27,7 +27,7 @@ data class GroundGap(val id: String, val x: Float, val width: Float)
 
 /** No network dependency. Android calls install() with its AssetManager before creating GameView. */
 object LevelCatalog {
-    const val MAX_LEVEL = 20
+    const val MAX_LEVEL = 40
     private val cache = mutableMapOf<Int, LevelSpec>()
     private val fallbackSource: (Int) -> String = { n ->
         val file = listOf(
@@ -199,6 +199,18 @@ object LevelJsonParser {
         }
         val backtrackCount = int(get("backtrackCount"), "backtrackCount")
         require(backtrackCount in 0..route.size) { "backtrackCount exceeds route length" }
+        val physicalPlan = PhysicalPuzzlePlan.fromJson(expectedLevel, root["puzzle"])
+        val advancedPlan = AdvancedPuzzlePlan.fromJson(expectedLevel, root["puzzle"])
+        if (physicalPlan != null) {
+            physicalPlan.devices.forEach { d ->
+                require(d.x + d.width <= worldWidth + 0.01f) { "${d.id} exceeds worldWidth" }
+            }
+            physicalPlan.first("ground_gap")?.let { d ->
+                require(gaps.any { g -> kotlin.math.abs(g.x - d.x) < 0.1f && kotlin.math.abs(g.width - d.width) < 0.1f }) {
+                    "Puzzle gap ${d.id} must match ground.gaps in level $expectedLevel"
+                }
+            }
+        }
         return LevelSpec(
             number = level,
             title = str(get("titleKey"), "titleKey"),
@@ -214,13 +226,14 @@ object LevelJsonParser {
             groundY = groundY, groundDepth = groundDepth,
             gaps = gaps,
             objects = objects,
-            traps = traps
+            traps = traps,
+            physicalPuzzle = physicalPlan, advancedPuzzle = advancedPlan
         )
     }
 }
 
 /** Small self-contained JSON reader for Android and the desktop simulator; no extra Gradle library. */
-private class MiniJson(private val input: String) {
+internal class MiniJson(private val input: String) {
     private var i = 0
     fun parse(): Any? {
         val result = value()

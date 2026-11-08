@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 22,
+  "titleKey": "level_22_title",
+  "hintKey": "level_22_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 1820,
+  "playerStart": {
+    "x": 80,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 1580,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "La roue du laser",
+    "concepts": [
+      "rolling_wheel",
+      "timed_pressure_plate",
+      "laser_gate"
+    ],
+    "goal": [
+      {
+        "var": "flag:laser_disabled",
+        "eq": true
+      },
+      {
+        "var": "flag:laser_crossed",
+        "eq": true
+      }
+    ],
+    "hint": "Pousse la roue sur la plaque puis cours franchir le laser pendant le temps de coupure.",
+    "devices": [
+      {
+        "id": "wheelA",
+        "kind": "pushable_wheel",
+        "x": 330,
+        "y": 382,
+        "width": 62,
+        "height": 62,
+        "weight": 3,
+        "targetX": 727
+      },
+      {
+        "id": "plateA",
+        "kind": "timed_button",
+        "x": 735,
+        "y": 432,
+        "width": 80,
+        "height": 12,
+        "windowTicks": 122
+      },
+      {
+        "id": "laserA",
+        "kind": "laser",
+        "x": 1030,
+        "y": 295,
+        "width": 18,
+        "height": 149
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 1580,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "push",
+          "target": "wheelA",
+          "value": "plateA"
+        },
+        "if": [],
+        "set": {
+          "flag:laser_disabled": true
+        },
+        "message": "Le laser est coupé : il faut franchir rapidement.",
+        "expires": {
+          "flag:laser_disabled": 90
+        }
+      },
+      {
+        "on": {
+          "action": "cross",
+          "target": "laserA"
+        },
+        "if": [
+          {
+            "var": "flag:laser_disabled",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:laser_crossed": true
+        },
+        "message": "Le faisceau est franchi."
+      }
+    ],
+    "solution": [
+      {
+        "action": "push",
+        "target": "wheelA",
+        "value": "plateA"
+      },
+      {
+        "action": "cross",
+        "target": "laserA"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "Le vrai timer exige la physique du joueur et un décompte à l’échelle GameWorld.",
+    "validationScope": "GameWorld_physics_plus_puzzle_state"
+  },
+  "experimental": {
+    "status": "physical_playtest",
+    "rendering": "2D Canvas existing style",
+    "physics": "integrated with GameWorld",
+    "worldPreview": "unchanged",
+    "goal": "Play and solve using normal touch controls"
+  }
+}

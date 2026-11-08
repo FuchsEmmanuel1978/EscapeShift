@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 35,
+  "titleKey": "level_35_title",
+  "hintKey": "level_35_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2612,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Nombres, mur et triangle",
+    "concepts": [
+      "number_sequence",
+      "surprise_wall",
+      "moving_spike"
+    ],
+    "goal": [
+      {
+        "var": "sequence:squares",
+        "eq": 1
+      },
+      {
+        "var": "flag:wall_dodged",
+        "eq": true
+      },
+      {
+        "var": "flag:spike_dodged",
+        "eq": true
+      }
+    ],
+    "hint": "La suite des carrés donne 25. Le mur et le triangle sont ensuite à anticiper.",
+    "devices": [
+      {
+        "id": "panelA",
+        "kind": "sequence_board",
+        "x": 250,
+        "y": 287,
+        "width": 230,
+        "height": 52,
+        "text": "1 4 9 16 ?"
+      },
+      {
+        "id": "25",
+        "kind": "number_token",
+        "x": 780,
+        "y": 390,
+        "width": 45,
+        "height": 40
+      },
+      {
+        "id": "24",
+        "kind": "number_token",
+        "x": 870,
+        "y": 390,
+        "width": 45,
+        "height": 40
+      },
+      {
+        "id": "wallA",
+        "kind": "surprise_wall",
+        "x": 1500,
+        "y": 300,
+        "width": 70,
+        "height": 144
+      },
+      {
+        "id": "spikeA",
+        "kind": "moving_spike",
+        "x": 1880,
+        "y": 416,
+        "width": 48,
+        "height": 28
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "jump",
+          "target": "wallA"
+        },
+        "if": [
+          {
+            "var": "sequence:squares",
+            "eq": 1
+          }
+        ],
+        "set": {
+          "flag:wall_dodged": true
+        },
+        "message": "Mur anticipé."
+      },
+      {
+        "on": {
+          "action": "jump",
+          "target": "spikeA"
+        },
+        "if": [
+          {
+            "var": "flag:wall_dodged",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:spike_dodged": true
+        },
+        "message": "Triangle évité."
+      }
+    ],
+    "solution": [
+      {
+        "action": "collect",
+        "target": "25"
+      },
+      {
+        "action": "jump",
+        "target": "wallA"
+      },
+      {
+        "action": "jump",
+        "target": "spikeA"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only",
+    "sequences": [
+      {
+        "id": "squares",
+        "items": [
+          "25"
+        ],
+        "decoys": [
+          "24"
+        ],
+        "failOnWrong": true
+      }
+    ]
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}

@@ -43,7 +43,7 @@ class KeyEvent {
  const val KEYCODE_DPAD_LEFT=21; const val KEYCODE_DPAD_RIGHT=22
  const val KEYCODE_A=29; const val KEYCODE_D=32
  const val KEYCODE_DPAD_UP=19; const val KEYCODE_W=51
- const val KEYCODE_SPACE=62; const val KEYCODE_S=47
+ const val KEYCODE_SPACE=62; const val KEYCODE_E=33; const val KEYCODE_ENTER=66; const val KEYCODE_S=47
  const val KEYCODE_PAGE_UP=92; const val KEYCODE_PAGE_DOWN=93
  }
 }

@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 28,
+  "titleKey": "level_28_title",
+  "hintKey": "level_28_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2480,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": false,
+    "title": "Ascenseur de murs",
+    "concepts": [
+      "weighted_walls",
+      "spring_move",
+      "geometry_combo"
+    ],
+    "goal": [
+      {
+        "var": "flag:walls_aligned",
+        "eq": true
+      },
+      {
+        "var": "flag:spring_positioned",
+        "eq": true
+      }
+    ],
+    "hint": "Le poids de chaque caisse détermine la hauteur des murs ; place ensuite le tremplin.",
+    "devices": [
+      {
+        "id": "crateA",
+        "kind": "crate",
+        "x": 250,
+        "y": 401,
+        "width": 48,
+        "height": 43
+      },
+      {
+        "id": "crateB",
+        "kind": "crate",
+        "x": 350,
+        "y": 401,
+        "width": 48,
+        "height": 43
+      },
+      {
+        "id": "plateA",
+        "kind": "weight_button",
+        "x": 870,
+        "y": 433,
+        "width": 82,
+        "height": 11
+      },
+      {
+        "id": "plateB",
+        "kind": "weight_button",
+        "x": 1100,
+        "y": 433,
+        "width": 82,
+        "height": 11
+      },
+      {
+        "id": "wallA",
+        "kind": "lift_wall",
+        "x": 1440,
+        "y": 300,
+        "width": 55,
+        "height": 144
+      },
+      {
+        "id": "wallB",
+        "kind": "lift_wall",
+        "x": 1640,
+        "y": 265,
+        "width": 55,
+        "height": 179
+      },
+      {
+        "id": "springA",
+        "kind": "movable_spring",
+        "x": 1850,
+        "y": 428,
+        "width": 85,
+        "height": 16,
+        "targetX": 2030
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "press",
+          "target": "align"
+        },
+        "if": [
+          {
+            "var": "at:crateA",
+            "eq": "plateB"
+          },
+          {
+            "var": "at:crateB",
+            "eq": "plateA"
+          }
+        ],
+        "set": {
+          "flag:walls_aligned": true
+        },
+        "message": "Les murs sont à la bonne hauteur."
+      },
+      {
+        "on": {
+          "action": "move",
+          "target": "springA",
+          "value": "launch_marker"
+        },
+        "if": [
+          {
+            "var": "flag:walls_aligned",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:spring_positioned": true
+        },
+        "message": "Le tremplin est placé."
+      }
+    ],
+    "solution": [
+      {
+        "action": "place",
+        "target": "crateA",
+        "value": "plateB"
+      },
+      {
+        "action": "place",
+        "target": "crateB",
+        "value": "plateA"
+      },
+      {
+        "action": "press",
+        "target": "align"
+      },
+      {
+        "action": "move",
+        "target": "springA",
+        "value": "launch_marker"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only"
+  },
+  "experimental": {
+    "status": "physical_beta",
+    "rendering": "existing industrial 2D Canvas design",
+    "physics": "AdvancedPuzzle in GameWorld",
+    "validationScope": "physical contact and puzzle-logic regression; complete playtest pending"
+  }
+}

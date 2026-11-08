@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 37,
+  "titleKey": "level_37_title",
+  "hintKey": "level_37_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2612,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "L’échelle des nombres",
+    "concepts": [
+      "prime_filter",
+      "gravity_flip",
+      "moving_platform"
+    ],
+    "goal": [
+      {
+        "var": "sequence:primes",
+        "eq": 4
+      },
+      {
+        "var": "flag:gravity_flipped",
+        "eq": true
+      },
+      {
+        "var": "flag:platform_crossed",
+        "eq": true
+      }
+    ],
+    "hint": "Recueille 2,3,5,7 puis passe sur la plateforme sous gravité inversée.",
+    "devices": [
+      {
+        "id": "n2",
+        "kind": "number_token",
+        "x": 270,
+        "y": 350,
+        "width": 43,
+        "height": 43,
+        "value": 2
+      },
+      {
+        "id": "n3",
+        "kind": "number_token",
+        "x": 475,
+        "y": 350,
+        "width": 43,
+        "height": 43,
+        "value": 3
+      },
+      {
+        "id": "n5",
+        "kind": "number_token",
+        "x": 680,
+        "y": 350,
+        "width": 43,
+        "height": 43,
+        "value": 5
+      },
+      {
+        "id": "n7",
+        "kind": "number_token",
+        "x": 885,
+        "y": 350,
+        "width": 43,
+        "height": 43,
+        "value": 7
+      },
+      {
+        "id": "n4",
+        "kind": "number_token",
+        "x": 1090,
+        "y": 350,
+        "width": 43,
+        "height": 43,
+        "value": 4
+      },
+      {
+        "id": "n8",
+        "kind": "number_token",
+        "x": 1295,
+        "y": 350,
+        "width": 43,
+        "height": 43,
+        "value": 8
+      },
+      {
+        "id": "gravityZone",
+        "kind": "gravity_zone",
+        "x": 1610,
+        "y": 280,
+        "width": 145,
+        "height": 164
+      },
+      {
+        "id": "platformA",
+        "kind": "moving_platform",
+        "x": 1870,
+        "y": 305,
+        "width": 155,
+        "height": 20
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "enter",
+          "target": "gravityZone",
+          "value": "up"
+        },
+        "if": [
+          {
+            "var": "sequence:primes",
+            "eq": 4
+          }
+        ],
+        "set": {
+          "flag:gravity_flipped": true
+        },
+        "message": "Gravité inversée !"
+      },
+      {
+        "on": {
+          "action": "cross",
+          "target": "platformA"
+        },
+        "if": [
+          {
+            "var": "flag:gravity_flipped",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:platform_crossed": true
+        },
+        "message": "Plateforme franchie."
+      }
+    ],
+    "solution": [
+      {
+        "action": "collect",
+        "target": "n2"
+      },
+      {
+        "action": "collect",
+        "target": "n3"
+      },
+      {
+        "action": "collect",
+        "target": "n5"
+      },
+      {
+        "action": "collect",
+        "target": "n7"
+      },
+      {
+        "action": "enter",
+        "target": "gravityZone",
+        "value": "up"
+      },
+      {
+        "action": "cross",
+        "target": "platformA"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only",
+    "sequences": [
+      {
+        "id": "primes",
+        "items": [
+          "n2",
+          "n3",
+          "n5",
+          "n7"
+        ],
+        "decoys": [
+          "n4",
+          "n8"
+        ],
+        "failOnWrong": true
+      }
+    ]
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}

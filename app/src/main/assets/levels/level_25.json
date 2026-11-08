@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 25,
+  "titleKey": "level_25_title",
+  "hintKey": "level_25_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2900,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2480,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": false,
+    "title": "La combinaison aveugle",
+    "concepts": [
+      "mastermind",
+      "10_crates_5_buttons",
+      "partial_feedback"
+    ],
+    "goal": [
+      {
+        "var": "solved:mastermind",
+        "eq": true
+      }
+    ],
+    "hint": "Seul le nombre de caisses bien placées est indiqué, pas lesquelles.",
+    "devices": [
+      {
+        "id": "crate01",
+        "kind": "crate",
+        "x": 230,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "☀"
+      },
+      {
+        "id": "crate02",
+        "kind": "crate",
+        "x": 330,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "△"
+      },
+      {
+        "id": "crate03",
+        "kind": "crate",
+        "x": 430,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "◇"
+      },
+      {
+        "id": "crate04",
+        "kind": "crate",
+        "x": 530,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "○"
+      },
+      {
+        "id": "crate05",
+        "kind": "crate",
+        "x": 630,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "★"
+      },
+      {
+        "id": "crate06",
+        "kind": "crate",
+        "x": 730,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "☾"
+      },
+      {
+        "id": "crate07",
+        "kind": "crate",
+        "x": 830,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "+"
+      },
+      {
+        "id": "crate08",
+        "kind": "crate",
+        "x": 930,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "□"
+      },
+      {
+        "id": "crate09",
+        "kind": "crate",
+        "x": 1030,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "▣"
+      },
+      {
+        "id": "crate10",
+        "kind": "crate",
+        "x": 1130,
+        "y": 401,
+        "width": 48,
+        "height": 43,
+        "weight": 1,
+        "symbol": "∞"
+      },
+      {
+        "id": "pad1",
+        "kind": "code_button",
+        "x": 1370,
+        "y": 433,
+        "width": 78,
+        "height": 11
+      },
+      {
+        "id": "pad2",
+        "kind": "code_button",
+        "x": 1520,
+        "y": 433,
+        "width": 78,
+        "height": 11
+      },
+      {
+        "id": "pad3",
+        "kind": "code_button",
+        "x": 1670,
+        "y": 433,
+        "width": 78,
+        "height": 11
+      },
+      {
+        "id": "pad4",
+        "kind": "code_button",
+        "x": 1820,
+        "y": 433,
+        "width": 78,
+        "height": 11
+      },
+      {
+        "id": "pad5",
+        "kind": "code_button",
+        "x": 1970,
+        "y": 433,
+        "width": 78,
+        "height": 11
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [],
+    "solution": [
+      {
+        "action": "submit",
+        "target": "mastermind",
+        "value": {
+          "pad1": "crate01",
+          "pad2": "crate03",
+          "pad3": "crate06",
+          "pad4": "crate07",
+          "pad5": "crate09"
+        }
+      },
+      {
+        "action": "submit",
+        "target": "mastermind",
+        "value": {
+          "pad1": "crate02",
+          "pad2": "crate04",
+          "pad3": "crate06",
+          "pad4": "crate08",
+          "pad5": "crate10"
+        }
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "Le nombre de combinaisons possibles est important. Ajouter des indices visuels dans une version jouable.",
+    "validationScope": "logical_state_machine_only",
+    "combination": {
+      "id": "mastermind",
+      "pads": [
+        "pad1",
+        "pad2",
+        "pad3",
+        "pad4",
+        "pad5"
+      ],
+      "target": {
+        "pad1": "crate02",
+        "pad2": "crate04",
+        "pad3": "crate06",
+        "pad4": "crate08",
+        "pad5": "crate10"
+      },
+      "feedback": "count_correct_positions_only",
+      "maxGuesses": 12
+    },
+    "designerHint": "Indices: 5 caisses de numeros PAIRS en ordre croissant. La jauge indique seulement combien sont bien placées."
+  },
+  "experimental": {
+    "status": "physical_beta",
+    "rendering": "existing industrial 2D Canvas design",
+    "physics": "AdvancedPuzzle in GameWorld",
+    "validationScope": "physical contact and puzzle-logic regression; complete playtest pending"
+  }
+}

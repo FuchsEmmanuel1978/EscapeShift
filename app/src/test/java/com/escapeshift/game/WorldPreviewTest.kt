@@ -4,10 +4,10 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WorldPreviewTest {
-    @Test fun ninePreviewFilesAreIdenticalGeometryToWorldOne() {
+    @Test fun showcasePreviewFilesAreIdenticalGeometryToWorldOne() {
         LevelCatalog.useProjectFiles()
         val base = LevelCatalog.create(1)
-        for (world in 2..10) {
+        for (world in listOf(2,4,5,6,7,8,9,10)) {
             val n = (world - 1) * 10 + 1
             val copy = WorldPreviewCatalog.create(n)
             assertEquals(n, copy.number)

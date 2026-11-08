@@ -11,8 +11,8 @@ android {
         applicationId = "com.escapeshift.game"
         minSdk = 24
         targetSdk = 35
-        versionCode = 28
-        versionName = "2.6.0-v24-event-traps"
+        versionCode = 31
+        versionName = "2.9.0-v27-world3-24-30"
     }
 
     compileOptions {

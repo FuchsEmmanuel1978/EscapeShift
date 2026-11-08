@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 32,
+  "titleKey": "level_32_title",
+  "hintKey": "level_32_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2612,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Mot miroir et roue",
+    "concepts": [
+      "word_reverse",
+      "wheel_angle",
+      "moving_platform"
+    ],
+    "goal": [
+      {
+        "var": "sequence:reverse",
+        "eq": 5
+      },
+      {
+        "var": "flag:wheel_aligned",
+        "eq": true
+      }
+    ],
+    "hint": "Lis SUGAR à l’envers, collecte R A G U S puis tourne la roue à 180°.",
+    "devices": [
+      {
+        "id": "panelA",
+        "kind": "word_board",
+        "x": 300,
+        "y": 330,
+        "width": 220,
+        "height": 44,
+        "text": "SUGAR"
+      },
+      {
+        "id": "letter_0",
+        "kind": "letter_token",
+        "x": 780,
+        "y": 390,
+        "width": 36,
+        "height": 43,
+        "letter": "R"
+      },
+      {
+        "id": "letter_1",
+        "kind": "letter_token",
+        "x": 935,
+        "y": 390,
+        "width": 36,
+        "height": 43,
+        "letter": "A"
+      },
+      {
+        "id": "letter_2",
+        "kind": "letter_token",
+        "x": 1090,
+        "y": 390,
+        "width": 36,
+        "height": 43,
+        "letter": "G"
+      },
+      {
+        "id": "letter_3",
+        "kind": "letter_token",
+        "x": 1245,
+        "y": 390,
+        "width": 36,
+        "height": 43,
+        "letter": "U"
+      },
+      {
+        "id": "letter_4",
+        "kind": "letter_token",
+        "x": 1400,
+        "y": 390,
+        "width": 36,
+        "height": 43,
+        "letter": "S"
+      },
+      {
+        "id": "wheelA",
+        "kind": "rotating_wheel",
+        "x": 1750,
+        "y": 345,
+        "width": 80,
+        "height": 80
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "rotate",
+          "target": "wheelA",
+          "value": 180
+        },
+        "if": [
+          {
+            "var": "sequence:reverse",
+            "eq": 5
+          }
+        ],
+        "set": {
+          "flag:wheel_aligned": true
+        },
+        "message": "Roue déverrouillée par le mot miroir."
+      }
+    ],
+    "solution": [
+      {
+        "action": "collect",
+        "target": "letter_0"
+      },
+      {
+        "action": "collect",
+        "target": "letter_1"
+      },
+      {
+        "action": "collect",
+        "target": "letter_2"
+      },
+      {
+        "action": "collect",
+        "target": "letter_3"
+      },
+      {
+        "action": "collect",
+        "target": "letter_4"
+      },
+      {
+        "action": "rotate",
+        "target": "wheelA",
+        "value": 180
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only",
+    "sequences": [
+      {
+        "id": "reverse",
+        "items": [
+          "letter_0",
+          "letter_1",
+          "letter_2",
+          "letter_3",
+          "letter_4"
+        ],
+        "decoys": [],
+        "failOnWrong": true
+      }
+    ]
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}

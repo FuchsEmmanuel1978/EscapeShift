@@ -8,7 +8,7 @@ data class HitBox(val left: Float, val top: Float, val right: Float, val bottom:
     fun intersects(other: HitBox): Boolean = left < other.right && right > other.left && top < other.bottom && bottom > other.top
 }
 
-data class GameInput(val left: Boolean = false, val right: Boolean = false, val jump: Boolean = false, val shift: Boolean = false)
+data class GameInput(val left: Boolean = false, val right: Boolean = false, val jump: Boolean = false, val shift: Boolean = false, val interact: Boolean = false)
 
 enum class StartType { OPEN, CRATE_WALL, SHIFT_BRIDGE, SPRING_WALL, UPPER_PLATFORM }
 enum class ChallengeType { SPIKE, RED_LASER, BLUE_LASER, TIMED_LASER, KEY, SPRING, SAW, CONVEYOR, SWITCH, MONSTER, GAP, WALL }
@@ -38,7 +38,9 @@ data class LevelSpec(
     val groundDepth: Float,
     val gaps: List<GroundGap>,
     val objects: List<LevelObject>,
-    val traps: List<TrapDefinition> = emptyList()
+    val traps: List<TrapDefinition> = emptyList(),
+    val physicalPuzzle: PhysicalPuzzlePlan? = null,
+    val advancedPuzzle: AdvancedPuzzlePlan? = null
 )
 
 data class MonsterSpawn(
@@ -63,14 +65,26 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val spec = previewSpec ?: LevelCatalog.create(levelNumber)
     val traps = TrapEngine(if (levelNumber in 1..10) spec.traps else emptyList())
     val worldRight = spec.worldRight
+    val physicalPuzzle: PhysicalPuzzle? = spec.physicalPuzzle?.let { PhysicalPuzzle(it) }
+    val advancedPuzzle: AdvancedPuzzle? = spec.advancedPuzzle?.let { AdvancedPuzzle(it) }
+    private var previousPuzzlePlatforms: List<HitBox> = physicalPuzzle?.movingPlatforms().orEmpty()
+    private var previousAdvancedPlatforms: List<HitBox> = advancedPuzzle?.platformBoxes().orEmpty()
     private fun objects(type: String) = spec.objects.filter { it.type == type }
     private fun challenge(o: LevelObject, type: ChallengeType) = Challenge(
         type, o.x, o.phase, o.y, o.width, o.height, o.amplitude,
         o.period, o.activeTicks, o.offsetX, o.speed
     )
-    private val crateConfigs = objects("crate")
+    private val crateConfigs = objects("crate") + spec.physicalPuzzle?.all("crate").orEmpty().map { d ->
+        LevelObject(d.id, "crate", d.x, d.y, d.width, d.height)
+    } + spec.advancedPuzzle?.all("crate").orEmpty().map { d ->
+        LevelObject(d.id, "crate", d.x, d.y, d.width, d.height)
+    }
     private val crateConfig = crateConfigs.firstOrNull()
     private var cratePositions = crateConfigs.map { it.x }.toMutableList()
+    private var carriedCrateIndex: Int? = null
+    private val lockedCrateIndices = mutableSetOf<Int>()
+    private var interactPrevious = false
+    val carryingCrate: Boolean get() = carriedCrateIndex != null
     val hasCrate = crateConfigs.isNotEmpty()
     private val crateY = crateConfig?.y ?: -5000f
     private val crateWidth = crateConfig?.width ?: CRATE_WIDTH
@@ -78,7 +92,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     /** All crate hitboxes, including those used on pressure plates. */
     val crateBoxes: List<HitBox> get() = crateConfigs.indices.map { i ->
         val config = crateConfigs[i]; val px = cratePositions[i]
-        HitBox(px, config.y, px + config.width, config.y + config.height)
+        HitBox(px, if (carriedCrateIndex == i) y - config.height - 7f else config.y, px + config.width, if (carriedCrateIndex == i) y - 7f else config.y + config.height)
     }
     val crateSwitches = objects("crate_switch").map { it.box }
     fun isPlateActive(index: Int): Boolean = crateBoxes.any { crate ->
@@ -117,7 +131,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     }
     /** The player can jump up THROUGH platforms, then stand on top. */
     val oneWayPlatforms: List<HitBox> = objects("platform").map { it.box }
-    val activePlatforms get() = oneWayPlatforms + traps.platforms()
+    val activePlatforms get() = oneWayPlatforms + traps.platforms() + physicalPuzzle?.movingPlatforms().orEmpty() + listOfNotNull(physicalPuzzle?.sliderBox) + advancedPuzzle?.platformBoxes().orEmpty()
     val dynamicTrapViews get() = traps.views()
     val dynamicGroundGaps get() = spec.gaps + traps.collapsedGaps()
     val spikes: List<HitBox> = objects("spike").flatMap { o ->
@@ -168,8 +182,9 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val playerBox get() = HitBox(x, y, x + SIZE, y + SIZE)
     val crateBox get() = crateBoxes.firstOrNull() ?: HitBox(-5000f, -5000f, -4954f, -4956f)
     val exitUnlocked get() = (!spec.requiresKey || keyCollected) &&
-        (switches.isEmpty() || switchActivated) && pressureReady
-    fun solids(): List<HitBox> = (blocks - oneWayPlatforms + traps.solids()).let { if (shiftOn && bridge != null) it + bridge else it }
+        (switches.isEmpty() || switchActivated) && pressureReady && (physicalPuzzle?.isSolved ?: true) &&
+        (advancedPuzzle?.isSolved ?: true)
+    fun solids(): List<HitBox> = (blocks - oneWayPlatforms + traps.solids() + advancedPuzzle?.wallBoxes().orEmpty()).let { if (shiftOn && bridge != null) it + bridge else it }
     fun sawBox(saw: Challenge, t: Int = ticks): HitBox {
         val offset = saw.amplitude * sin((t + saw.phase) * (2 * Math.PI / saw.period.toDouble())).toFloat()
         val left = saw.x + saw.offsetX + offset
@@ -187,12 +202,17 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     fun reset() {
         x = spec.startX; y = spec.startY; vx = 0f; vy = 0f; grounded = false
         cratePositions = crateConfigs.map { it.x }.toMutableList()
+        carriedCrateIndex = null; lockedCrateIndices.clear(); interactPrevious = false
         shiftOn = false; dead = false; won = false; keyCollected = false; switchActivated = false
         switchTouched = BooleanArray(switches.size)
         elapsed = 0f; ticks = 0; jumpPrevious = false; shiftPrevious = false; springCooldown = 0; beltLeap = false
         monsterAlive = MutableList(monsters.size) { true }
         coinTaken = BooleanArray(coins.size)
         traps.reset()
+        physicalPuzzle?.reset()
+        advancedPuzzle?.reset()
+        previousPuzzlePlatforms = physicalPuzzle?.movingPlatforms().orEmpty()
+        previousAdvancedPlatforms = advancedPuzzle?.platformBoxes().orEmpty()
     }
 
     fun tick(input: GameInput) {
@@ -202,8 +222,35 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         if (input.shift && !shiftPrevious) shiftOn = !shiftOn
         shiftPrevious = input.shift
         val rawDirection = (if (input.right) 1 else 0) - (if (input.left) 1 else 0)
-        val direction = if (traps.reverseControls(playerBox)) -rawDirection else rawDirection
+        val direction = if (traps.reverseControls(playerBox) || advancedPuzzle?.controlsReversed == true) -rawDirection else rawDirection
         val conveyorBoost = if (grounded) conveyorSpeeds.firstOrNull { (box, _) -> playerBox.intersects(box.copy(top = box.top - 7f)) }?.second ?: 0f else 0f
+        val justInteracted = input.interact && !interactPrevious
+        interactPrevious = input.interact
+        if (justInteracted && advancedPuzzle != null) {
+            val idx = carriedCrateIndex
+            if (idx != null) {
+                // Drop at the right edge of the hero, using actual world coordinates.
+                cratePositions[idx] = (x + SIZE + 5f).coerceIn(0f, spec.worldRight - crateConfigs[idx].width)
+                carriedCrateIndex = null  // Ground-height hitbox must be read after dropping, not while still carried.
+                val c = crateBoxes[idx]
+                val cx = (c.left + c.right) / 2f
+                val onLatch = advancedPuzzle.plan.devices.any { d ->
+                    d.kind in setOf("heavy_pressure_plate", "weighted_button", "weight_button", "pressure_button", "speed_button", "code_button", "inverse_button") &&
+                        cx >= d.x && cx <= d.x + d.width && c.bottom >= d.y - 5f
+                }
+                if (onLatch) lockedCrateIndices.add(idx)
+                carriedCrateIndex = null
+            } else if (advancedPuzzle.interact(playerBox)) {
+                // Handled by a nearby wheel or puzzle board.
+            } else {
+                val near = crateConfigs.indices.filter { i ->
+                    val c = crateBoxes[i]
+                    kotlin.math.abs((c.left + c.right) / 2f - (x + SIZE / 2f)) < 70f &&
+                        kotlin.math.abs(c.bottom - playerBox.bottom) < 60f
+                }.minByOrNull { i -> kotlin.math.abs(crateBoxes[i].left - x) }
+                if (near != null) { carriedCrateIndex = near; lockedCrateIndices.remove(near) }
+            }
+        }
         val justJumped = input.jump && !jumpPrevious && grounded
         if (justJumped) {
             // The long belts cannot be crossed by walking: approach and jump with momentum.
@@ -230,11 +277,43 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
                 break
             }
         }
+        val latestPuzzlePlatforms = physicalPuzzle?.movingPlatforms().orEmpty()
+        if (grounded && latestPuzzlePlatforms.size == previousPuzzlePlatforms.size) {
+            for (i in latestPuzzlePlatforms.indices) {
+                val previous = previousPuzzlePlatforms[i]; val latest = latestPuzzlePlatforms[i]
+                if (oldBox.right > previous.left && oldBox.left < previous.right &&
+                    kotlin.math.abs(oldBox.bottom - previous.top) < 3f) {
+                    x += latest.left - previous.left
+                    y += latest.top - previous.top
+                    break
+                }
+            }
+        }
+        previousPuzzlePlatforms = latestPuzzlePlatforms
+        val latestAdvanced = advancedPuzzle?.platformBoxes().orEmpty()
+        if (grounded && previousAdvancedPlatforms.size == latestAdvanced.size) {
+            for (i in latestAdvanced.indices) {
+                val oldPlatform = previousAdvancedPlatforms[i]
+                if (oldBox.right > oldPlatform.left && oldBox.left < oldPlatform.right &&
+                    kotlin.math.abs(oldBox.bottom - oldPlatform.top) < 3f) {
+                    x += latestAdvanced[i].left - oldPlatform.left
+                    y += latestAdvanced[i].top - oldPlatform.top
+                    break
+                }
+            }
+        }
+        previousAdvancedPlatforms = latestAdvanced
         val dx = vx * STEP
         x += dx
         for (i in crateConfigs.indices) {
+            if (carriedCrateIndex != null) continue // carrying: other crates stay in place rather than getting dragged across the room
             val crate = crateBoxes[i]
             if (!playerBox.intersects(crate)) continue
+            if (i in lockedCrateIndices) {
+                if (dx > 0f) x = crate.left - SIZE
+                if (dx < 0f) x = crate.right
+                continue
+            }
             if (dx > 0f) {
                 val needed = playerBox.right - crate.left
                 val moved = pushCrate(i, needed)
@@ -245,6 +324,36 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
                 x -= needed - moved
             }
         }
+        carriedCrateIndex?.let { i -> cratePositions[i] = x + 4f }
+        // Push advanced-world movable bridges and springs by real contact.
+        advancedPuzzle?.let { puzzle ->
+            for (device in puzzle.devices.filter { it.kind == "sliding_platform" || it.kind == "movable_spring" }) {
+                val body = puzzle.box(device)
+                if (playerBox.intersects(body) && dx > 0f && oldBox.right <= body.left + 12f) {
+                    val needed = playerBox.right - body.left
+                    val moved = puzzle.pushMovable(device.id, needed)
+                    x -= needed - moved
+                }
+            }
+        }
+        // Push the sliding bridge / wheel through actual player contact.
+        physicalPuzzle?.let { puzzle ->
+            for ((body, isWheel) in listOfNotNull(
+                puzzle.sliderBox?.let { Pair(it, false) },
+                puzzle.wheelBox?.let { Pair(it, true) }
+            )) {
+                if (playerBox.intersects(body) && oldBox.bottom > body.top + 3f) {
+                    if (dx > 0f && oldBox.right <= body.left + 10f) {
+                        val needed = playerBox.right - body.left
+                        val moved = if (isWheel) puzzle.pushWheel(needed) else puzzle.pushSlider(needed)
+                        x -= needed - moved
+                    } else if (dx < 0f && oldBox.left >= body.right - 10f) {
+                        // The wheel and sliding bridge are deliberately one-direction push puzzles.
+                        x = body.right
+                    }
+                }
+            }
+        }
         for (solid in solids()) {
             if (playerBox.intersects(solid)) {
                 if (dx > 0f) x = min(x, solid.left - SIZE)
@@ -252,17 +361,25 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             }
         }
         x = max(0f, x)
-        vy = min(800f, vy + GRAVITY * STEP)
+        vy = (vy + (if (advancedPuzzle?.gravityActive == true) -GRAVITY else GRAVITY) * STEP).coerceIn(-800f, 800f)
         val previousBottom = y + SIZE
         val previousTop = y
         y += vy * STEP
         grounded = false
-        for (solid in solids() + activePlatforms + crateBoxes) {
+        for (solid in solids() + activePlatforms + crateBoxes.filterIndexed { i, _ -> i != carriedCrateIndex }) {
             if (!playerBox.intersects(solid)) continue
             if (vy >= 0f && previousBottom <= solid.top + 2f) {
                 y = solid.top - SIZE
                 vy = 0f
                 grounded = true
+                physicalPuzzle?.let { puzzle ->
+                    val platformIndex = puzzle.movingPlatforms().indexOf(solid)
+                    if (platformIndex >= 0) puzzle.onLandMovingPlatform(platformIndex)
+                }
+                advancedPuzzle?.let { puzzle ->
+                    val platformIndex = puzzle.platformBoxes().indexOf(solid)
+                    if (platformIndex >= 0) puzzle.onPlatformLanding(platformIndex)
+                }
             } else if (solid !in activePlatforms && vy < 0f && previousTop >= solid.bottom - 2f) {
                 y = solid.bottom
                 vy = 0f
@@ -270,7 +387,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         }
         if (grounded) beltLeap = false
         if (springCooldown > 0) springCooldown--
-        if (grounded && springCooldown == 0 && springs.any { playerBox.intersects(it.copy(top = it.top - 3f)) }) {
+        if (grounded && springCooldown == 0 && (springs + advancedPuzzle?.springBoxes().orEmpty()).any { playerBox.intersects(it.copy(top = it.top - 3f)) }) {
             vy = SPRING_SPEED
             grounded = false
             springCooldown = 55
@@ -304,8 +421,12 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             timedLasers.any { timedLaserActive(it) && player.intersects(timedLaserBox(it)) } ||
             saws.any { player.intersects(sawBox(it)) } ||
             traps.spikes().any { player.intersects(it) } ||
-            traps.views().any { it.type == "surprise_wall" && it.state == "active" && player.intersects(it.box) }
+            traps.views().any { it.type == "surprise_wall" && it.state == "active" && player.intersects(it.box) } ||
+            advancedPuzzle?.spikeBoxes()?.any { player.intersects(it) } == true
         ) dead = true
+        physicalPuzzle?.update(player, crateBoxes)
+        advancedPuzzle?.tick(player, crateBoxes.mapIndexed { i, box -> if (i == carriedCrateIndex) HitBox(-9000f,-9000f,-8000f,-8000f) else box }, !grounded, vx)
+        if (physicalPuzzle?.laserActive == true && physicalPuzzle.laserBox?.intersects(player) == true) dead = true
         if (!dead && player.intersects(exit) && exitUnlocked) won = true
     }
 

@@ -1,0 +1,21 @@
+﻿Niveau;Monde;Titre;Mécaniques;Nombre objets;Nombre actions solution;Validation logique;Test physique
+21;3;La poutre et le détour;bridge_push / return_trip / crate_switch;5;5;PASS;NON IMPLEMENTÉ
+22;3;La roue du laser;rolling_wheel / timed_pressure_plate / laser_gate;4;3;PASS;NON IMPLEMENTÉ
+23;3;Deux caisses, quatre boutons;crate_choice / moving_platform_speed / rhythm_jumps;10;5;PASS;NON IMPLEMENTÉ
+24;3;Poids total;three_body_weight / latched_platform / spring_crate;6;8;PASS;NON IMPLEMENTÉ
+25;3;La combinaison aveugle;mastermind / 10_crates_5_buttons / partial_feedback;16;3;PASS;NON IMPLEMENTÉ
+26;3;L’angle unique;rotating_wheel / moving_gaps / timed_run_jump;5;5;PASS;NON IMPLEMENTÉ
+27;3;Les nombres premiers;prime_filter / ordered_collection / decoy_failure;13;8;PASS;NON IMPLEMENTÉ
+28;3;Ascenseur de murs;weighted_walls / spring_move / geometry_combo;8;5;PASS;NON IMPLEMENTÉ
+29;3;GAME → OVER;word_association / ordered_letters / distractors;7;5;PASS;NON IMPLEMENTÉ
+30;3;Double test et gravité;iq_series / letters_and_numbers / prime_series / gravity_flip / reverse_controls;9;5;PASS;NON IMPLEMENTÉ
+31;4;Pont de sucre pondéré;bridge_push / weighted_plate / prime_choice;6;5;PASS;NON IMPLEMENTÉ
+32;4;Mot miroir et roue;word_reverse / wheel_angle / moving_platform;8;7;PASS;NON IMPLEMENTÉ
+33;4;Deux poids, trois vitesses;platform_cadence / prime_weights / gravity_toggle;8;5;PASS;NON IMPLEMENTÉ
+34;4;Le bouton qui ment;inverted_button / move_crate / spring_path;4;5;PASS;NON IMPLEMENTÉ
+35;4;Nombres, mur et triangle;number_sequence / surprise_wall / moving_spike;6;4;PASS;NON IMPLEMENTÉ
+36;4;Mélange et palindrome;mastermind / word_palindrome / crate_buttons;10;3;PASS;NON IMPLEMENTÉ
+37;4;L’échelle des nombres;prime_filter / gravity_flip / moving_platform;9;7;PASS;NON IMPLEMENTÉ
+38;4;Engrenage et équilibre;wheel_angle / weighted_walls / spring_alignment;8;6;PASS;NON IMPLEMENTÉ
+39;4;Le mot qui ouvre la trappe;letter_collection / weight_plate / false_door;9;8;PASS;NON IMPLEMENTÉ
+40;4;Le coffre des quatre lois;iq_series / weight_balance / wheel_angle / word_code / moving_bridge;11;8;PASS;NON IMPLEMENTÉ

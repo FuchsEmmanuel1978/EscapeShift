@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "world": 3,
+  "level": 26,
+  "titleKey": "level_26_title",
+  "hintKey": "level_26_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": [
+      {
+        "id": "gapA",
+        "x": 1580,
+        "width": 150
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2480,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": false,
+    "title": "L’angle unique",
+    "concepts": [
+      "rotating_wheel",
+      "moving_gaps",
+      "timed_run_jump"
+    ],
+    "goal": [
+      {
+        "var": "angle:wheelA",
+        "eq": 135
+      },
+      {
+        "var": "flag:crossed_gap",
+        "eq": true
+      }
+    ],
+    "hint": "Un seul angle de roue aligne tous les passages.",
+    "devices": [
+      {
+        "id": "wheelA",
+        "kind": "rotating_wheel",
+        "x": 400,
+        "y": 359,
+        "width": 86,
+        "height": 86,
+        "angles": [
+          0,
+          45,
+          90,
+          135,
+          180,
+          225,
+          270,
+          315
+        ]
+      },
+      {
+        "id": "platformA",
+        "kind": "adjustable_platform",
+        "x": 900,
+        "y": 355,
+        "width": 170,
+        "height": 20
+      },
+      {
+        "id": "platformB",
+        "kind": "adjustable_platform",
+        "x": 1240,
+        "y": 303,
+        "width": 160,
+        "height": 20
+      },
+      {
+        "id": "gapA",
+        "kind": "ground_gap",
+        "x": 1580,
+        "y": 444,
+        "width": 150,
+        "height": 146
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "rotate",
+          "target": "wheelA",
+          "value": 135
+        },
+        "if": [],
+        "set": {
+          "flag:aligned": true
+        },
+        "message": "Plateformes et trous alignés. "
+      },
+      {
+        "on": {
+          "action": "cross",
+          "target": "gapA"
+        },
+        "if": [
+          {
+            "var": "angle:wheelA",
+            "eq": 135
+          }
+        ],
+        "set": {
+          "flag:crossed_gap": true
+        },
+        "message": "Saut franchi."
+      }
+    ],
+    "solution": [
+      {
+        "action": "rotate",
+        "target": "wheelA",
+        "value": 135
+      },
+      {
+        "action": "run",
+        "target": "segmentA"
+      },
+      {
+        "action": "jump",
+        "target": "gapA"
+      },
+      {
+        "action": "cross",
+        "target": "gapA"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only"
+  },
+  "experimental": {
+    "status": "physical_beta",
+    "rendering": "existing industrial 2D Canvas design",
+    "physics": "AdvancedPuzzle in GameWorld",
+    "validationScope": "physical contact and puzzle-logic regression; complete playtest pending"
+  }
+}

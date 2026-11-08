@@ -69,6 +69,7 @@ Floutage noir qui retrecie vers le hero dans le moins en moins transparent
 
 Animation:
 hero mort
+bates qui desvcent
 
 
 

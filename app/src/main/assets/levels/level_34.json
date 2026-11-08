@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "world": 4,
+  "level": 34,
+  "titleKey": "level_34_title",
+  "hintKey": "level_34_hint",
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 2750,
+  "playerStart": {
+    "x": 78,
+    "y": 405
+  },
+  "ground": {
+    "y": 444,
+    "depth": 146,
+    "gaps": []
+  },
+  "objects": [
+    {
+      "id": "exit_door",
+      "type": "door",
+      "x": 2612,
+      "y": 354,
+      "width": 65,
+      "height": 90
+    }
+  ],
+  "route": [],
+  "puzzle": {
+    "prototype": true,
+    "title": "Le bouton qui ment",
+    "concepts": [
+      "inverted_button",
+      "move_crate",
+      "spring_path"
+    ],
+    "goal": [
+      {
+        "var": "flag:door_unlocked",
+        "eq": true
+      },
+      {
+        "var": "flag:spring_ready",
+        "eq": true
+      }
+    ],
+    "hint": "Le bouton n’agit pas quand on appuie, mais quand on le relâche.",
+    "devices": [
+      {
+        "id": "crateA",
+        "kind": "crate",
+        "x": 250,
+        "y": 401,
+        "width": 48,
+        "height": 43
+      },
+      {
+        "id": "padA",
+        "kind": "inverse_button",
+        "x": 800,
+        "y": 432,
+        "width": 100,
+        "height": 12
+      },
+      {
+        "id": "springA",
+        "kind": "movable_spring",
+        "x": 1440,
+        "y": 430,
+        "width": 90,
+        "height": 14
+      },
+      {
+        "id": "doorA",
+        "kind": "exit_gate",
+        "x": 2480,
+        "y": 354,
+        "width": 65,
+        "height": 90
+      }
+    ],
+    "rules": [
+      {
+        "on": {
+          "action": "release",
+          "target": "padA"
+        },
+        "if": [
+          {
+            "var": "at:crateA",
+            "eq": "padA"
+          }
+        ],
+        "set": {
+          "flag:door_unlocked": true
+        },
+        "message": "Un relâchement ouvre la porte."
+      },
+      {
+        "on": {
+          "action": "move",
+          "target": "springA",
+          "value": "launch"
+        },
+        "if": [
+          {
+            "var": "flag:door_unlocked",
+            "eq": true
+          }
+        ],
+        "set": {
+          "flag:spring_ready": true
+        },
+        "message": "Tremplin repositionné."
+      }
+    ],
+    "solution": [
+      {
+        "action": "place",
+        "target": "crateA",
+        "value": "padA"
+      },
+      {
+        "action": "press",
+        "target": "padA"
+      },
+      {
+        "action": "release",
+        "target": "padA"
+      },
+      {
+        "action": "move",
+        "target": "springA",
+        "value": "launch"
+      },
+      {
+        "action": "exit",
+        "target": "doorA"
+      }
+    ],
+    "designNote": "",
+    "validationScope": "logical_state_machine_only"
+  },
+  "experimental": {
+    "status": "logic_prototype",
+    "rendering": "existing sprites later",
+    "physics": "not integrated",
+    "worldPreview": "unchanged",
+    "goal": "solve puzzle then implement movement/collisions"
+  }
+}
