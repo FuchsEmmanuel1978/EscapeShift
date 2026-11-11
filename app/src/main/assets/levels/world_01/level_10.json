@@ -4,9 +4,9 @@
   "level": 10,
   "titleKey": "level_10_title",
   "hintKey": "level_10_hint",
-  "intro": "UPPER_PLATFORM",
-  "backtrackCount": 3,
-  "worldWidth": 4055,
+  "intro": "OPEN",
+  "backtrackCount": 0,
+  "worldWidth": 5300,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -14,288 +14,248 @@
   "ground": {
     "y": 444,
     "depth": 146,
-    "gaps": []
+    "gaps": [
+      {
+        "id": "gap_shift_01",
+        "x": 1240,
+        "width": 140
+      },
+      {
+        "id": "gap_shift_02",
+        "x": 3150,
+        "width": 150
+      },
+      {
+        "id": "gap_shift_03",
+        "x": 4120,
+        "width": 140
+      }
+    ]
   },
   "objects": [
     {
-      "id": "starter_upper_platform",
-      "type": "platform",
-      "x": 320,
-      "y": 363,
-      "width": 95,
-      "height": 19
-    },
-    {
-      "id": "coin_01",
-      "type": "coin",
-      "x": 355.5,
-      "y": 332,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "climb_bonus_01",
-      "type": "platform",
-      "x": 520,
-      "y": 366,
-      "width": 126,
+      "id": "shift_bridge_01",
+      "type": "bridge",
+      "x": 1240,
+      "y": 444,
+      "width": 140,
       "height": 20
     },
     {
-      "id": "climb_bonus_02",
-      "type": "platform",
-      "x": 637,
-      "y": 292,
-      "width": 126,
+      "id": "shift_bridge_02",
+      "type": "bridge",
+      "x": 3150,
+      "y": 444,
+      "width": 150,
       "height": 20
     },
     {
-      "id": "spike_01",
-      "type": "spike",
-      "x": 695,
-      "y": 421,
-      "width": 34,
-      "height": 23,
-      "count": 2,
-      "spacing": 3
-    },
-    {
-      "id": "climb_bonus_03",
-      "type": "platform",
-      "x": 754,
-      "y": 218,
-      "width": 126,
+      "id": "shift_bridge_03",
+      "type": "bridge",
+      "x": 4120,
+      "y": 444,
+      "width": 140,
       "height": 20
-    },
-    {
-      "id": "climb_bonus_coin_1",
-      "type": "coin",
-      "x": 790,
-      "y": 184,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "platform_01",
-      "type": "platform",
-      "x": 860,
-      "y": 358,
-      "width": 120,
-      "height": 20
-    },
-    {
-      "id": "coin_02",
-      "type": "coin",
-      "x": 908.0,
-      "y": 327,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "saw_02",
-      "type": "saw",
-      "x": 950,
-      "y": 405,
-      "width": 33,
-      "height": 39,
-      "phase": 73,
-      "amplitude": 78,
-      "period": 170,
-      "offsetX": 35
-    },
-    {
-      "id": "laser_timed_03",
-      "type": "laser_timed",
-      "x": 1205,
-      "y": 285,
-      "width": 16,
-      "height": 159,
-      "phase": 96,
-      "period": 120,
-      "activeTicks": 64
-    },
-    {
-      "id": "platform_02",
-      "type": "platform",
-      "x": 1315,
-      "y": 323,
-      "width": 137,
-      "height": 20
-    },
-    {
-      "id": "coin_03",
-      "type": "coin",
-      "x": 1371.5,
-      "y": 292,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "laser_red_04",
-      "type": "laser_red",
-      "x": 1460,
-      "y": 300,
-      "width": 15,
-      "height": 144,
-      "phase": 119
-    },
-    {
-      "id": "laser_blue_05",
-      "type": "laser_blue",
-      "x": 1715,
-      "y": 300,
-      "width": 15,
-      "height": 144,
-      "phase": 22
-    },
-    {
-      "id": "platform_03",
-      "type": "platform",
-      "x": 1780,
-      "y": 286,
-      "width": 135,
-      "height": 20
-    },
-    {
-      "id": "coin_04",
-      "type": "coin",
-      "x": 1835.5,
-      "y": 255,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "spike_06",
-      "type": "spike",
-      "x": 1970,
-      "y": 398,
-      "width": 58,
-      "height": 46,
-      "count": 1,
-      "spacing": 0
-    },
-    {
-      "id": "spring_07",
-      "type": "spring",
-      "x": 2225,
-      "y": 437,
-      "width": 45,
-      "height": 7,
-      "phase": 68
-    },
-    {
-      "id": "platform_04",
-      "type": "platform",
-      "x": 2305,
-      "y": 340,
-      "width": 135,
-      "height": 20
-    },
-    {
-      "id": "coin_05",
-      "type": "coin",
-      "x": 2360.5,
-      "y": 309,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "wall_after_spring_07",
-      "type": "wall",
-      "x": 2410,
-      "y": 298,
-      "width": 49,
-      "height": 146
-    },
-    {
-      "id": "conveyor_08",
-      "type": "conveyor",
-      "x": 2825,
-      "y": 438,
-      "width": 270,
-      "height": 6,
-      "phase": 91,
-      "speed": -800
     },
     {
       "id": "exit_door",
       "type": "door",
-      "x": 3005,
+      "x": 5160,
       "y": 354,
       "width": 65,
       "height": 90
-    },
-    {
-      "id": "monster_09",
-      "type": "monster",
-      "x": 3135,
-      "y": 396,
-      "width": 64,
-      "height": 48,
-      "phase": 75,
-      "amplitude": 39,
-      "period": 150,
-      "offsetX": -4
-    },
-    {
-      "id": "spike_10",
-      "type": "spike",
-      "x": 3405,
-      "y": 421,
-      "width": 34,
-      "height": 23,
-      "count": 2,
-      "spacing": 3
-    },
-    {
-      "id": "switch_11",
-      "type": "switch",
-      "x": 3660,
-      "y": 431,
-      "width": 48,
-      "height": 13,
-      "phase": 40
     }
   ],
-  "route": [
-    "spike_01",
-    "saw_02",
-    "laser_timed_03",
-    "laser_red_04",
-    "laser_blue_05",
-    "spike_06",
-    "spring_07",
-    "conveyor_08",
-    "monster_09",
-    "spike_10",
-    "switch_11"
-  ],
-  "designVersion": "world1_floor_control_v22_1",
+  "route": [],
+  "designVersion": "world1_level10_permanent_collapse_passed_pushblock_large_v2",
   "traps": [
     {
-      "id": "trap_10_01",
-      "type": "moving_exit",
-      "x": 3005,
-      "y": 354,
-      "width": 65,
-      "height": 90,
+      "id": "collapse_01",
+      "type": "collapse_floor",
+      "x": 680,
+      "y": 444,
+      "width": 180,
+      "height": 146,
       "trigger": "player_near",
-      "radius": 150,
-      "delayTicks": 15,
-      "transitionTicks": 18,
-      "travelX": -28
+      "radius": 120,
+      "delayTicks": 27,
+      "transitionTicks": 14,
+      "durationTicks": 0
     },
     {
-      "id": "trap_10_02",
+      "id": "collapse_02",
+      "type": "collapse_floor",
+      "x": 1570,
+      "y": 444,
+      "width": 190,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 125,
+      "delayTicks": 26,
+      "transitionTicks": 14,
+      "durationTicks": 0
+    },
+    {
+      "id": "collapse_03",
+      "type": "collapse_floor",
+      "x": 2480,
+      "y": 444,
+      "width": 210,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 125,
+      "delayTicks": 25,
+      "transitionTicks": 14,
+      "durationTicks": 0
+    },
+    {
+      "id": "collapse_04",
+      "type": "collapse_floor",
+      "x": 3430,
+      "y": 444,
+      "width": 190,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 115,
+      "delayTicks": 24,
+      "transitionTicks": 14,
+      "durationTicks": 0
+    },
+    {
+      "id": "collapse_05",
+      "type": "collapse_floor",
+      "x": 4370,
+      "y": 444,
+      "width": 200,
+      "height": 146,
+      "trigger": "player_near",
+      "radius": 120,
+      "delayTicks": 24,
+      "transitionTicks": 14,
+      "durationTicks": 0
+    },
+    {
+      "id": "push_block_01",
+      "type": "push_block",
+      "x": 1120,
+      "y": 384,
+      "width": 56,
+      "height": 60,
+      "trigger": "player_passed",
+      "triggerX": 960,
+      "delayTicks": 10,
+      "transitionTicks": 38,
+      "travelX": -390,
+      "travelY": 0,
+      "durationTicks": 0
+    },
+    {
+      "id": "push_block_02",
+      "type": "push_block",
+      "x": 1790,
+      "y": 384,
+      "width": 56,
+      "height": 60,
+      "trigger": "player_passed",
+      "triggerX": 1875,
+      "delayTicks": 8,
+      "transitionTicks": 42,
+      "travelX": 440,
+      "travelY": 0,
+      "durationTicks": 0
+    },
+    {
+      "id": "push_block_03",
+      "type": "push_block",
+      "x": 2950,
+      "y": 384,
+      "width": 56,
+      "height": 60,
+      "trigger": "player_passed",
+      "triggerX": 2810,
+      "delayTicks": 10,
+      "transitionTicks": 39,
+      "travelX": -380,
+      "travelY": 0,
+      "durationTicks": 0
+    },
+    {
+      "id": "push_block_04",
+      "type": "push_block",
+      "x": 3660,
+      "y": 384,
+      "width": 56,
+      "height": 60,
+      "trigger": "player_passed",
+      "triggerX": 3765,
+      "delayTicks": 8,
+      "transitionTicks": 41,
+      "travelX": 430,
+      "travelY": 0,
+      "durationTicks": 0
+    },
+    {
+      "id": "push_block_05",
+      "type": "push_block",
+      "x": 4860,
+      "y": 384,
+      "width": 56,
+      "height": 60,
+      "trigger": "player_passed",
+      "triggerX": 4695,
+      "delayTicks": 10,
+      "transitionTicks": 39,
+      "travelX": -380,
+      "travelY": 0,
+      "durationTicks": 0
+    },
+    {
+      "id": "rising_spikes_01",
       "type": "rising_spikes",
-      "x": 3540,
-      "y": 414,
-      "width": 54,
-      "height": 30,
-      "trigger": "player_jump",
-      "radius": 85,
-      "delayTicks": 22,
-      "transitionTicks": 18
+      "x": 530,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 10,
+      "transitionTicks": 12
+    },
+    {
+      "id": "rising_spikes_02",
+      "type": "rising_spikes",
+      "x": 2320,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 9,
+      "transitionTicks": 12
+    },
+    {
+      "id": "rising_spikes_03",
+      "type": "rising_spikes",
+      "x": 3350,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 10,
+      "transitionTicks": 12
+    },
+    {
+      "id": "rising_spikes_04",
+      "type": "rising_spikes",
+      "x": 4950,
+      "y": 412,
+      "width": 55,
+      "height": 32,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 8,
+      "transitionTicks": 12
     }
   ]
 }

@@ -173,7 +173,7 @@ object LevelJsonParser {
             }
             require(id.matches(Regex("[a-zA-Z0-9_]+")) && seenIds.add(id)) { "Invalid or duplicated trap ID $id" }
             val trigger = (t["trigger"] as? String) ?: "player_near"
-            require(trigger in setOf("player_near", "player_on", "player_jump", "approach_fast", "player_enter")) {
+            require(trigger in setOf("player_near", "player_on", "player_jump", "approach_fast", "player_enter", "player_passed")) {
                 "Invalid trigger $trigger on $id"
             }
             TrapDefinition(
@@ -182,10 +182,17 @@ object LevelJsonParser {
                 optNum(t, "radius", 100f), optInt(t, "delayTicks", 12),
                 optInt(t, "durationTicks", 0), optNum(t, "travelX", 0f),
                 optNum(t, "travelY", 0f), optInt(t, "transitionTicks", 18),
-                optInt(t, "periodTicks", 180), optNum(t, "thresholdSpeed", 250f)
+                optInt(t, "periodTicks", 180), optNum(t, "thresholdSpeed", 250f),
+                t["triggerX"]?.let { number(it, "$id.triggerX") }
             ).also { d ->
                 require(d.width > 0f && d.height > 0f && d.x >= 0f && d.x + d.width <= worldWidth)
                 require(d.radius >= 0f && d.delayTicks >= 0 && d.durationTicks >= 0 && d.transitionTicks > 0 && d.periodTicks > 0)
+                if (d.trigger == "player_passed") {
+                    require(d.type == "push_block") { "$id: player_passed currently supports push_block only" }
+                    require(d.triggerX != null && d.triggerX >= 0f && d.triggerX <= worldWidth) {
+                        "$id: player_passed requires triggerX within [0, worldWidth]"
+                    }
+                }
                 if (d.type == "push_block") {
                     require(d.travelX != 0f && d.travelY == 0f) {
                         "$id: push_block requires non-zero travelX and travelY == 0"

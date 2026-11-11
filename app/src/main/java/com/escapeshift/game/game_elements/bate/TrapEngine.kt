@@ -25,7 +25,9 @@ data class TrapDefinition(
     val travelY: Float = 0f,
     val transitionTicks: Int = 18,
     val periodTicks: Int = 180,
-    val thresholdSpeed: Float = 250f
+    val thresholdSpeed: Float = 250f,
+    // When trigger == "player_passed", the block stays hidden until hero.left >= triggerX.
+    val triggerX: Float? = null
 ) {
     val box: HitBox get() = HitBox(x, y, x + width, y + height)
 }
@@ -42,6 +44,7 @@ class TrapEngine(private val definitions: List<TrapDefinition>) {
     private var cachedSolids: List<HitBox> = emptyList()
     private var cachedPlatforms: List<HitBox> = emptyList()
     private var cachedSpikes: List<HitBox> = emptyList()
+    private var cachedPushBlocks: List<TrapView> = emptyList()
     private var cachedCollapsedGaps: List<GroundGap> = emptyList()
 
     init { refreshCache() }
@@ -59,6 +62,7 @@ class TrapEngine(private val definitions: List<TrapDefinition>) {
         }
         cachedPlatforms = definitions.indices.filter { definitions[it].type == "moving_platform" }.map { cachedViews[it].box }
         cachedSpikes = definitions.indices.filter { definitions[it].type == "rising_spikes" && activated(definitions[it], states[it]) }.map { cachedViews[it].box }
+        cachedPushBlocks = cachedViews.filter { it.type == "push_block" && it.state == "active" }
         cachedCollapsedGaps = definitions.indices.filter {
             definitions[it].type == "collapse_floor" && activated(definitions[it], states[it])
         }.map { GroundGap(definitions[it].id, definitions[it].x, definitions[it].width) }
@@ -98,6 +102,7 @@ class TrapEngine(private val definitions: List<TrapDefinition>) {
                 "player_jump" -> didJump && distanceX <= d.radius
                 "approach_fast" -> distanceX <= d.radius && abs(horizontalSpeed) >= d.thresholdSpeed
                 "player_enter" -> inZone
+                "player_passed" -> player.left >= (d.triggerX ?: d.x)
                 else -> false
             }
             if (eligible) s.firedAt = tickCount
@@ -138,6 +143,8 @@ class TrapEngine(private val definitions: List<TrapDefinition>) {
     fun solids(): List<HitBox> = cachedSolids
     fun platforms(): List<HitBox> = cachedPlatforms
     fun spikes(): List<HitBox> = cachedSpikes
+    /** Active horizontal shove blocks, with live world-space hitboxes. */
+    fun pushBlocks(): List<TrapView> = cachedPushBlocks
 
     fun exit(base: HitBox): HitBox {
         val i = definitions.indexOfFirst { it.type == "moving_exit" }
