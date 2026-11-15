@@ -45,7 +45,8 @@ data class LevelSpec(
     val objects: List<LevelObject>,
     val traps: List<TrapDefinition> = emptyList(),
     val physicalPuzzle: PhysicalPuzzlePlan? = null,
-    val advancedPuzzle: AdvancedPuzzlePlan? = null
+    val advancedPuzzle: AdvancedPuzzlePlan? = null,
+    val secretPassages: List<SecretPassageDefinition> = emptyList()
 )
 
 data class MonsterSpawn(
@@ -71,7 +72,16 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         const val GROUND_Y = 444f
     }
     val spec = previewSpec ?: LevelCatalog.create(levelNumber)
-    val traps = TrapEngine(if (levelNumber in 1..10) spec.traps else emptyList())
+    val secretPassageEngine = SecretPassageEngine(spec.secretPassages)
+    private val featureModules = GameMechanicRegistry(
+        if (GameFeatureConfig.SECRET_PASSAGES_ENABLED) listOf(secretPassageEngine) else emptyList()
+    )
+    val secretPassageViews: List<SecretPassageView> get() =
+        if (GameFeatureConfig.SECRET_PASSAGES_ENABLED) secretPassageEngine.views() else emptyList()
+    fun takeNewSecretDiscoveries(): List<String> = secretPassageEngine.drainNewDiscoveries()
+    // Keep existing World 1 traps and enable new JSON traps for World 2.
+    // Worlds 3+ remain unchanged until their dedicated integration work.
+    val traps = TrapEngine(if (levelNumber in 1..20) spec.traps else emptyList())
     val worldRight = spec.worldRight
     val physicalPuzzle: PhysicalPuzzle? = spec.physicalPuzzle?.let { PhysicalPuzzle(it) }
     val advancedPuzzle: AdvancedPuzzle? = spec.advancedPuzzle?.let { AdvancedPuzzle(it) }
@@ -162,6 +172,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         it.box to (if (levelNumber in 1..10) GameVisualConfig.WORLD1_CONVEYOR_SPEED else it.speed)
     }
     val coins = objects("coin").map { it.box }
+    val heartPickups = objects("heart")
     val saws = objects("saw").map { challenge(it, ChallengeType.SAW) }
     val monsters: List<MonsterSpawn> = objects("monster").map { o ->
         MonsterSpawn(o.x + o.offsetX, o.y, o.amplitude, o.width, o.height, o.phase, o.period)
@@ -197,7 +208,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val exitUnlocked get() = (!spec.requiresKey || keyCollected) &&
         (switches.isEmpty() || switchActivated) && pressureReady && (physicalPuzzle?.isSolved ?: true) &&
         (advancedPuzzle?.isSolved ?: true)
-    fun solids(): List<HitBox> = (staticSolids + traps.solids() + advancedPuzzle?.wallBoxes().orEmpty()).let { if (shiftOn) it + bridges else it }
+    fun solids(): List<HitBox> = (staticSolids + traps.solids() + featureModules.solids() + advancedPuzzle?.wallBoxes().orEmpty()).let { if (shiftOn) it + bridges else it }
     fun sawBox(saw: Challenge, t: Int = ticks): HitBox {
         val offset = saw.amplitude * sin((t + saw.phase) * (2 * Math.PI / saw.period.toDouble())).toFloat()
         val left = saw.x + saw.offsetX + offset
@@ -224,6 +235,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         monsterAlive = MutableList(monsters.size) { true }
         coinTaken = BooleanArray(coins.size)
         traps.reset()
+        featureModules.reset()
         movingSpikes.reset()
         physicalPuzzle?.reset()
         advancedPuzzle?.reset()
@@ -243,6 +255,14 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
         val conveyorBoost = if (grounded) conveyorSpeeds.firstOrNull { (box, _) -> playerBox.intersects(box.copy(top = box.top - 7f)) }?.second ?: 0f else 0f
         val justInteracted = input.interact && !interactPrevious
         interactPrevious = input.interact
+        // Lot 0/1: one optional hook before player movement/collision resolution.
+        featureModules.update(MechanicContext(
+            player = playerBox,
+            crates = crateBoxes,
+            shiftEnabled = shiftOn,
+            interactPressed = justInteracted,
+            switchActivated = switchActivated
+        ))
         if (justInteracted && advancedPuzzle != null) {
             val idx = carriedCrateIndex
             if (idx != null) {
@@ -462,6 +482,7 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             timedLasers.any { timedLaserActive(it) && player.intersects(timedLaserBox(it)) } ||
             saws.any { player.intersects(sawBox(it)) } ||
             traps.spikes().any { SpikeCollision.touches(player, it) } ||
+            traps.crushers().any { player.intersects(it) } ||
             traps.views().any { it.type == "surprise_wall" && it.state == "active" && player.intersects(it.box) } ||
             advancedPuzzle?.spikeBoxes()?.any { SpikeCollision.touches(player, it) } == true
         ) dead = true

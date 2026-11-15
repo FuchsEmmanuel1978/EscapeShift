@@ -6,7 +6,7 @@
   "hintKey": "level_24_hint",
   "intro": "OPEN",
   "backtrackCount": 0,
-  "worldWidth": 2750,
+  "worldWidth": 4150,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -14,181 +14,177 @@
   "ground": {
     "y": 444,
     "depth": 146,
-    "gaps": []
+    "gaps": [
+      {
+        "id": "gap24_shift",
+        "x": 1845,
+        "width": 148
+      }
+    ]
   },
   "objects": [
     {
-      "id": "exit_door",
+      "id": "coin24a",
+      "type": "coin",
+      "x": 350,
+      "y": 399,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "key24",
+      "type": "key",
+      "x": 1505,
+      "y": 270,
+      "width": 29,
+      "height": 30
+    },
+    {
+      "id": "bridge24",
+      "type": "bridge",
+      "x": 1838,
+      "y": 427,
+      "width": 165,
+      "height": 17
+    },
+    {
+      "id": "platform24",
+      "type": "platform",
+      "x": 1425,
+      "y": 365,
+      "width": 132,
+      "height": 18
+    },
+    {
+      "id": "coin24b",
+      "type": "coin",
+      "x": 2125,
+      "y": 399,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "saw24",
+      "type": "saw",
+      "x": 2820,
+      "y": 410,
+      "width": 30,
+      "height": 34,
+      "amplitude": 55,
+      "period": 172,
+      "phase": 40
+    },
+    {
+      "id": "heart24_secret",
+      "type": "heart",
+      "x": 3625,
+      "y": 396,
+      "width": 28,
+      "height": 28
+    },
+    {
+      "id": "door24",
       "type": "door",
-      "x": 2480,
+      "x": 3960,
       "y": 354,
-      "width": 65,
+      "width": 62,
       "height": 90
     }
   ],
-  "route": [],
+  "traps": [
+    {
+      "id": "trap24_ceiling",
+      "type": "crushing_ceiling",
+      "x": 2410,
+      "y": 225,
+      "width": 160,
+      "height": 44,
+      "trigger": "player_near",
+      "radius": 235,
+      "delayTicks": 20,
+      "transitionTicks": 25,
+      "travelY": 112
+    },
+    {
+      "id": "trap24_flying",
+      "type": "flying_spike",
+      "x": 3090,
+      "y": 275,
+      "width": 23,
+      "height": 23,
+      "trigger": "player_near",
+      "radius": 180,
+      "delayTicks": 13,
+      "projectileSpeed": 260,
+      "projectileRange": 350
+    },
+    {
+      "id": "trap24_spikes",
+      "type": "rising_spikes",
+      "x": 3430,
+      "y": 423,
+      "width": 61,
+      "height": 21,
+      "trigger": "player_near",
+      "radius": 165,
+      "delayTicks": 15,
+      "transitionTicks": 11
+    }
+  ],
+  "secretPassages": [
+    {
+      "id": "secret24_bonus",
+      "x": 3570,
+      "y": 378,
+      "width": 42,
+      "height": 66,
+      "activation": "interact",
+      "triggerRadius": 85,
+      "showCracks": true
+    }
+  ],
+  "route": [
+    "key24",
+    "gap24_shift",
+    "saw24"
+  ],
   "puzzle": {
-    "prototype": false,
-    "title": "Poids total",
-    "concepts": [
-      "three_body_weight",
-      "latched_platform",
-      "spring_crate"
-    ],
-    "goal": [
-      {
-        "var": "flag:lift_lowered",
-        "eq": true
-      },
-      {
-        "var": "flag:spring_ready",
-        "eq": true
-      }
-    ],
-    "hint": "Deux caisses et le héros sur la plaque : verrouille le plateau puis récupère une caisse.",
     "devices": [
-      {
-        "id": "plateA",
-        "kind": "heavy_pressure_plate",
-        "x": 550,
-        "y": 433,
-        "width": 175,
-        "height": 11,
-        "requiredWeight": 3
-      },
       {
         "id": "crateA",
         "kind": "crate",
-        "x": 220,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1
+        "x": 230,
+        "y": 400,
+        "width": 46,
+        "height": 44,
+        "weight": 4
       },
       {
         "id": "crateB",
         "kind": "crate",
-        "x": 310,
-        "y": 401,
-        "width": 48,
-        "height": 43,
+        "x": 875,
+        "y": 400,
+        "width": 46,
+        "height": 44,
         "weight": 1
       },
       {
-        "id": "liftA",
-        "kind": "lowering_platform",
-        "x": 1180,
-        "y": 300,
-        "width": 165,
-        "height": 20
+        "id": "plateA",
+        "kind": "heavy_pressure_plate",
+        "x": 510,
+        "y": 431,
+        "width": 175,
+        "height": 13,
+        "requiredWeight": 5
       },
       {
         "id": "springA",
         "kind": "spring",
-        "x": 1650,
-        "y": 428,
-        "width": 85,
-        "height": 16
-      },
-      {
-        "id": "doorA",
-        "kind": "exit_gate",
-        "x": 2480,
-        "y": 354,
-        "width": 65,
-        "height": 90
+        "x": 1250,
+        "y": 430,
+        "width": 70,
+        "height": 14
       }
-    ],
-    "rules": [
-      {
-        "on": {
-          "action": "press",
-          "target": "latch"
-        },
-        "if": [
-          {
-            "var": "at:crateA",
-            "eq": "plateA"
-          },
-          {
-            "var": "at:crateB",
-            "eq": "plateA"
-          },
-          {
-            "var": "hero:plateA",
-            "eq": true
-          }
-        ],
-        "set": {
-          "flag:lift_lowered": true
-        },
-        "message": "Le poids total abaisse et verrouille le plateau."
-      },
-      {
-        "on": {
-          "action": "press",
-          "target": "activate_spring"
-        },
-        "if": [
-          {
-            "var": "flag:lift_lowered",
-            "eq": true
-          },
-          {
-            "var": "at:crateB",
-            "eq": "springA"
-          }
-        ],
-        "set": {
-          "flag:spring_ready": true
-        },
-        "message": "Le tremplin est calé par la caisse."
-      }
-    ],
-    "solution": [
-      {
-        "action": "place",
-        "target": "crateA",
-        "value": "plateA"
-      },
-      {
-        "action": "place",
-        "target": "crateB",
-        "value": "plateA"
-      },
-      {
-        "action": "stand",
-        "target": "plateA"
-      },
-      {
-        "action": "press",
-        "target": "latch"
-      },
-      {
-        "action": "leave",
-        "target": "plateA"
-      },
-      {
-        "action": "place",
-        "target": "crateB",
-        "value": "springA"
-      },
-      {
-        "action": "press",
-        "target": "activate_spring"
-      },
-      {
-        "action": "exit",
-        "target": "doorA"
-      }
-    ],
-    "designNote": "",
-    "validationScope": "logical_state_machine_only"
-  },
-  "experimental": {
-    "status": "physical_beta",
-    "rendering": "existing industrial 2D Canvas design",
-    "physics": "AdvancedPuzzle in GameWorld",
-    "validationScope": "physical contact and puzzle-logic regression; complete playtest pending"
+    ]
   }
 }

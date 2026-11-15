@@ -1,0 +1,11 @@
+{
+  "_info": "EXEMPLES UNIQUEMENT. Vérifier distances de saut, sol et worldWidth du niveau choisi.",
+  "traps": [
+    {"id":"w2_platform_fall","type":"falling_platform","x":950,"y":345,"width":110,"height":17,"trigger":"player_on","delayTicks":9,"fallAcceleration":800},
+    {"id":"w2_platform_flee_x","type":"flee_platform","x":1220,"y":338,"width":115,"height":17,"trigger":"player_near","radius":170,"delayTicks":5,"transitionTicks":16,"travelX":115},
+    {"id":"w2_platform_flee_y","type":"flee_platform","x":1590,"y":335,"width":115,"height":17,"trigger":"player_jump","radius":190,"delayTicks":3,"transitionTicks":13,"travelY":-115},
+    {"id":"w2_platform_split","type":"split_platform","x":1910,"y":340,"width":135,"height":17,"trigger":"player_near","radius":125,"delayTicks":6,"transitionTicks":12,"travelX":95},
+    {"id":"w2_ceiling_crush","type":"crushing_ceiling","x":2240,"y":235,"width":145,"height":40,"trigger":"player_near","radius":230,"delayTicks":12,"transitionTicks":16,"travelY":160},
+    {"id":"w2_wall_crush","type":"crushing_wall","x":2610,"y":300,"width":48,"height":140,"trigger":"player_near","radius":135,"delayTicks":10,"transitionTicks":17,"travelX":-180}
+  ]
+}

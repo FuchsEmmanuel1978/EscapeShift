@@ -2,7 +2,7 @@ package com.escapeshift.game
 
 /** V22.1 visual settings. Opacity = 255 - transparency percent * 255. */
 object GameVisualConfig {
-    const val MAX_HEARTS = 3
+    const val MAX_HEARTS = BizConfig.Lives.MAX
     const val RESPAWN_IRIS_SECONDS = 0.28f  // short retry, no interstitial between hearts
     const val CONTROL_BACKGROUND_ALPHA = 51  // 80% transparent white
     const val MOVE_TRIANGLE_ALPHA = 128       // 50% visible

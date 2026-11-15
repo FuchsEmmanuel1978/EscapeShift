@@ -23,13 +23,19 @@ import com.escapeshift.game.game_elements.puzzle.LaserElements
 /** Foreground gameplay uses Canvas; the industrial background is a parallax bitmap. */
 class GameView(
     context: Context,
-    private val onLevelFinished: ((Int, Boolean, () -> Boolean) -> Unit)? = null,
-    private val onLeaveResult: (() -> Unit)? = null,
+    private val onRequestReward: ((AdRewardKind, (Boolean) -> Unit) -> Unit)? = null,
+    private val onPrivacyOptions: (() -> Unit)? = null,
+    private val onRequestPurchase: ((String) -> Unit)? = null,
+    private val onRestorePurchases: (() -> Unit)? = null,
+    private val onPrice: ((String) -> String?)? = null,
+    private val privacyOptionsAvailable: (() -> Boolean)? = null,
     private val onPauseChanged: ((Boolean) -> Unit)? = null
 ) : View(context) {
     private var w = 1000f // Dynamic virtual viewport width: screen fills horizontally.
     private val h = 560f
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    // White storefront icon on the main menu (no image resource required).
+    private val shopMenuIconPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val spritePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
     private val backgroundRenderer = GameBackground(context)
     private val worldBackgrounds = WorldBackgrounds(context)
@@ -41,6 +47,8 @@ class GameView(
     private val strings = GameStrings(context)
     private val design = GameDesign(context, strings)
     private val factoryGround = FactoryGround(context)
+    private val factoryParallaxLayers = FactoryParallaxLayers(context)
+    private val secretPassageRenderer = SecretPassageRenderer()
     private val prefs = context.getSharedPreferences("escape_shift", Context.MODE_PRIVATE)
     /** Unique coin IDs across ALL finished/unfinished levels, persisted on the phone. */
     private val savedCoinIds = prefs.getString("all_coins_v1", "")
@@ -57,13 +65,157 @@ class GameView(
         if (changed) prefs.edit().putString("all_coins_v1", savedCoinIds.sorted().joinToString("|")).apply()
     }
 
+    private val savedSecrets = prefs.getString("secret_discoveries_v1", "")
+        .orEmpty().split('|').filter { it.isNotBlank() }.toMutableSet()
+    private fun rememberSecretDiscoveries() {
+        val opened = world.takeNewSecretDiscoveries()
+        if (opened.isEmpty()) return
+        gameAudio.oneShot("key")
+        message("PASSAGE SECRET DECOUVERT !")
+        if (!previewSession) {
+            var changed = false
+            for (id in opened) changed = savedSecrets.add("${currentLevel}:$id") || changed
+            if (changed) prefs.edit().putString("secret_discoveries_v1", savedSecrets.sorted().joinToString("|")).apply()
+        }
+    }
+
+    private val economy = LifeEconomy(context)
+    private val skipProgress = SkipProgress(context)
+    private val entitlements = WorldEntitlements(context)
+    // SHOP V1 START - state and callbacks; reuse the live economy and Play Billing.
+    private val shopView = ShopView()
+    private val shopController = ShopController()
+    private fun shopState(): ShopState = ShopState(
+        coins = economy.availableCoins(savedCoinIds.size),
+        lives = hearts,
+        maxLives = BizConfig.Lives.MAX,
+        premium = premium,
+        rewardedAdPending = rewardRequestPending,
+        worlds = (2..3).map { number ->
+            ShopWorldOffer(
+                number,
+                WorldCatalog.world(number).developed,
+                accessible((number - 1) * BizConfig.Progression.LEVELS_PER_WORLD + 1),
+                onPrice?.invoke(WorldEntitlements.productId(number))
+            )
+        },
+        premiumPrice = onPrice?.invoke(BizConfig.Billing.PREMIUM_SKU),
+        coinsForSale = listOf(
+            BizConfig.Billing.COIN_PACK_50,
+            BizConfig.Billing.COIN_PACK_120,
+            BizConfig.Billing.COIN_PACK_350
+        ).map { id -> ShopCoinPack(id, BizConfig.Billing.CONSUMABLES.getValue(id), onPrice?.invoke(id)) },
+        paidHeartsPrice = onPrice?.invoke(BizConfig.Billing.HEART_PACK_3),
+        paidHeartReserve = economy.paidHeartReserve
+    )
+    private fun openShop(initial: ShopTab = ShopTab.LIVES) {
+        shopController.open(initial)
+        screen = Screen.SHOP
+        invalidate()
+    }
+    private fun executeShopCommand(command: ShopCommand?) {
+        when (command) {
+            ShopCommand.Close -> screen = Screen.MENU
+            ShopCommand.BuyLifeWithCoins -> {
+                if (economy.buyLife(savedCoinIds.size)) message("+1 COEUR !")
+                else message("ACHAT IMPOSSIBLE")
+            }
+            ShopCommand.WatchRewardedLives -> requestLivesAd()
+            is ShopCommand.BuyWorld -> buyWorld(command.number)
+            ShopCommand.BuyPremium -> buyPremium()
+            is ShopCommand.BuyCoins -> {
+                if (shopState().canBuyCoins(command.productId)) {
+                    onRequestPurchase?.invoke(command.productId)
+                        ?: message("GOOGLE PLAY INDISPONIBLE")
+                }
+            }
+            ShopCommand.BuyPaidHearts -> {
+                if (shopState().canBuyPaidHearts()) {
+                    onRequestPurchase?.invoke(BizConfig.Billing.HEART_PACK_3)
+                        ?: message("GOOGLE PLAY INDISPONIBLE")
+                }
+            }
+            ShopCommand.RestorePurchases -> onRestorePurchases?.invoke() ?: message("GOOGLE PLAY INDISPONIBLE")
+            null -> Unit
+        }
+    }
+    // SHOP V1 END
+    private val premium get() = entitlements.isPremium
+    private fun displayedPrice(productId: String, default: String): String = onPrice?.invoke(productId) ?: default
+    private fun buyWorld(world: Int) {
+        if (world !in 2..BizConfig.Progression.PLANNED_WORLDS || entitlements.hasWorld(world) || accessible((world - 1) * 10 + 1)) return
+        if (!WorldCatalog.world(world).developed) { message("MONDE EN DEVELOPPEMENT"); return }
+        onRequestPurchase?.invoke(WorldEntitlements.productId(world)) ?: message("GOOGLE PLAY INDISPONIBLE")
+    }
+    private fun buyPremium() {
+        if (premium) return
+        onRequestPurchase?.invoke(BizConfig.Billing.PREMIUM_SKU) ?: message("GOOGLE PLAY INDISPONIBLE")
+    }
+    private var rewardRequestPending = false
+    private var lastRewardMessage: String? = null
+    private var rewardMessageUntilMs = 0L
+    private fun message(text: String) {
+        lastRewardMessage = text
+        rewardMessageUntilMs = System.currentTimeMillis() + 3500L
+    }
+    private fun requestLivesAd() {
+        if (premium || previewSession || rewardRequestPending || hearts >= BizConfig.Lives.MAX) return
+        rewardRequestPending = true
+        onRequestReward?.invoke(AdRewardKind.LIVES) { awarded ->
+            rewardRequestPending = false
+            if (awarded) {
+                economy.addLives(BizConfig.Lives.REWARDED_LIVES)
+                message("+${BizConfig.Lives.REWARDED_LIVES} COEURS !")
+                if (outOfLives && economy.lives > 0) { outOfLives = false; reset() }
+            } else message("PUBLICITE INDISPONIBLE - REESSAYEZ")
+            invalidate()
+        } ?: run { rewardRequestPending = false; message("PUBLICITE INDISPONIBLE") }
+    }
+    private fun requestSkipAd() {
+        val origin = currentLevel
+        if (previewSession || rewardRequestPending || !skipProgress.canSkip(origin, unlocked) &&
+            !(premium && !skipProgress.isSkipped(origin) && skipProgress.deaths(origin) >= BizConfig.Progression.DEATHS_TO_OFFER_SKIP && accessible(origin))) return
+        if (premium) { completeSkip(origin); return }
+        rewardRequestPending = true
+        onRequestReward?.invoke(AdRewardKind.SKIP_LEVEL) { awarded ->
+            rewardRequestPending = false
+            if (awarded && skipProgress.canSkip(origin, unlocked)) {
+                completeSkip(origin)
+                message("NIVEAU ${origin + 1} DEBLOQUE !")
+                if (currentLevel == origin) {
+                    setPaused(false)
+                    screen = Screen.LEVELS
+                    selectedWorld = ((origin - 1) / 10) + 1
+                    worldScroll = (selectedWorld - 1).toFloat()
+                }
+            } else if (!awarded) message("PUBLICITE INDISPONIBLE - REESSAYEZ")
+            invalidate()
+        } ?: run { rewardRequestPending = false; message("PUBLICITE INDISPONIBLE") }
+    }
+    private fun completeSkip(origin: Int) {
+        skipProgress.markSkipped(origin)
+        entitlements.completeLevel(origin)
+        if (origin <= unlocked) {
+            unlocked = max(unlocked, origin + 1)
+            prefs.edit().putInt("unlocked", unlocked).apply()
+        }
+        message("NIVEAU ${origin + 1} DEBLOQUE !")
+        setPaused(false)
+        screen = Screen.LEVELS
+        selectedWorld = (origin - 1) / 10 + 1
+        worldScroll = (selectedWorld - 1).toFloat()
+        invalidate()
+    }
+    private var deathAccounted = false
+    private var outOfLives = false
+    private var acquiredHeartObjects = mutableSetOf<String>()
     private val debugMode = DevConfig.ENABLED &&
         (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0)
     private val debugUnlockAll = debugMode && DevConfig.UNLOCK_ALL_LEVELS
     /** Preview slots are always selectable without affecting save-game progression. */
     private fun accessible(n: Int): Boolean = when {
         WorldCatalog.isPreviewLevel(n) -> true
-        n in 1..GameProgression.MAX_LEVEL -> debugUnlockAll || GameProgression.isPlayable(n, unlocked)
+        n in 1..GameProgression.MAX_LEVEL -> debugUnlockAll || entitlements.canPlay(n, unlocked)
         else -> false
     }
     private var screen = Screen.MENU
@@ -96,7 +248,7 @@ class GameView(
     private var hintTime = 0f
     private var isGamePaused = false
     private var deathIrisElapsed = 0f
-    private var hearts = GameVisualConfig.MAX_HEARTS
+    private val hearts: Int get() = if (previewSession) GameVisualConfig.MAX_HEARTS else economy.lives
     private var respawnCount = 0
     val isPaused: Boolean get() = isGamePaused
     private val pauseButton get() = RectF(w - 125f, 11f, w - 22f, 54f)
@@ -146,12 +298,13 @@ class GameView(
         val now = System.nanoTime()
         val dt = min(0.035f, (now - lastTime) / 1_000_000_000f)
         lastTime = now
-        if (screen == Screen.PLAY && !isGamePaused && !dead && !won) update(dt)
+        if (screen == Screen.PLAY && !isGamePaused && !dead && !won && !outOfLives) update(dt)
         if (screen == Screen.PLAY && dead && !isGamePaused) {
-            val duration = if (hearts > 1) GameVisualConfig.RESPAWN_IRIS_SECONDS
+            val duration = if (hearts > 0) GameVisualConfig.RESPAWN_IRIS_SECONDS
                 else GameVisualConfig.DEATH_IRIS_DURATION_SECONDS
             deathIrisElapsed = min(duration, deathIrisElapsed + dt)
-            if (hearts > 1 && deathIrisElapsed >= duration) respawnAfterDeath()
+            if (hearts > 0 && deathIrisElapsed >= duration) respawnAfterDeath()
+            else if (hearts == 0 && deathIrisElapsed >= duration) outOfLives = true
         }
         if (screen == Screen.LEVELS) {
             val target = (selectedWorld - 1).toFloat()
@@ -165,6 +318,10 @@ class GameView(
             Screen.MENU -> drawMenu(canvas)
             Screen.LEVELS -> drawLevels(canvas)
             Screen.PLAY -> drawGame(canvas)
+            Screen.SHOP -> drawShop(canvas) // SHOP V1
+        }
+        if (lastRewardMessage != null && System.currentTimeMillis() < rewardMessageUntilMs) {
+            textCenteredFitted(canvas, lastRewardMessage!!, w / 2f, 70f, 22f, w - 70f, orange, true)
         }
         canvas.restore()
         postInvalidateOnAnimation()
@@ -195,16 +352,33 @@ class GameView(
             )
             // Consume queued input only after the world has actually advanced.
             pendingJumpPress = false
+            rememberSecretDiscoveries()
             if (world.shiftOn != oldShift) gameAudio.oneShot("shift")
             if (world.vy < -250f && oldVy >= -1f) gameAudio.oneShot(if (world.vy < -500f) "spring" else "jump")
             if (!oldGrounded && world.grounded && oldVy > 50f) gameAudio.oneShot("land", .25f)
             if (world.coinsCollected > oldCoins) { gameAudio.oneShot("coin"); rememberCoins() }
+            if (!previewSession) for (heart in world.heartPickups) {
+                if (heart.id !in acquiredHeartObjects && world.playerBox.intersects(heart.box) &&
+                    economy.claimHeart(currentLevel, heart.id)) {
+                    acquiredHeartObjects.add(heart.id)
+                    gameAudio.oneShot("coin")
+                }
+            }
             if (world.keyCollected && !oldKey) gameAudio.oneShot("key")
             if (world.crateBoxes.map { it.left }.zip(oldCrates).any { (now, old) -> abs(now - old) > .3f } && world.ticks - lastPushSoundTick > 14) {
                 gameAudio.oneShot("crate", .22f); lastPushSoundTick = world.ticks
             }
             if (world.monsters.indices.count { world.isMonsterAlive(it) } < oldAlive) gameAudio.oneShot("monster")
-            if (world.dead) gameAudio.oneShot("death")
+            if (world.dead) {
+                gameAudio.oneShot("death")
+                if (!deathAccounted) {
+                    if (!previewSession) {
+                        economy.loseLife()
+                        skipProgress.recordDeath(currentLevel)
+                    }
+                    deathAccounted = true
+                }
+            }
             if (world.won) { gameAudio.oneShot("door"); gameAudio.oneShot("victory", .38f) }
             frameTime -= GameWorld.STEP
             ticks++
@@ -216,22 +390,16 @@ class GameView(
             heroAnimTime = 0f
         }
         if (won && !winSaved) {
-            if (!previewSession && GameProgression.isPlayable(currentLevel, unlocked)) {
-                unlocked = GameProgression.afterWin(unlocked, currentLevel)
-                prefs.edit().putInt("unlocked", unlocked).apply()
+            if (!previewSession && accessible(currentLevel)) {
+                entitlements.completeLevel(currentLevel)
+                if (currentLevel <= unlocked) {
+                    unlocked = GameProgression.afterWin(unlocked, currentLevel)
+                    prefs.edit().putInt("unlocked", unlocked).apply()
+                }
             }
             winSaved = true
         }
-        // Exactly one game result notification per attempt: victory OR defeat.
-        // The callback is raised only after the physics engine ends the level.
-        if ((won || (dead && hearts <= 1)) && !endOfLevelReported) {
-            endOfLevelReported = true
-            val resultWasVictory = won
-            if (!previewSession) onLevelFinished?.invoke(currentLevel, resultWasVictory) {
-                screen == Screen.PLAY &&
-                    if (resultWasVictory) won else dead
-            }
-        }
+        // Rewarded advertisements are NEVER triggered automatically by a result.
         updateSpatialSounds()
         cameraX = (world.x - w * 0.34f).coerceIn(0f, max(0f, world.worldRight - w))
     }
@@ -269,6 +437,10 @@ class GameView(
             drawPlatform(c, RectF(b.left, b.top, b.right, b.bottom))
         }
 
+        // Lot 1: secret barriers use the same wall rendering without modifying old level blocks.
+        secretPassageRenderer.draw(c, level.secretPassageViews) { box ->
+            drawPlatform(c, RectF(box.left, box.top, box.right, box.bottom))
+        }
         for (crate in level.crateBoxes) drawCrate(c, RectF(crate.left, crate.top, crate.right, crate.bottom))
 
         level.bridges.forEach {
@@ -304,6 +476,9 @@ class GameView(
         drawAdvancedPuzzle(c)
         drawDynamicTraps(c)
         for (i in level.coins.indices) if(level.isCoinVisible(i)) design.drawCoin(c, level.coins[i], level.ticks)
+        if (!previewSession) for (heart in level.heartPickups) {
+            if (!economy.hasCollectedHeart(currentLevel, heart.id)) drawPickupHeart(c, heart.box)
+        }
         if (!level.keyCollected) for (key in level.keys) drawKey(c, RectF(key.left, key.top, key.right, key.bottom))
 
         val locked = !level.exitUnlocked
@@ -315,22 +490,30 @@ class GameView(
 
         drawPlayer(c)
         if (currentLevel in 1..10) {
-            factoryGround.draw(c, level.spec, w, h, level.dynamicGroundGaps)
-            // Highlight cracking sections above the tile foreground, not behind it.
-            for (v in level.dynamicTrapViews) if (v.type == "collapse_floor" && v.state == "warning") {
-                rect(c, v.box.left, level.spec.groundY - 5f, v.box.right,
-                    level.spec.groundY + 3f, alpha(orange, 205))
-            }
+            factoryGround.draw(c, level.spec, w, h, level.dynamicGroundGaps, cameraX)
+            // Once physically collapsed, the released slab (including its anchored
+            // foreground pieces) keeps falling visually. Hole edges appear only
+            // after release; hidden bait floors never show a telltale border.
+            factoryGround.drawFalling(c, level.spec, w, h,
+                level.traps.fallingGroundPieces(), cameraX)
         }
         if (debugMode && DevConfig.SHOW_HITBOXES) drawHitboxes(c)
         c.restore()
+
+        // Foreground parallax is screen-anchored, above the level objects and hero.
+        // Preserve all existing floor/gap/bate drawing and collision behavior.
+        if (currentLevel in 1..10) {
+            factoryParallaxLayers.draw(c, w, h, cameraX)
+        }
 
         drawTopHud(c)
         if (hintTime < 9f) drawHint(c)
         if (debugMode && DevConfig.SHOW_DEBUG_STATS) drawDebug(c)
         drawControls(c)
         if (isGamePaused && !dead && !won) drawPauseOverlay(c)
-        else if (dead && (hearts > 1 || deathIrisElapsed < GameVisualConfig.DEATH_IRIS_DURATION_SECONDS)) drawDeathIris(c)
+        else if (dead && (hearts > 0 || deathIrisElapsed < GameVisualConfig.DEATH_IRIS_DURATION_SECONDS)) drawDeathIris(c)
+        else if (outOfLives) drawOutOfLives(c)
+        else if (dead && hearts == 0) drawOutOfLives(c)
         else if (dead || won) drawOverlay(c)
     }
 
@@ -470,14 +653,30 @@ class GameView(
         if (level.carryingCrate) text(c, "ACT", level.x - 6f, level.y - 52f, 15f, orangeLight, true)
     }
 
+    private fun drawPickupHeart(c: Canvas, b: HitBox) {
+        val mx = (b.left + b.right) * .5f
+        val my = (b.top + b.bottom) * .5f
+        val r = min(b.right - b.left, b.bottom - b.top) * .35f
+        val p = Path().apply {
+            moveTo(mx, my + r)
+            cubicTo(mx - 2.3f * r, my - .3f * r, mx - r, my - 1.5f * r, mx, my - .55f * r)
+            cubicTo(mx + r, my - 1.5f * r, mx + 2.3f * r, my - .3f * r, mx, my + r)
+            close()
+        }
+        paint.color = red
+        paint.style = Paint.Style.FILL
+        c.drawPath(p, paint)
+    }
+
     private fun drawTopHud(c: Canvas) {
         design.drawMenuHeader(c, RectF(0f, 0f, w, 64f))
         // PNG coin symbol and persisted, deduplicated total (not a per-level score).
         design.drawCoinHud(c, RectF(20f, 12f, 57f, 52f))
-        textFitted(c, savedCoinIds.size.toString(), 69f, 42f, 28f, w * 0.25f, GameDesign.WHITE, true)
-        // Hearts are per-attempt lives. They reset on starting or restarting a level.
-        if (currentLevel in 1..10) {
-            for (index in 0 until GameVisualConfig.MAX_HEARTS) {
+        textFitted(c, economy.availableCoins(savedCoinIds.size).toString(), 69f, 42f, 28f, w * 0.25f, GameDesign.WHITE, true)
+        // Lives persist across levels and application restarts.
+        if (premium) text(c, "∞", 147f, 41f, 37f, orangeLight, true)
+        run {
+            for (index in 0 until (if (premium) 0 else GameVisualConfig.MAX_HEARTS)) {
                 val hx = 145f + index * 36f
                 val heartColor = if (index < hearts) orange else alpha(whiteSoft, 62)
                 val shape = Path().apply {
@@ -569,8 +768,47 @@ class GameView(
         textFitted(c, strings.t("tagline"), 274f, 309f, 26f, 520f, rgb(174, 201, 214))
         menuButton(c, 340f, 354f, strings.t("play"), rgb(48, 163, 132))
         menuButton(c, 340f, 443f, strings.t("worlds"), GameDesign.BLACK)
+        // SHOP icon only, at the top-left of the main menu.
+        drawShopMenuIcon(c)
+        if (privacyOptionsAvailable?.invoke() == true) {
+            textFitted(c, "CONFIDENTIALITE", 730f, 35f, 15f, 220f, whiteSoft)
+        }
         if (debugMode) text(c, strings.t("debug_all"), 290f, 544f, 19f, rgb(255, 216, 131))
         c.restore()
+    }
+
+    /** White storefront icon, located at the top-left of the centered 1000x560 viewport. */
+    private fun drawShopMenuIcon(c: Canvas) {
+        val icon = shopMenuIconPaint
+        // Dark translucent touch surface keeps the white pictogram readable on any background.
+        icon.style = Paint.Style.FILL
+        icon.color = Color.argb(134, 7, 20, 33)
+        c.drawRoundRect(RectF(30f, 14f, 125f, 109f), 20f, 20f, icon)
+        icon.style = Paint.Style.STROKE
+        icon.strokeWidth = 3.7f
+        icon.strokeJoin = Paint.Join.ROUND
+        icon.strokeCap = Paint.Cap.ROUND
+        icon.color = Color.WHITE
+        // Storefront and awning.
+        c.drawRoundRect(RectF(49f, 56f, 106f, 91f), 3f, 3f, icon)
+        c.drawLine(49f, 56f, 55f, 37f, icon)
+        c.drawLine(55f, 37f, 100f, 37f, icon)
+        c.drawLine(100f, 37f, 106f, 56f, icon)
+        c.drawLine(49f, 56f, 106f, 56f, icon)
+        c.drawLine(66f, 37f, 63f, 56f, icon)
+        c.drawLine(78f, 37f, 78f, 56f, icon)
+        c.drawLine(90f, 37f, 93f, 56f, icon)
+        // Entrance and window.
+        c.drawRect(RectF(70f, 68f, 84f, 91f), icon)
+        c.drawRoundRect(RectF(90f, 66f, 100f, 77f), 1f, 1f, icon)
+        icon.style = Paint.Style.FILL
+    }
+
+    // SHOP V1 - standalone Canvas page, no Android XML and no gameplay physics change.
+    private fun drawShop(c: Canvas) {
+        drawBackground(c)
+        rect(c, 0f, 0f, w, h, alpha(panel, 170))
+        shopView.draw(c, w, shopState(), shopController.tab)
     }
 
     /** Ten world pages slide horizontally; each page owns its panoramic backdrop. */
@@ -611,8 +849,14 @@ class GameView(
             // Shared graphic style from V15, no world-specific redesign.
             design.drawLevelTile(c, RectF(x, y, x + 117f, y + 91f), i + 1, enabled)
         }
-        if (!info.developed) textFitted(c, strings.t("world_preview") + " • " + strings.t("slots_soon"), 161f, 447f, 19f, 696f, whiteSoft)
-        else textFitted(c, strings.t("unlock_hint"), 200f, 447f, 20f, 640f, whiteSoft)
+        if (!info.developed) textFitted(c, strings.t("world_preview") + " • " + strings.t("slots_soon"), 161f, 417f, 19f, 696f, whiteSoft)
+        else textFitted(c, strings.t("unlock_hint"), 200f, 417f, 20f, 640f, whiteSoft)
+        if (number > 1 && !entitlements.hasWorld(number) && !accessible((number - 1) * 10 + 1) && info.developed) {
+            textFitted(c, "DEBLOQUER MONDE ${displayedPrice(WorldEntitlements.productId(number), "1,99 €")}",
+                126f, 446f, 22f, 390f, orangeLight, true)
+        } else if (premium) textFitted(c, "PREMIUM ACTIF", 130f, 446f, 18f, 280f, orangeLight, true)
+        textFitted(c, if (premium) "RESTAURER ACHATS" else "PREMIUM ${displayedPrice(BizConfig.Billing.PREMIUM_SKU, "9,99 €")}",
+            575f, 446f, 19f, 330f, whiteSoft, true)
         design.drawMenuButton(c, RectF(340f, 463f, 660f, 514f), strings.t("back"), false)
         c.restore()
 
@@ -678,16 +922,20 @@ class GameView(
         rect(c, 0f, 0f, w, h, Color.argb(198, 6, 10, 15))
         c.save()
         c.translate(GameViewport.centerOffset(w), 0f)
-        textCenteredFitted(c, strings.t("pause_title"), 500f, 175f, 63f, 720f, whiteSoft, true)
-        menuButton(c, 340f, 220f, strings.t("resume"), GameDesign.ORANGE)
-        menuButton(c, 340f, 310f, strings.t("restart"), GameDesign.BLACK)
-        menuButton(c, 340f, 400f, strings.t("menu"), GameDesign.BLACK)
+        textCenteredFitted(c, strings.t("pause_title"), 500f, 120f, 52f, 720f, whiteSoft, true)
+        menuButton(c, 340f, 143f, strings.t("resume"), GameDesign.ORANGE)
+        menuButton(c, 340f, 219f, strings.t("restart"), GameDesign.BLACK)
+        val canBuy = !premium && hearts < BizConfig.Lives.MAX && economy.availableCoins(savedCoinIds.size) >= BizConfig.Lives.COINS_PER_LIFE
+        menuButton(c, 340f, 295f, "COEUR : 5 PIECES", if (canBuy) GameDesign.ORANGE else GameDesign.BLACK)
+        val canSkip = !previewSession && (skipProgress.canSkip(currentLevel, unlocked) || (premium && !skipProgress.isSkipped(currentLevel) && skipProgress.deaths(currentLevel) >= BizConfig.Progression.DEATHS_TO_OFFER_SKIP && accessible(currentLevel)))
+        menuButton(c, 340f, 371f, if (canSkip) (if (premium) "PASSER NIVEAU" else "PUB : PASSER NIVEAU") else "PASSER : ${skipProgress.deaths(currentLevel)}/10", if (canSkip) GameDesign.ORANGE else GameDesign.BLACK)
+        menuButton(c, 340f, 447f, strings.t("menu"), GameDesign.BLACK)
         c.restore()
     }
 
     /** A soft black vignette closes around the hero, then the GAME OVER panel appears. */
     private fun drawDeathIris(c: Canvas) {
-        val duration = if (hearts > 1) GameVisualConfig.RESPAWN_IRIS_SECONDS
+        val duration = if (hearts > 0) GameVisualConfig.RESPAWN_IRIS_SECONDS
             else GameVisualConfig.DEATH_IRIS_DURATION_SECONDS
         val progress = (deathIrisElapsed / duration).coerceIn(0f, 1f)
         val eased = progress * progress * (3f - 2f * progress)
@@ -716,7 +964,6 @@ class GameView(
 
     private fun startLevel(levelNumber: Int, preview: Boolean = WorldCatalog.isPreviewLevel(levelNumber)) {
         if (!accessible(levelNumber)) return
-        onLeaveResult?.invoke()
         currentLevel = levelNumber
         previewSession = preview
         world = GameWorld(currentLevel, if (preview) WorldPreviewCatalog.create(levelNumber) else null)
@@ -724,7 +971,6 @@ class GameView(
     }
 
     private fun reset() {
-        onLeaveResult?.invoke() // Cancel any delayed ad when user chooses REJOUER/NEXT.
         gameAudio.pause()
         gameAudio.resume()
         world.reset()
@@ -735,8 +981,10 @@ class GameView(
         hintTime = 0f
         cameraX = 0f
         deathIrisElapsed = 0f
-        // Only world 1 uses the new life system; worlds 2+ retain V23.1 behavior.
-        hearts = if (currentLevel in 1..10 && !previewSession) GameVisualConfig.MAX_HEARTS else 1
+        economy.refresh()
+        deathAccounted = false
+        acquiredHeartObjects.clear()
+        outOfLives = !previewSession && hearts <= 0
         respawnCount = 0
         setPaused(false)
         winSaved = false
@@ -749,8 +997,9 @@ class GameView(
 
     /** Immediate retry: preserve heart count and global coin records, reset hazards. */
     private fun respawnAfterDeath() {
-        hearts--
         respawnCount++
+        deathAccounted = false
+        acquiredHeartObjects.clear()
         world.reset()
         pressed.clear()
         keyboardPressed.clear()
@@ -764,38 +1013,90 @@ class GameView(
         hintTime = 0f
     }
 
-    /** Flat Canvas rendering, so the existing industrial 2D style is retained. */
+    private fun drawOutOfLives(c: Canvas) {
+        rect(c, 0f, 0f, w, h, Color.argb(220, 6, 13, 22))
+        c.save()
+        c.translate(GameViewport.centerOffset(w), 0f)
+        textCenteredFitted(c, "PLUS DE VIES", 500f, 132f, 54f, 780f, orange, true)
+        val seconds = (economy.millisToNextLife() + 999L) / 1000L
+        textCenteredFitted(c, "Prochain coeur : ${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}",
+            500f, 199f, 25f, 790f, whiteSoft)
+        val canBuy = !premium && economy.availableCoins(savedCoinIds.size) >= BizConfig.Lives.COINS_PER_LIFE
+        menuButton(c, 340f, 231f, "PUB : +3 COEURS", GameDesign.ORANGE)
+        menuButton(c, 340f, 309f, if (canBuy) "COEUR : 5 PIECES" else "5 PIECES NECESSAIRES", if (canBuy) orange else steelMid)
+        val canSkip = !previewSession && (skipProgress.canSkip(currentLevel, unlocked) || (premium && !skipProgress.isSkipped(currentLevel) && skipProgress.deaths(currentLevel) >= BizConfig.Progression.DEATHS_TO_OFFER_SKIP && accessible(currentLevel)))
+        menuButton(c, 340f, 387f, if (canSkip) (if (premium) "PASSER NIVEAU" else "PUB : PASSER NIVEAU") else "PASSER : ${skipProgress.deaths(currentLevel)}/10", if (canSkip) orange else steelMid)
+        menuButton(c, 340f, 465f, "MENU", GameDesign.BLACK)
+        c.restore()
+    }
+
     private fun drawDynamicTraps(c: Canvas) {
         for (v in world.dynamicTrapViews) {
             val b = RectF(v.box.left, v.box.top, v.box.right, v.box.bottom)
             when (v.type) {
                 "collapse_floor" -> {
                     if (v.state == "active") continue
-                    // The PNG floor is drawn over this segment by FactoryGround.
+                    // World 1 uses its textured foreground; World 2+ needs its own slab.
+                    if (currentLevel !in 1..10) drawPlatform(c, b)
+                    // No visual hint: baits must be memorised, not spotted by a crack.
+                }
+                "moving_platform", "falling_platform", "flee_platform", "split_platform" -> {
+                    drawPlatform(c, b)
                     if (v.state == "warning") {
-                        rect(c, b.left, b.top + 4f, b.right, b.top + 11f, orange)
+                        rect(c, b.left + 3f, b.top, b.right - 3f, b.top + 5f, orange)
                     }
                 }
-                "moving_platform" -> drawPlatform(c, b)
                 "rising_spikes" -> {
-                    if (v.state == "hidden") continue
+                    if (v.state == "hidden" || v.state == "spent") continue
                     if (v.state == "warning") {
-                        rect(c, b.left, world.spec.groundY - 5f, b.right, world.spec.groundY, alpha(orange, 140))
+                        rect(c, b.left, b.top, b.right, b.bottom, alpha(orange, 100))
                     } else {
-                        val count = kotlin.math.max(1, kotlin.math.ceil(b.width() / 27f).toInt())
-                        for (j in 0 until count) {
-                            val l = b.left + j * b.width() / count
-                            val rr = b.left + (j + 1) * b.width() / count
-                            val path = Path().apply {
-                                moveTo(l, b.bottom)
-                                lineTo((l + rr) * .5f, b.top)
-                                lineTo(rr, b.bottom)
-                                close()
+                        val def = world.spec.traps.first { it.id == v.id }
+                        val alongX = def.orientation == "up" || def.orientation == "down"
+                        val segments = if (alongX) kotlin.math.max(1, kotlin.math.ceil(b.width() / 27f).toInt())
+                            else kotlin.math.max(1, kotlin.math.ceil(b.height() / 27f).toInt())
+                        for (j in 0 until segments) {
+                            val path = Path()
+                            if (alongX) {
+                                val l = b.left + j * b.width() / segments
+                                val rr = b.left + (j + 1) * b.width() / segments
+                                val tipY = if (def.orientation == "down") b.bottom else b.top
+                                val baseY = if (def.orientation == "down") b.top else b.bottom
+                                path.moveTo(l, baseY)
+                                path.lineTo((l + rr) * .5f, tipY)
+                                path.lineTo(rr, baseY)
+                            } else {
+                                val t = b.top + j * b.height() / segments
+                                val bb = b.top + (j + 1) * b.height() / segments
+                                val tipX = if (def.orientation == "right") b.right else b.left
+                                val baseX = if (def.orientation == "right") b.left else b.right
+                                path.moveTo(baseX, t)
+                                path.lineTo(tipX, (t + bb) * .5f)
+                                path.lineTo(baseX, bb)
                             }
+                            path.close()
                             paint.color = orange
                             paint.style = Paint.Style.FILL
                             c.drawPath(path, paint)
                         }
+                    }
+                }
+                "flying_spike", "homing_spike", "arc_spike" -> {
+                    if (v.state == "spent") continue
+                    if (v.state == "hidden") continue
+                    if (v.state == "warning") {
+                        rect(c, b.left, b.top, b.right, b.bottom, alpha(orange, 125))
+                    } else {
+                        design.drawSpike(c, b)
+                    }
+                }
+                "crushing_ceiling", "crushing_wall" -> {
+                    if (v.state == "hidden" || v.state == "spent") continue
+                    if (v.state == "warning") {
+                        rect(c, b.left, b.top, b.right, b.bottom, alpha(orange, 100))
+                    } else {
+                        drawPlatform(c, b)
+                        rect(c, b.left + 3f, b.top + 3f, b.right - 3f, b.top + 8f, orange)
                     }
                 }
                 "push_block" -> {
@@ -873,19 +1174,30 @@ class GameView(
             val (x, y) = coord(i)
             return Pair(x - GameViewport.centerOffset(w), y)
         }
-        if (screen == Screen.PLAY && dead && (hearts > 1 ||
+        if (screen == Screen.PLAY && outOfLives) {
+            if (economy.lives > 0) { outOfLives = false; reset(); return true }
+            if (event.actionMasked == MotionEvent.ACTION_UP) {
+                val (x, y) = centeredCoord(event.actionIndex)
+                if (x in 340f..660f) when (y) {
+                    in 231f..303f -> requestLivesAd()
+                    in 309f..381f -> if (economy.buyLife(savedCoinIds.size)) reset()
+                    in 387f..459f -> requestSkipAd()
+                    in 465f..537f -> screen = Screen.MENU
+                }
+            }
+            return true
+        }
+        if (screen == Screen.PLAY && dead && (hearts > 0 ||
                 deathIrisElapsed < GameVisualConfig.DEATH_IRIS_DURATION_SECONDS)) return true
         if (screen == Screen.PLAY && isGamePaused) {
             if (event.actionMasked == MotionEvent.ACTION_UP) {
                 val (x, y) = centeredCoord(event.actionIndex)
-                if (x in 340f..660f) when {
-                    y in 220f..292f -> setPaused(false)
-                    y in 310f..382f -> reset()
-                    y in 400f..472f -> {
-                        onLeaveResult?.invoke()
-                        setPaused(false)
-                        screen = Screen.MENU
-                    }
+                if (x in 340f..660f) when (y) {
+                    in 143f..215f -> setPaused(false)
+                    in 219f..291f -> reset()
+                    in 295f..367f -> economy.buyLife(savedCoinIds.size)
+                    in 371f..443f -> requestSkipAd()
+                    in 447f..519f -> { setPaused(false); screen = Screen.MENU }
                 }
             }
             return true
@@ -894,16 +1206,24 @@ class GameView(
             if (event.actionMasked == MotionEvent.ACTION_UP) {
                 val (x, y) = centeredCoord(event.actionIndex)
                 if (x in 340f..660f && y in 304f..376f) {
-                    if (!won) reset()
+                    if (!won) { if (hearts > 0) reset() else { outOfLives = true; reset() } }
                     else {
                         val next = nextAfterWin()
                         if (next != null) startLevel(next, preview = false)
-                        else { onLeaveResult?.invoke(); selectedWorld = ((currentLevel - 1) / 10) + 1; worldScroll = (selectedWorld - 1).toFloat(); screen = Screen.LEVELS; pressed.clear(); keyboardPressed.clear() }
+                        else { selectedWorld = ((currentLevel - 1) / 10) + 1; worldScroll = (selectedWorld - 1).toFloat(); screen = Screen.LEVELS; pressed.clear(); keyboardPressed.clear() }
                     }
                 } else if (x in 340f..660f && y in 405f..477f) {
-                    onLeaveResult?.invoke()
-                    screen = Screen.MENU; pressed.clear(); keyboardPressed.clear()
+                                screen = Screen.MENU; pressed.clear(); keyboardPressed.clear()
                 }
+            }
+            return true
+        }
+        // SHOP V1 - coordinates use the same centered 1000 x 560 viewport as drawMenu.
+        if (screen == Screen.SHOP) {
+            if (event.actionMasked == MotionEvent.ACTION_UP) {
+                val (x, y) = centeredCoord(event.actionIndex)
+                executeShopCommand(shopController.tap(x, y, shopState()))
+                invalidate()
             }
             return true
         }
@@ -923,6 +1243,10 @@ class GameView(
                     else if (worldTouchStartValid && abs(dx) < 35f && abs(dy) < 35f) {
                         val cx = x - GameViewport.centerOffset(w)
                         if (cx in 340f..660f && y in 463f..514f) screen = Screen.MENU
+                        else if (cx in 126f..520f && y in 420f..462f && selectedWorld > 1) buyWorld(selectedWorld)
+                        else if (cx in 575f..907f && y in 420f..462f) {
+                            if (premium) onRestorePurchases?.invoke() else buyPremium()
+                        }
                         else if (x in 10f..86f && y in 221f..320f) changeWorld(selectedWorld - 1)
                         else if (x in (w - 86f)..(w - 10f) && y in 221f..320f) changeWorld(selectedWorld + 1)
                         else if (WorldCatalog.isPlayable(selectedWorld, 1)) {
@@ -944,6 +1268,14 @@ class GameView(
             return true
         }
         if (screen != Screen.PLAY) {
+            if (screen == Screen.MENU && event.actionMasked == MotionEvent.ACTION_UP &&
+                privacyOptionsAvailable?.invoke() == true) {
+                val (x, y) = centeredCoord(event.actionIndex)
+                if (x in 720f..970f && y in 8f..58f) {
+                    onPrivacyOptions?.invoke()
+                    return true
+                }
+            }
             if (event.actionMasked == MotionEvent.ACTION_UP) {
                 val (x, y) = centeredCoord(event.actionIndex)
                 if (screen == Screen.MENU && x in 340f..660f && y in 354f..426f) startLevel(
@@ -951,6 +1283,8 @@ class GameView(
                     preview = false // JOUER always uses the original V20 sequence, never a showcase.
                 )
                 else if (screen == Screen.MENU && x in 340f..660f && y in 443f..515f) screen = Screen.LEVELS
+                else if (screen == Screen.MENU && x in 30f..125f && y in 14f..109f) openShop()
+                else if (screen == Screen.MENU && x in 720f..990f && y in 505f..548f) onRestorePurchases?.invoke()
             }
             return true
         }
@@ -1164,5 +1498,5 @@ class GameView(
         c.drawText(s, x, y, paint)
     }
 
-    private enum class Screen { MENU, LEVELS, PLAY }
+    private enum class Screen { MENU, LEVELS, PLAY, SHOP }
 }

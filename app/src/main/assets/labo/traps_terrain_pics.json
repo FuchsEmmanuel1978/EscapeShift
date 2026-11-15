@@ -1,0 +1,14 @@
+{
+  "_info": "EXEMPLES UNIQUEMENT : copier les objets voulus dans le tableau traps d'un vrai niveau. Ne pas remplacer le JSON d'un niveau.",
+  "traps": [
+    {"id":"w2_floor_hidden","type":"collapse_floor","x":950,"y":444,"width":90,"height":146,"trigger":"player_near","radius":65,"delayTicks":17,"showWarning":false},
+    {"id":"w2_floor_crack","type":"collapse_floor","x":1100,"y":444,"width":85,"height":146,"trigger":"player_on","delayTicks":28,"showWarning":true},
+    {"id":"w2_spikes_up","type":"rising_spikes","x":1250,"y":410,"width":80,"height":34,"orientation":"up","trigger":"player_near","radius":95,"delayTicks":12,"transitionTicks":8},
+    {"id":"w2_spikes_ceiling","type":"rising_spikes","x":1470,"y":230,"width":90,"height":35,"orientation":"down","trigger":"player_jump","radius":210,"delayTicks":10,"transitionTicks":10},
+    {"id":"w2_spikes_wall_left","type":"rising_spikes","x":1630,"y":305,"width":35,"height":100,"orientation":"left","trigger":"player_near","radius":140,"delayTicks":9},
+    {"id":"w2_spikes_wall_right","type":"rising_spikes","x":1780,"y":300,"width":35,"height":100,"orientation":"right","trigger":"player_near","radius":140,"delayTicks":9},
+    {"id":"w2_spike_flying","type":"flying_spike","x":1900,"y":320,"width":24,"height":24,"trigger":"player_near","radius":220,"delayTicks":15,"projectileSpeed":320,"projectileRange":430},
+    {"id":"w2_spike_homing","type":"homing_spike","x":2080,"y":310,"width":24,"height":24,"trigger":"player_near","radius":230,"delayTicks":17,"projectileSpeed":265,"projectileRange":490},
+    {"id":"w2_spike_arc","type":"arc_spike","x":2340,"y":330,"width":24,"height":24,"trigger":"player_near","radius":225,"delayTicks":16,"projectileSpeed":315,"projectileRange":460,"arcHeight":100}
+  ]
+}

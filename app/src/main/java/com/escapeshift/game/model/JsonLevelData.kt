@@ -98,6 +98,8 @@ object LevelJsonParser {
         fun list(value: Any?, path: String) = value as? List<*> ?: error("$path must be an array")
         fun optNum(obj: Map<*, *>, key: String, default: Float) = obj[key]?.let { number(it, key) } ?: default
         fun optInt(obj: Map<*, *>, key: String, default: Int) = obj[key]?.let { int(it, key) } ?: default
+        fun optBool(obj: Map<*, *>, key: String, default: Boolean): Boolean =
+            obj[key]?.let { it as? Boolean ?: error("$key must be a boolean") } ?: default
         require(int(get("schemaVersion"), "schemaVersion") == 1) { "Unsupported schemaVersion" }
         val declaredWorld = int(get("world"), "world")
         require(declaredWorld == (expectedLevel - 1) / 10 + 1) { "Incorrect world for level $expectedLevel" }
@@ -168,7 +170,11 @@ object LevelJsonParser {
             val t = map(value, "traps[$index]")
             val id = str(t["id"], "traps[$index].id")
             val type = str(t["type"], "$id.type")
-            require(type in setOf("collapse_floor", "rising_spikes", "surprise_wall", "moving_platform", "moving_exit", "reverse_zone", "push_block")) {
+            require(type in setOf(
+                "collapse_floor", "rising_spikes", "surprise_wall", "moving_platform", "moving_exit", "reverse_zone", "push_block",
+                "flying_spike", "homing_spike", "arc_spike", "falling_platform", "flee_platform", "split_platform",
+                "crushing_ceiling", "crushing_wall"
+            )) {
                 "Unknown trap type $type on $id"
             }
             require(id.matches(Regex("[a-zA-Z0-9_]+")) && seenIds.add(id)) { "Invalid or duplicated trap ID $id" }
@@ -183,10 +189,34 @@ object LevelJsonParser {
                 optInt(t, "durationTicks", 0), optNum(t, "travelX", 0f),
                 optNum(t, "travelY", 0f), optInt(t, "transitionTicks", 18),
                 optInt(t, "periodTicks", 180), optNum(t, "thresholdSpeed", 250f),
-                t["triggerX"]?.let { number(it, "$id.triggerX") }
+                t["triggerX"]?.let { number(it, "$id.triggerX") },
+                (t["orientation"] as? String) ?: "up",
+                optBool(t, "showWarning", true),
+                optNum(t, "projectileSpeed", 330f),
+                optNum(t, "projectileRange", 460f),
+                optNum(t, "arcHeight", 80f),
+                optNum(t, "fallAcceleration", 1050f)
             ).also { d ->
                 require(d.width > 0f && d.height > 0f && d.x >= 0f && d.x + d.width <= worldWidth)
                 require(d.radius >= 0f && d.delayTicks >= 0 && d.durationTicks >= 0 && d.transitionTicks > 0 && d.periodTicks > 0)
+                require(d.orientation in setOf("up", "down", "left", "right")) {
+                    "$id: orientation must be up, down, left or right"
+                }
+                require(d.projectileSpeed > 0f && d.projectileRange > 0f && d.arcHeight >= 0f && d.fallAcceleration > 0f) {
+                    "$id: invalid projectile/falling parameters"
+                }
+                if (d.type in setOf("split_platform", "flee_platform")) {
+                    require(d.x + d.travelX >= 0f && d.x + d.width + d.travelX <= worldWidth) {
+                        "$id: platform would leave the level horizontally"
+                    }
+                }
+                if (d.type == "split_platform") {
+                    require(d.travelX > 0f && d.x - d.travelX >= 0f) {
+                        "$id: split_platform requires positive travelX and room for both halves"
+                    }
+                }
+                if (d.type == "crushing_ceiling") require(d.travelY > 0f) { "$id: ceiling must travel downward (travelY > 0)" }
+                if (d.type == "crushing_wall") require(d.travelX != 0f) { "$id: wall requires non-zero travelX" }
                 if (d.trigger == "player_passed") {
                     require(d.type == "push_block") { "$id: player_passed currently supports push_block only" }
                     require(d.triggerX != null && d.triggerX >= 0f && d.triggerX <= worldWidth) {
@@ -210,6 +240,49 @@ object LevelJsonParser {
             }
         }
         require(traps.count { it.type == "moving_exit" } <= 1)
+        // Optional feature section: existing levels without it are fully backward-compatible.
+        val rawSecrets = root["secretPassages"]?.let { list(it, "secretPassages") } ?: emptyList<Any?>()
+        require(rawSecrets.size <= GameFeatureConfig.MAX_SECRET_PASSAGES_PER_LEVEL) {
+            "Too many secret passages on level $level"
+        }
+        val secretPassages = rawSecrets.mapIndexed { index, rawSecret ->
+            val s = map(rawSecret, "secretPassages[$index]")
+            val id = str(s["id"], "secretPassages[$index].id")
+            require(id.matches(Regex("[a-zA-Z0-9_]+")) && seenIds.add(id)) {
+                "Duplicate or invalid secret passage ID: $id"
+            }
+            require(!s.containsKey("rewardCoins")) {
+                "$id: rewardCoins is not supported in this lot; add actual coin objects behind the passage"
+            }
+            val activation = (s["activation"] as? String) ?: "interact"
+            require(activation in setOf("interact", "shift", "crate_touch", "push_crate", "switch_active")) {
+                "$id: unsupported secret activation '$activation'"
+            }
+            SecretPassageDefinition(
+                id = id,
+                x = number(s["x"], "$id.x"),
+                y = number(s["y"], "$id.y"),
+                width = number(s["width"], "$id.width"),
+                height = number(s["height"], "$id.height"),
+                activation = activation,
+                triggerRadius = optNum(s, "triggerRadius", 75f),
+                showCracks = optBool(s, "showCracks", true)
+            ).also { d ->
+                require(d.x >= 0f && d.x + d.width <= worldWidth && d.width > 0f) {
+                    "$id: invalid X or width"
+                }
+                require(d.y >= -100f && d.y + d.height <= groundY + groundDepth && d.height > 0f) {
+                    "$id: invalid Y or height"
+                }
+                require(d.triggerRadius in 0f..500f) { "$id: triggerRadius must be between 0 and 500" }
+                if (d.activation in setOf("crate_touch", "push_crate")) require(objects.any { it.type == "crate" }) {
+                    "$id: crate_touch requires a crate in objects"
+                }
+                if (d.activation == "switch_active") require(objects.any { it.type == "switch" }) {
+                    "$id: switch_active requires a switch in objects"
+                }
+            }
+        }
         val mapById = objects.associateBy { it.id }
         val routeNames = list(get("route"), "route").map { str(it, "route element") }
         require(routeNames.distinct().size == routeNames.size) { "Duplicate route entry" }
@@ -254,7 +327,8 @@ object LevelJsonParser {
             gaps = gaps,
             objects = objects,
             traps = traps,
-            physicalPuzzle = physicalPlan, advancedPuzzle = advancedPlan
+            physicalPuzzle = physicalPlan, advancedPuzzle = advancedPlan,
+            secretPassages = secretPassages
         )
     }
 }

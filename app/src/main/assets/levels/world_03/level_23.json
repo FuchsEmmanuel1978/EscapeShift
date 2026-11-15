@@ -6,9 +6,9 @@
   "hintKey": "level_23_hint",
   "intro": "OPEN",
   "backtrackCount": 0,
-  "worldWidth": 2700,
+  "worldWidth": 3950,
   "playerStart": {
-    "x": 80,
+    "x": 78,
     "y": 405
   },
   "ground": {
@@ -16,213 +16,221 @@
     "depth": 146,
     "gaps": [
       {
-        "id": "gap_sync",
-        "x": 1400,
-        "width": 570
+        "id": "gap23_platforms",
+        "x": 1780,
+        "width": 510
+      },
+      {
+        "id": "gap23_bonus",
+        "x": 2750,
+        "width": 132
       }
     ]
   },
   "objects": [
     {
-      "id": "exit_door",
+      "id": "coin23a",
+      "type": "coin",
+      "x": 1310,
+      "y": 397,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin23bridge",
+      "type": "coin",
+      "x": 1955,
+      "y": 352,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "saw23",
+      "type": "saw",
+      "x": 3080,
+      "y": 410,
+      "width": 32,
+      "height": 34,
+      "amplitude": 48,
+      "period": 164,
+      "phase": 28
+    },
+    {
+      "id": "switch23_exit",
+      "type": "switch",
+      "x": 3510,
+      "y": 431,
+      "width": 50,
+      "height": 13
+    },
+    {
+      "id": "heart23_secret",
+      "type": "heart",
+      "x": 3700,
+      "y": 396,
+      "width": 28,
+      "height": 28
+    },
+    {
+      "id": "door23",
       "type": "door",
-      "x": 2475,
+      "x": 3820,
       "y": 354,
-      "width": 65,
+      "width": 62,
       "height": 90
     }
   ],
-  "route": [],
+  "traps": [
+    {
+      "id": "trap23_rising",
+      "type": "rising_spikes",
+      "x": 2510,
+      "y": 423,
+      "width": 52,
+      "height": 21,
+      "trigger": "player_near",
+      "radius": 145,
+      "delayTicks": 13,
+      "transitionTicks": 11
+    },
+    {
+      "id": "trap23_flee",
+      "type": "flee_platform",
+      "x": 2752,
+      "y": 382,
+      "width": 135,
+      "height": 18,
+      "trigger": "player_near",
+      "radius": 100,
+      "delayTicks": 12,
+      "transitionTicks": 35,
+      "travelX": 60
+    },
+    {
+      "id": "trap23_projectile",
+      "type": "flying_spike",
+      "x": 3290,
+      "y": 275,
+      "width": 24,
+      "height": 24,
+      "trigger": "player_near",
+      "radius": 190,
+      "delayTicks": 13,
+      "projectileSpeed": 275,
+      "projectileRange": 355
+    }
+  ],
+  "secretPassages": [
+    {
+      "id": "secret23_final",
+      "x": 3650,
+      "y": 377,
+      "width": 42,
+      "height": 67,
+      "activation": "interact",
+      "triggerRadius": 80,
+      "showCracks": true
+    }
+  ],
+  "route": [
+    "gap23_platforms",
+    "gap23_bonus",
+    "saw23",
+    "switch23_exit"
+  ],
   "puzzle": {
-    "prototype": true,
-    "title": "Deux caisses, quatre boutons",
-    "concepts": [
-      "crate_choice",
-      "moving_platform_speed",
-      "rhythm_jumps"
-    ],
-    "goal": [
-      {
-        "var": "flag:speed_sync",
-        "eq": true
-      },
-      {
-        "var": "flag:three_jumps",
-        "eq": true
-      }
-    ],
-    "hint": "Pose une caisse sur le bouton 1 et une sur le 4. Traverse les 3 plateformes dans l’ordre.",
     "devices": [
       {
-        "id": "pad1",
+        "id": "crate23a",
+        "kind": "crate",
+        "x": 205,
+        "y": 400,
+        "width": 46,
+        "height": 44
+      },
+      {
+        "id": "crate23b",
+        "kind": "crate",
+        "x": 775,
+        "y": 400,
+        "width": 46,
+        "height": 44
+      },
+      {
+        "id": "button23a",
         "kind": "speed_button",
-        "x": 625,
-        "y": 432,
+        "x": 425,
+        "y": 431,
         "width": 76,
-        "height": 12,
+        "height": 13,
         "speedFactor": 1.4
       },
       {
-        "id": "pad2",
+        "id": "button23b",
         "kind": "speed_button",
-        "x": 780,
-        "y": 432,
+        "x": 595,
+        "y": 431,
         "width": 76,
-        "height": 12,
-        "speedFactor": 0.7
+        "height": 13,
+        "speedFactor": 2.0
       },
       {
-        "id": "pad3",
+        "id": "button23c",
         "kind": "speed_button",
-        "x": 935,
-        "y": 432,
+        "x": 955,
+        "y": 431,
         "width": 76,
-        "height": 12,
-        "speedFactor": 1.1
+        "height": 13,
+        "speedFactor": 1.8
       },
       {
-        "id": "pad4",
+        "id": "button23d",
         "kind": "speed_button",
-        "x": 1130,
-        "y": 432,
+        "x": 1190,
+        "y": 431,
         "width": 76,
-        "height": 12,
-        "speedFactor": 0.9
+        "height": 13,
+        "speedFactor": 1.2
       },
       {
-        "id": "crateA",
-        "kind": "crate",
-        "x": 240,
-        "y": 401,
-        "width": 48,
-        "height": 43
-      },
-      {
-        "id": "crateB",
-        "kind": "crate",
-        "x": 1020,
-        "y": 401,
-        "width": 48,
-        "height": 43
-      },
-      {
-        "id": "platform1",
+        "id": "moving23a",
         "kind": "moving_platform",
-        "x": 1410,
-        "y": 390,
-        "width": 146,
+        "x": 1805,
+        "y": 388,
+        "width": 128,
         "height": 18,
         "baseSpeed": 130,
-        "syncedTravel": 16,
-        "unsyncedTravel": 90,
+        "syncedTravel": 12,
+        "unsyncedTravel": 95,
         "syncPeriodTicks": 190,
-        "unsyncPeriodTicks": 60
+        "unsyncPeriodTicks": 58
       },
       {
-        "id": "platform2",
+        "id": "moving23b",
         "kind": "moving_platform",
-        "x": 1615,
-        "y": 350,
-        "width": 146,
+        "x": 1975,
+        "y": 388,
+        "width": 128,
         "height": 18,
-        "baseSpeed": 170,
-        "syncedTravel": 16,
-        "unsyncedTravel": 90,
+        "baseSpeed": 130,
+        "syncedTravel": 12,
+        "unsyncedTravel": 95,
         "syncPeriodTicks": 190,
-        "unsyncPeriodTicks": 60
+        "unsyncPeriodTicks": 58
       },
       {
-        "id": "platform3",
+        "id": "moving23c",
         "kind": "moving_platform",
-        "x": 1820,
-        "y": 310,
-        "width": 146,
+        "x": 2145,
+        "y": 388,
+        "width": 128,
         "height": 18,
-        "baseSpeed": 190,
-        "syncedTravel": 16,
-        "unsyncedTravel": 90,
+        "baseSpeed": 130,
+        "syncedTravel": 12,
+        "unsyncedTravel": 95,
         "syncPeriodTicks": 190,
-        "unsyncPeriodTicks": 60
-      },
-      {
-        "id": "doorA",
-        "kind": "exit_gate",
-        "x": 2475,
-        "y": 354,
-        "width": 65,
-        "height": 90
+        "unsyncPeriodTicks": 58
       }
-    ],
-    "rules": [
-      {
-        "on": {
-          "action": "press",
-          "target": "sync"
-        },
-        "if": [
-          {
-            "var": "at:crateA",
-            "eq": "pad1"
-          },
-          {
-            "var": "at:crateB",
-            "eq": "pad4"
-          }
-        ],
-        "set": {
-          "flag:speed_sync": true
-        },
-        "message": "Les trois plateformes sont synchronisées."
-      },
-      {
-        "on": {
-          "action": "jump",
-          "target": "sequence_3"
-        },
-        "if": [
-          {
-            "var": "flag:speed_sync",
-            "eq": true
-          }
-        ],
-        "set": {
-          "flag:three_jumps": true
-        },
-        "message": "La cadence est bonne."
-      }
-    ],
-    "solution": [
-      {
-        "action": "place",
-        "target": "crateA",
-        "value": "pad1"
-      },
-      {
-        "action": "place",
-        "target": "crateB",
-        "value": "pad4"
-      },
-      {
-        "action": "press",
-        "target": "sync"
-      },
-      {
-        "action": "jump",
-        "target": "sequence_3"
-      },
-      {
-        "action": "exit",
-        "target": "doorA"
-      }
-    ],
-    "designNote": "",
-    "validationScope": "GameWorld_physics_plus_puzzle_state"
-  },
-  "experimental": {
-    "status": "physical_playtest",
-    "rendering": "2D Canvas existing style",
-    "physics": "integrated with GameWorld",
-    "worldPreview": "unchanged",
-    "goal": "Play and solve using normal touch controls"
+    ]
   }
 }

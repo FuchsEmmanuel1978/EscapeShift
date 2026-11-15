@@ -2,7 +2,7 @@ package com.escapeshift.game.game_elements
 
 /** Single place to declare JSON object families; no hidden gameplay objects are spawned. */
 object GameElementRegistry {
-    val adventure = setOf("wall", "platform", "crate", "bridge", "spike", "spring", "coin", "snowflake", "conveyor", "saw", "monster", "door")
+    val adventure = setOf("wall", "platform", "crate", "bridge", "spike", "spring", "coin", "heart", "snowflake", "conveyor", "saw", "monster", "door")
     val bate = setOf("moving_spikes")
     val puzzle = setOf("laser_red", "laser_blue", "laser_timed", "key", "switch", "crate_switch")
     val supported: Set<String> = adventure + bate + puzzle

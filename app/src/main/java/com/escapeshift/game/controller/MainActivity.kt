@@ -11,14 +11,21 @@ import android.view.View
 class MainActivity : Activity() {
     private var gameMusic: GameMusic? = null
     private var gameView: GameView? = null
-    private var interstitials: StartioInterstitials? = null
+    private var rewardedAds: AdMobRewards? = null
+    private var consent: ConsentManager? = null
+    private var billing: PlayBillingManager? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     private val openMenu = Runnable {
         val view = GameView(this,
-            onLevelFinished = { level, victory, stillOnResult ->
-                interstitials?.onLevelFinished(level, victory, stillOnResult)
+            onRequestReward = { kind, result ->
+                val manager = rewardedAds
+                if (manager == null) result(false) else manager.show(kind, result)
             },
-            onLeaveResult = { interstitials?.cancelScheduled() },
+            onPrivacyOptions = { consent?.openPrivacyOptions() },
+            onRequestPurchase = { product -> billing?.buy(product) },
+            onRestorePurchases = { billing?.refresh() },
+            onPrice = { product -> billing?.formattedPrice(product) },
+            privacyOptionsAvailable = { consent?.privacyOptionsRequired() == true },
             onPauseChanged = { paused -> if (paused) gameMusic?.pause() else gameMusic?.resume() }
         )
         gameView = view
@@ -54,18 +61,24 @@ class MainActivity : Activity() {
         setContentView(StartupSplashView(this))
         mainHandler.postDelayed(openMenu, 2200L)
         gameMusic = GameMusic(this)
-        interstitials = StartioInterstitials(this).also { it.initialize() }
+        consent = ConsentManager(this)
+        rewardedAds = AdMobRewards(this)
+        billing = PlayBillingManager(this, onChanged = { gameView?.invalidate() },
+            onMessage = { android.widget.Toast.makeText(this, it, android.widget.Toast.LENGTH_LONG).show() })
+        billing?.connect()
+        consent?.request { canRequest -> if (canRequest) rewardedAds?.initialize() }
     }
 
     override fun onResume() {
         super.onResume()
         if (gameView?.isPaused != true) gameMusic?.resume()
         gameView?.resumeAudio()
-        interstitials?.onResume()
+        billing?.refresh()
+
     }
 
     override fun onPause() {
-        interstitials?.onPause()
+
         gameMusic?.pause()
         gameView?.pauseAudio()
         super.onPause()
@@ -73,8 +86,9 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         mainHandler.removeCallbacks(openMenu)
-        interstitials?.release()
-        interstitials = null
+        billing?.close()
+        rewardedAds?.release()
+        rewardedAds = null
         gameView?.releaseAudio()
         gameMusic?.release()
         gameMusic = null

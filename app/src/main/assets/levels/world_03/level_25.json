@@ -6,7 +6,7 @@
   "hintKey": "level_25_hint",
   "intro": "OPEN",
   "backtrackCount": 0,
-  "worldWidth": 2900,
+  "worldWidth": 5350,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -14,240 +14,260 @@
   "ground": {
     "y": 444,
     "depth": 146,
-    "gaps": []
+    "gaps": [
+      {
+        "id": "gap25_shift",
+        "x": 2190,
+        "width": 170
+      },
+      {
+        "id": "gap25_flee",
+        "x": 3410,
+        "width": 148
+      },
+      {
+        "id": "gap25_split",
+        "x": 3860,
+        "width": 158
+      }
+    ]
   },
   "objects": [
     {
-      "id": "exit_door",
+      "id": "coin25a",
+      "type": "coin",
+      "x": 575,
+      "y": 395,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "coin25b",
+      "type": "coin",
+      "x": 1595,
+      "y": 391,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "bridge25",
+      "type": "bridge",
+      "x": 2183,
+      "y": 426,
+      "width": 188,
+      "height": 18
+    },
+    {
+      "id": "laser25_red",
+      "type": "laser_red",
+      "x": 2660,
+      "y": 313,
+      "width": 16,
+      "height": 131
+    },
+    {
+      "id": "laser25_blue",
+      "type": "laser_blue",
+      "x": 2875,
+      "y": 313,
+      "width": 16,
+      "height": 131
+    },
+    {
+      "id": "coin25high",
+      "type": "coin",
+      "x": 3525,
+      "y": 342,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "saw25",
+      "type": "saw",
+      "x": 4260,
+      "y": 410,
+      "width": 33,
+      "height": 34,
+      "amplitude": 65,
+      "phase": 35,
+      "period": 172
+    },
+    {
+      "id": "switch25_final",
+      "type": "switch",
+      "x": 4870,
+      "y": 431,
+      "width": 55,
+      "height": 13
+    },
+    {
+      "id": "heart25_bonus",
+      "type": "heart",
+      "x": 5070,
+      "y": 396,
+      "width": 28,
+      "height": 28
+    },
+    {
+      "id": "door25",
       "type": "door",
-      "x": 2480,
+      "x": 5210,
       "y": 354,
-      "width": 65,
+      "width": 62,
       "height": 90
     }
   ],
-  "route": [],
+  "traps": [
+    {
+      "id": "trap25_rising",
+      "type": "rising_spikes",
+      "x": 2450,
+      "y": 422,
+      "width": 64,
+      "height": 22,
+      "trigger": "player_near",
+      "radius": 145,
+      "delayTicks": 13,
+      "transitionTicks": 10
+    },
+    {
+      "id": "trap25_homing",
+      "type": "homing_spike",
+      "x": 3170,
+      "y": 264,
+      "width": 26,
+      "height": 26,
+      "trigger": "player_near",
+      "radius": 195,
+      "delayTicks": 13,
+      "projectileSpeed": 270,
+      "projectileRange": 430
+    },
+    {
+      "id": "trap25_flee",
+      "type": "flee_platform",
+      "x": 3415,
+      "y": 388,
+      "width": 153,
+      "height": 18,
+      "trigger": "player_near",
+      "radius": 135,
+      "delayTicks": 9,
+      "transitionTicks": 18,
+      "travelX": 65
+    },
+    {
+      "id": "trap25_split",
+      "type": "split_platform",
+      "x": 3862,
+      "y": 390,
+      "width": 155,
+      "height": 18,
+      "trigger": "player_near",
+      "radius": 110,
+      "delayTicks": 10,
+      "transitionTicks": 18,
+      "travelX": 62
+    },
+    {
+      "id": "trap25_crush",
+      "type": "crushing_ceiling",
+      "x": 4510,
+      "y": 224,
+      "width": 156,
+      "height": 46,
+      "trigger": "player_near",
+      "radius": 235,
+      "delayTicks": 16,
+      "transitionTicks": 21,
+      "travelY": 112
+    },
+    {
+      "id": "trap25_wall",
+      "type": "crushing_wall",
+      "x": 4740,
+      "y": 376,
+      "width": 48,
+      "height": 68,
+      "trigger": "player_near",
+      "radius": 130,
+      "delayTicks": 18,
+      "transitionTicks": 22,
+      "travelX": -96
+    }
+  ],
+  "secretPassages": [
+    {
+      "id": "secret25_vault",
+      "x": 5000,
+      "y": 376,
+      "width": 44,
+      "height": 68,
+      "activation": "switch_active",
+      "triggerRadius": 75,
+      "showCracks": true
+    }
+  ],
+  "route": [
+    "gap25_shift",
+    "laser25_red",
+    "laser25_blue",
+    "gap25_flee",
+    "gap25_split",
+    "saw25",
+    "switch25_final"
+  ],
   "puzzle": {
-    "prototype": false,
-    "title": "La combinaison aveugle",
-    "concepts": [
-      "mastermind",
-      "10_crates_5_buttons",
-      "partial_feedback"
-    ],
-    "goal": [
-      {
-        "var": "solved:mastermind",
-        "eq": true
-      }
-    ],
-    "hint": "Seul le nombre de caisses bien placées est indiqué, pas lesquelles.",
     "devices": [
       {
-        "id": "crate01",
+        "id": "crateA",
         "kind": "crate",
-        "x": 230,
-        "y": 401,
-        "width": 48,
-        "height": 43,
+        "x": 250,
+        "y": 400,
+        "width": 46,
+        "height": 44,
         "weight": 1,
-        "symbol": "☀"
+        "symbol": "A"
       },
       {
-        "id": "crate02",
+        "id": "crateB",
         "kind": "crate",
-        "x": 330,
-        "y": 401,
-        "width": 48,
-        "height": 43,
+        "x": 640,
+        "y": 400,
+        "width": 46,
+        "height": 44,
         "weight": 1,
-        "symbol": "△"
+        "symbol": "B"
       },
       {
-        "id": "crate03",
-        "kind": "crate",
-        "x": 430,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1,
-        "symbol": "◇"
-      },
-      {
-        "id": "crate04",
-        "kind": "crate",
-        "x": 530,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1,
-        "symbol": "○"
-      },
-      {
-        "id": "crate05",
-        "kind": "crate",
-        "x": 630,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1,
-        "symbol": "★"
-      },
-      {
-        "id": "crate06",
-        "kind": "crate",
-        "x": 730,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1,
-        "symbol": "☾"
-      },
-      {
-        "id": "crate07",
-        "kind": "crate",
-        "x": 830,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1,
-        "symbol": "+"
-      },
-      {
-        "id": "crate08",
-        "kind": "crate",
-        "x": 930,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1,
-        "symbol": "□"
-      },
-      {
-        "id": "crate09",
-        "kind": "crate",
-        "x": 1030,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1,
-        "symbol": "▣"
-      },
-      {
-        "id": "crate10",
-        "kind": "crate",
-        "x": 1130,
-        "y": 401,
-        "width": 48,
-        "height": 43,
-        "weight": 1,
-        "symbol": "∞"
-      },
-      {
-        "id": "pad1",
+        "id": "padA",
         "kind": "code_button",
-        "x": 1370,
-        "y": 433,
-        "width": 78,
-        "height": 11
+        "x": 880,
+        "y": 431,
+        "width": 90,
+        "height": 13,
+        "symbol": "B"
       },
       {
-        "id": "pad2",
+        "id": "padB",
         "kind": "code_button",
-        "x": 1520,
-        "y": 433,
-        "width": 78,
-        "height": 11
-      },
-      {
-        "id": "pad3",
-        "kind": "code_button",
-        "x": 1670,
-        "y": 433,
-        "width": 78,
-        "height": 11
-      },
-      {
-        "id": "pad4",
-        "kind": "code_button",
-        "x": 1820,
-        "y": 433,
-        "width": 78,
-        "height": 11
-      },
-      {
-        "id": "pad5",
-        "kind": "code_button",
-        "x": 1970,
-        "y": 433,
-        "width": 78,
-        "height": 11
-      },
-      {
-        "id": "doorA",
-        "kind": "exit_gate",
-        "x": 2480,
-        "y": 354,
-        "width": 65,
-        "height": 90
+        "x": 1360,
+        "y": 431,
+        "width": 90,
+        "height": 13,
+        "symbol": "A"
       }
     ],
-    "rules": [],
-    "solution": [
-      {
-        "action": "submit",
-        "target": "mastermind",
-        "value": {
-          "pad1": "crate01",
-          "pad2": "crate03",
-          "pad3": "crate06",
-          "pad4": "crate07",
-          "pad5": "crate09"
-        }
-      },
-      {
-        "action": "submit",
-        "target": "mastermind",
-        "value": {
-          "pad1": "crate02",
-          "pad2": "crate04",
-          "pad3": "crate06",
-          "pad4": "crate08",
-          "pad5": "crate10"
-        }
-      },
-      {
-        "action": "exit",
-        "target": "doorA"
-      }
-    ],
-    "designNote": "Le nombre de combinaisons possibles est important. Ajouter des indices visuels dans une version jouable.",
-    "validationScope": "logical_state_machine_only",
     "combination": {
-      "id": "mastermind",
+      "id": "code25",
       "pads": [
-        "pad1",
-        "pad2",
-        "pad3",
-        "pad4",
-        "pad5"
+        "padA",
+        "padB"
       ],
       "target": {
-        "pad1": "crate02",
-        "pad2": "crate04",
-        "pad3": "crate06",
-        "pad4": "crate08",
-        "pad5": "crate10"
-      },
-      "feedback": "count_correct_positions_only",
-      "maxGuesses": 12
-    },
-    "designerHint": "Indices: 5 caisses de numeros PAIRS en ordre croissant. La jauge indique seulement combien sont bien placées."
-  },
-  "experimental": {
-    "status": "physical_beta",
-    "rendering": "existing industrial 2D Canvas design",
-    "physics": "AdvancedPuzzle in GameWorld",
-    "validationScope": "physical contact and puzzle-logic regression; complete playtest pending"
+        "padA": "crateB",
+        "padB": "crateA"
+      }
+    }
   }
 }
