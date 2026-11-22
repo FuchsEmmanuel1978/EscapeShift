@@ -127,7 +127,37 @@ object LevelJsonParser {
             }
             previousEnd = it.x + it.width
         }
+        // Optional slopes: use the same JSON terrain definition for rendering and physics.
+        // Each ramp spans TWO base tiles (176 world units by default in W1).
+        val slopes = (ground["slopes"]?.let { list(it, "ground.slopes") } ?: emptyList<Any?>()).mapIndexed { i, value ->
+            val r = map(value, "ground.slopes[$i]")
+            GroundSlope(str(r["id"], "ground.slopes[$i].id"),
+                number(r["x"], "ground.slopes[$i].x"),
+                number(r["width"], "ground.slopes[$i].width"),
+                number(r["rise"], "ground.slopes[$i].rise"))
+        }.sortedBy { it.x }
+        var endOfLastSlope = 0f
+        var totalRise = 0f
+        slopes.forEach { ramp ->
+            require(ramp.x >= endOfLastSlope && ramp.width > 0f && ramp.end <= worldWidth) {
+                "Overlapping/invalid ground slope ${ramp.id}"
+            }
+            require(kotlin.math.abs(ramp.rise) <= ramp.width * .5f && kotlin.math.abs(ramp.rise) >= 1f) {
+                "Slope ${ramp.id}: rise too steep or zero"
+            }
+            require(gaps.none { ramp.x < it.x + it.width && ramp.end > it.x }) {
+                "Slope ${ramp.id} must not intersect a permanent gap"
+            }
+            totalRise += ramp.rise
+            require(groundY + totalRise in 250f..520f) { "Slope ${ramp.id} outside playable height" }
+            endOfLastSlope = ramp.end
+        }
         val seenIds = mutableSetOf<String>()
+        for (ramp in slopes) {
+            require(ramp.id.matches(Regex("[a-zA-Z0-9_]+")) && seenIds.add(ramp.id)) {
+                "Duplicate or invalid ground slope ID: ${ramp.id}"
+            }
+        }
         for (gap in gaps) {
             require(gap.id.matches(Regex("[a-zA-Z0-9_]+")) && seenIds.add(gap.id)) { "Duplicate or invalid gap ID: ${gap.id}" }
         }
@@ -283,6 +313,13 @@ object LevelJsonParser {
                 }
             }
         }
+        // A collapsing floor crossing a slope would need a sloped falling slab.
+        // Reject it explicitly rather than giving an invisible/incorrect collision.
+        for (ramp in slopes) {
+            require(traps.none { it.type == "collapse_floor" && ramp.x < it.x + it.width && ramp.end > it.x }) {
+                "Ramp ${ramp.id} overlaps a collapse_floor trap; place the bate on flat terrain"
+            }
+        }
         val mapById = objects.associateBy { it.id }
         val routeNames = list(get("route"), "route").map { str(it, "route element") }
         require(routeNames.distinct().size == routeNames.size) { "Duplicate route entry" }
@@ -324,7 +361,7 @@ object LevelJsonParser {
             hint = str(get("hintKey"), "hintKey"),
             startX = spawnX, startY = spawnY,
             groundY = groundY, groundDepth = groundDepth,
-            gaps = gaps,
+            gaps = gaps, slopes = slopes,
             objects = objects,
             traps = traps,
             physicalPuzzle = physicalPlan, advancedPuzzle = advancedPlan,

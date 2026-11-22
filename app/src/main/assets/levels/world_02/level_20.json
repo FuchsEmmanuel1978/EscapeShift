@@ -6,7 +6,7 @@
   "hintKey": "level_20_hint",
   "intro": "OPEN",
   "backtrackCount": 0,
-  "worldWidth": 4100,
+  "worldWidth": 3910,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -16,202 +16,191 @@
     "depth": 146,
     "gaps": [
       {
-        "id": "gap20_shift",
-        "x": 1230,
-        "width": 160
-      },
-      {
-        "id": "gap20_last",
-        "x": 3510,
-        "width": 140
+        "id": "gap_20_01",
+        "x": 2870,
+        "width": 175
       }
     ]
   },
   "objects": [
     {
-      "id": "crate20",
-      "type": "crate",
-      "x": 195,
-      "y": 400,
-      "width": 46,
-      "height": 44
-    },
-    {
-      "id": "plate20",
-      "type": "crate_switch",
+      "id": "saw_20_01",
+      "type": "saw",
       "x": 465,
-      "y": 431,
-      "width": 54,
-      "height": 13
+      "y": 405,
+      "width": 36,
+      "height": 36,
+      "amplitude": 48,
+      "phase": 0,
+      "period": 130
     },
     {
-      "id": "wall20",
-      "type": "wall",
-      "x": 695,
-      "y": 374,
-      "width": 42,
-      "height": 70
+      "id": "red_20_01",
+      "type": "laser_red",
+      "x": 885,
+      "y": 310,
+      "width": 16,
+      "height": 134,
+      "phase": 0,
+      "period": 140,
+      "activeTicks": 78
     },
     {
-      "id": "coin20a",
-      "type": "coin",
-      "x": 865,
-      "y": 399,
-      "width": 24,
-      "height": 24
+      "id": "saw_20_02",
+      "type": "saw",
+      "x": 1180,
+      "y": 405,
+      "width": 36,
+      "height": 36,
+      "amplitude": 45,
+      "phase": 42,
+      "period": 126
     },
     {
-      "id": "heart20secret",
-      "type": "heart",
-      "x": 1000,
-      "y": 395,
-      "width": 28,
+      "id": "blue_20_01",
+      "type": "laser_blue",
+      "x": 1660,
+      "y": 310,
+      "width": 16,
+      "height": 134,
+      "phase": 0,
+      "period": 140,
+      "activeTicks": 78
+    },
+    {
+      "id": "saw_20_03",
+      "type": "saw",
+      "x": 2110,
+      "y": 405,
+      "width": 36,
+      "height": 36,
+      "amplitude": 38,
+      "phase": 80,
+      "period": 138
+    },
+    {
+      "id": "spring_20_01",
+      "type": "spring",
+      "x": 2780,
+      "y": 437,
+      "width": 48,
+      "height": 7
+    },
+    {
+      "id": "switch_20_01",
+      "type": "switch",
+      "x": 3230,
+      "y": 434,
+      "width": 45,
+      "height": 10
+    },
+    {
+      "id": "boss_yeti_20_01",
+      "type": "monster",
+      "x": 3410,
+      "y": 362,
+      "width": 94,
+      "height": 82,
+      "amplitude": 35,
+      "period": 168,
+      "phase": 22
+    },
+    {
+      "id": "key_20_01",
+      "type": "key",
+      "x": 3720,
+      "y": 389,
+      "width": 25,
       "height": 28
     },
     {
-      "id": "bridge20",
-      "type": "bridge",
-      "x": 1224,
-      "y": 427,
-      "width": 176,
-      "height": 17
-    },
-    {
-      "id": "coin20b",
-      "type": "coin",
-      "x": 1570,
-      "y": 389,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "laser20red",
-      "type": "laser_red",
-      "x": 1810,
-      "y": 313,
-      "width": 15,
-      "height": 131
-    },
-    {
-      "id": "laser20blue",
-      "type": "laser_blue",
-      "x": 2025,
-      "y": 313,
-      "width": 15,
-      "height": 131
-    },
-    {
-      "id": "platform20",
-      "type": "platform",
-      "x": 2570,
-      "y": 382,
-      "width": 110,
-      "height": 18
-    },
-    {
-      "id": "coin20c",
-      "type": "coin",
-      "x": 2605,
-      "y": 347,
-      "width": 24,
-      "height": 24
-    },
-    {
-      "id": "saw20",
-      "type": "saw",
-      "x": 2795,
-      "y": 410,
-      "width": 32,
-      "height": 34,
-      "amplitude": 25,
-      "period": 170,
-      "phase": 32
-    },
-    {
-      "id": "switch20",
-      "type": "switch",
-      "x": 3295,
-      "y": 431,
-      "width": 50,
-      "height": 13
-    },
-    {
-      "id": "platform20_last",
-      "type": "platform",
-      "x": 3500,
-      "y": 410,
-      "width": 162,
-      "height": 17
-    },
-    {
-      "id": "door20",
+      "id": "exit_door",
       "type": "door",
-      "x": 3930,
+      "x": 3810,
       "y": 354,
-      "width": 62,
+      "width": 65,
       "height": 90
     }
   ],
+  "route": [
+    "saw_20_01",
+    "red_20_01",
+    "saw_20_02",
+    "blue_20_01",
+    "saw_20_03",
+    "spring_20_01",
+    "gap_20_01",
+    "switch_20_01",
+    "boss_yeti_20_01",
+    "key_20_01"
+  ],
+  "designVersion": "world2_snow_level20_json_v1",
   "traps": [
     {
-      "id": "trap20_spike",
-      "type": "rising_spikes",
-      "x": 2185,
-      "y": 423,
-      "width": 50,
-      "height": 21,
-      "trigger": "player_near",
-      "radius": 145,
-      "delayTicks": 15,
-      "transitionTicks": 11,
-      "orientation": "up"
-    },
-    {
-      "id": "trap20_floor",
+      "id": "bate_20_01",
       "type": "collapse_floor",
-      "x": 2400,
+      "x": 1460,
       "y": 444,
-      "width": 92,
-      "height": 18,
-      "trigger": "player_near",
-      "radius": 135,
-      "delayTicks": 25,
-      "showWarning": true
+      "width": 75,
+      "height": 146,
+      "trigger": "player_on",
+      "radius": 16,
+      "delayTicks": 11,
+      "transitionTicks": 16,
+      "showWarning": false
     },
     {
-      "id": "trap20_flying",
-      "type": "flying_spike",
-
-
-      "x": 3090,
-      "y": 297,
-      "width": 24,
-      "height": 24,
-      "trigger": "player_near",
-      "radius": 200,
-      "delayTicks": 16,
-      "projectileSpeed": 260,
-      "projectileRange": 360
-    }
-  ],
-  "secretPassages": [
+      "id": "bate_20_02",
+      "type": "collapse_floor",
+      "x": 2480,
+      "y": 444,
+      "width": 88,
+      "height": 146,
+      "trigger": "player_on",
+      "radius": 16,
+      "delayTicks": 12,
+      "transitionTicks": 16,
+      "showWarning": false
+    },
     {
-      "id": "secret20_interact",
-      "x": 930,
-      "y": 378,
-      "width": 40,
-      "height": 66,
-      "activation": "interact",
-      "triggerRadius": 85,
-      "showCracks": true
+      "id": "moving_20_01",
+      "type": "moving_platform",
+      "x": 2905,
+      "y": 373,
+      "width": 113,
+      "height": 16,
+      "trigger": "player_near",
+      "travelX": 15,
+      "travelY": 0,
+      "periodTicks": 160,
+      "delayTicks": 0,
+      "transitionTicks": 20
+    },
+    {
+      "id": "icicle_20_01",
+      "type": "rising_spikes",
+      "x": 2010,
+      "y": 324,
+      "width": 28,
+      "height": 58,
+      "trigger": "player_jump",
+      "radius": 115,
+      "orientation": "down",
+      "delayTicks": 13,
+      "transitionTicks": 12
+    },
+    {
+      "id": "flying_20_01",
+      "type": "flying_spike",
+      "x": 3150,
+      "y": 319,
+      "width": 25,
+      "height": 25,
+      "trigger": "player_near",
+      "radius": 118,
+      "delayTicks": 16,
+      "projectileSpeed": 250,
+      "projectileRange": 380
     }
-  ],
-  "route": [
-    "gap20_shift",
-    "laser20red",
-    "laser20blue",
-    "saw20",
-    "switch20",
-    "gap20_last"
   ]
 }

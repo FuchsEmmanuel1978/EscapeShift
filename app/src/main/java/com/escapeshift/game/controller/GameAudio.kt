@@ -20,10 +20,19 @@ class GameAudio(context: Context) {
     private val pool = SoundPool.Builder().setMaxStreams(12)
         .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()).build()
+    private val userSettings = GameUserSettings(context)
     private val samples = mutableMapOf<String, Int>()
     private val ready = mutableSetOf<Int>()
     private val streams = mutableMapOf<String, Int>()
     private var enabled = true
+    // Legacy mute is read by GameUserSettings. Avoid a second stale cached mute switch.
+    private var userSoundEnabled = true
+
+    /** User preference survives pause/resume and does not affect background music. */
+    fun setUserSoundEnabled(value: Boolean) {
+        userSoundEnabled = value
+        if (!value) { streams.values.forEach { pool.stop(it) }; streams.clear() }
+    }
     private var released = false
     private val loops = setOf("laser", "saw", "monster", "conveyor")
 
@@ -41,10 +50,11 @@ class GameAudio(context: Context) {
     }
 
     fun oneShot(name: String, volume: Float = .55f) {
-        if (released || !enabled) return
+        val settings = userSettings.get()
+        if (released || !enabled || !userSoundEnabled || settings.muteSfx || settings.sfx <= 0) return
         val id = samples[name] ?: return
         if (id !in ready) return
-        val v = volume.coerceIn(0f, MAX_EFFECT_VOLUME)
+        val v = volume.coerceIn(0f, MAX_EFFECT_VOLUME) * settings.sfx / 100f
         pool.play(id, v, v, 1, 0, 1f)
     }
 
@@ -52,7 +62,9 @@ class GameAudio(context: Context) {
     fun updateAmbient(type: String, distance: Float?) {
         if (released || type !in loops) return
         val id = samples[type] ?: return
-        val volume = if (!enabled || distance == null) 0f else MAX_AMBIENT_VOLUME * proximity(distance)
+        val settings = userSettings.get()
+        val volume = if (!enabled || !userSoundEnabled || settings.muteSfx || distance == null) 0f
+            else MAX_AMBIENT_VOLUME * proximity(distance) * settings.sfx / 100f
         val stream = streams[type]
         if (volume < .002f || id !in ready) {
             if (stream != null) { pool.stop(stream); streams.remove(type) }

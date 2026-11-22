@@ -5,8 +5,8 @@
   "titleKey": "level_12_title",
   "hintKey": "level_12_hint",
   "intro": "OPEN",
-  "backtrackCount": 0,
-  "worldWidth": 3330,
+  "backtrackCount": 1,
+  "worldWidth": 2650,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -16,175 +16,143 @@
     "depth": 146,
     "gaps": [
       {
-        "id": "gap_01",
-        "x": 715,
-        "width": 94
+        "id": "gap_12_01",
+        "x": 1350,
+        "width": 175
       }
     ]
   },
   "objects": [
     {
-      "id": "crate_01",
-      "type": "crate",
-      "x": 225,
-      "y": 400,
-      "width": 46,
-      "height": 44
-    },
-    {
-      "id": "crate_wall_01",
-      "type": "wall",
-      "x": 375,
-      "y": 324,
-      "width": 42,
-      "height": 120
-    },
-    {
-      "id": "saw_01",
-      "type": "saw",
-      "x": 1025,
-      "y": 410,
-      "width": 30,
-      "height": 34,
-      "amplitude": 50,
-      "phase": 0,
-      "period": 160
-    },
-    {
-      "id": "spike_01",
-      "type": "spike",
-      "x": 1335,
-      "y": 421,
-      "width": 34,
-      "height": 23,
-      "count": 1,
-      "spacing": 3
-    },
-    {
-      "id": "laser_01",
-      "type": "laser_red",
-      "x": 1645,
-      "y": 291,
-      "width": 16,
-      "height": 153
-    },
-    {
-      "id": "monster_01",
-      "type": "monster",
-      "x": 1910,
-      "y": 398,
-      "width": 62,
-      "height": 46,
-      "amplitude": 16,
-      "phase": 31,
-      "period": 138
-    },
-    {
-      "id": "spike_02",
-      "type": "spike",
-      "x": 2220,
-      "y": 421,
-      "width": 34,
-      "height": 23,
-      "count": 1,
-      "spacing": 3
-    },
-    {
-      "id": "spike_03",
-      "type": "spike",
-      "x": 2530,
-      "y": 421,
-      "width": 34,
-      "height": 23,
-      "count": 1,
-      "spacing": 3
-    },
-    {
-      "id": "switch_01",
-      "type": "switch",
-      "x": 2840,
-      "y": 431,
-      "width": 47,
-      "height": 13
-    },
-    {
-      "id": "snowflake_01",
-      "type": "snowflake",
-      "x": 890.0,
-      "y": 92,
-      "width": 24,
-      "height": 24,
-      "phase": 118,
-      "period": 160,
-      "amplitude": 0,
-      "speed": 160
-    },
-    {
-      "id": "snowflake_02",
-      "type": "snowflake",
-      "x": 1985.0,
-      "y": 104,
-      "width": 24,
-      "height": 24,
-      "phase": 149,
-      "period": 160,
-      "amplitude": 0,
-      "speed": 177
-    },
-    {
-      "id": "platform_01",
+      "id": "shelf_12_key",
       "type": "platform",
-      "x": 835,
-      "y": 344,
-      "width": 128,
-      "height": 20
+      "x": 310,
+      "y": 368,
+      "width": 155,
+      "height": 16
     },
     {
-      "id": "coin_01",
+      "id": "key_12_01",
+      "type": "key",
+      "x": 378,
+      "y": 332,
+      "width": 25,
+      "height": 28
+    },
+    {
+      "id": "coin_12_01",
       "type": "coin",
-      "x": 885,
-      "y": 308,
-      "width": 24,
-      "height": 24
+      "x": 590,
+      "y": 387,
+      "width": 25,
+      "height": 25
+    },
+    {
+      "id": "coin_12_02",
+      "type": "coin",
+      "x": 900,
+      "y": 370,
+      "width": 25,
+      "height": 25
+    },
+    {
+      "id": "spring_12_01",
+      "type": "spring",
+      "x": 1250,
+      "y": 437,
+      "width": 48,
+      "height": 7
+    },
+    {
+      "id": "spike_12_01",
+      "type": "spike",
+      "x": 1670,
+      "y": 421,
+      "width": 34,
+      "height": 23,
+      "count": 1,
+      "spacing": 4
+    },
+    {
+      "id": "coin_12_03",
+      "type": "coin",
+      "x": 1890,
+      "y": 387,
+      "width": 25,
+      "height": 25
+    },
+    {
+      "id": "switch_12_01",
+      "type": "switch",
+      "x": 2160,
+      "y": 434,
+      "width": 45,
+      "height": 10
+    },
+    {
+      "id": "coin_12_04",
+      "type": "coin",
+      "x": 2300,
+      "y": 387,
+      "width": 25,
+      "height": 25
     },
     {
       "id": "exit_door",
       "type": "door",
-      "x": 3140,
+      "x": 2510,
       "y": 354,
       "width": 65,
       "height": 90
     }
   ],
   "route": [
-    "gap_01",
-    "saw_01",
-    "spike_01",
-    "laser_01",
-    "monster_01",
-    "spike_02",
-    "spike_03",
-    "switch_01"
+    "key_12_01",
+    "spring_12_01",
+    "gap_12_01",
+    "spike_12_01",
+    "switch_12_01"
   ],
-  "difficulty": {
-    "jump": "petit",
-    "sawAmplitude": 50,
-    "spikeGroups": 3,
-    "spikesPerGroup": 1,
-    "monsters": 1,
-    "crates": 1,
-    "buttons": 1,
-    "cratePressurePads": 0,
-    "walls": 1,
-    "snowflakes": 2,
-    "shiftChanges": 1
-  },
-  "world2Modules": [
+  "designVersion": "world2_snow_level12_json_v1",
+  "traps": [
     {
-      "crateId": "crate_01",
-      "wallId": "crate_wall_01",
-      "mustClimb": true,
-      "pressureId": null
+      "id": "bate_12_01",
+      "type": "collapse_floor",
+      "x": 690,
+      "y": 444,
+      "width": 70,
+      "height": 146,
+      "trigger": "player_on",
+      "radius": 16,
+      "delayTicks": 15,
+      "transitionTicks": 16,
+      "showWarning": false
+    },
+    {
+      "id": "bate_12_02",
+      "type": "collapse_floor",
+      "x": 780,
+      "y": 444,
+      "width": 66,
+      "height": 146,
+      "trigger": "player_on",
+      "radius": 16,
+      "delayTicks": 16,
+      "transitionTicks": 16,
+      "showWarning": false
+    },
+    {
+      "id": "bate_12_03",
+      "type": "collapse_floor",
+      "x": 1000,
+      "y": 444,
+      "width": 72,
+      "height": 146,
+      "trigger": "player_on",
+      "radius": 16,
+      "delayTicks": 14,
+      "transitionTicks": 16,
+      "showWarning": false
     }
   ]
 }

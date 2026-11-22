@@ -9,61 +9,73 @@ import android.graphics.Rect
 import android.graphics.RectF
 
 /**
- * Fixed foreground overlays for World 1.
- * Both strips fill the complete viewport width without camera scrolling,
- * horizontal cropping or independent X/Y stretching.
+ * ESCAPE SHIFT - Factory overlays V5.
  *
- * Draw order is controlled by GameView: after gameplay sprites and before HUD.
+ * Foreground artwork follows the *world camera* instead of staying locked
+ * to the phone screen. At factor 1.0, an element moves at exactly the same
+ * horizontal speed as a terrain tile. A lower factor moves more slowly.
+ *
+ * The PNGs are scaled UNIFORMLY, full-width at cameraX=0, and repeated
+ * horizontally when the camera goes past their right edge. No ping-pong,
+ * shrinking source crop, distortion, or moving while cameraX is stationary.
+ *
+ * Rendered by GameView after gameplay and before HUD.
  */
 class FactoryParallaxLayers(context: Context) {
     companion object {
-        // Move the lower overlay down a little without changing its size.
-        // 0 = flush with bottom of screen, positive = partially below screen.
-        const val BOTTOM_OFFSET = 40f
-        // 0 = top edge of screen. HUD renders afterward, above the decoration.
+        // 1 = same speed as the ground; 0 = fixed on the phone screen.
+        const val TOP_SCROLL_FACTOR = 0.97f
+        const val BOTTOM_SCROLL_FACTOR = 1.02f
+
+        // Keep the V4 vertical positions. Positive bottom offset = lower.
         const val TOP_OFFSET = 0f
+        const val BOTTOM_OFFSET = 40f
     }
 
-    private val top = decode(context, R.drawable.world_01_factory_top)
-    private val bottom = decode(context, R.drawable.world_01_factory_bottom)
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
+    private val top = load(context, R.drawable.world_01_factory_top)
+    private val bottom = load(context, R.drawable.world_01_factory_bottom)
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
-    private fun decode(context: Context, resourceId: Int): Bitmap? = try {
-        BitmapFactory.decodeResource(context.resources, resourceId)
-    } catch (_: Exception) {
-        null
-    }
+    private fun load(context: Context, id: Int): Bitmap? = try {
+        BitmapFactory.decodeResource(context.resources, id)
+    } catch (_: Exception) { null }
 
-    // Keep the existing API used by GameView. cameraX is intentionally ignored.
-    @Suppress("UNUSED_PARAMETER")
     fun draw(canvas: Canvas, viewportWidth: Float, viewportHeight: Float, cameraX: Float) {
         if (viewportWidth <= 0f || viewportHeight <= 0f) return
-        drawFixed(canvas, top, viewportWidth, viewportHeight, isTop = true)
-        drawFixed(canvas, bottom, viewportWidth, viewportHeight, isTop = false)
+        drawLayer(canvas, top, viewportWidth, viewportHeight, cameraX,
+            TOP_SCROLL_FACTOR, true)
+        drawLayer(canvas, bottom, viewportWidth, viewportHeight, cameraX,
+            BOTTOM_SCROLL_FACTOR, false)
     }
 
-    private fun drawFixed(
-        canvas: Canvas,
-        bitmap: Bitmap?,
-        viewportWidth: Float,
-        viewportHeight: Float,
-        isTop: Boolean
+    private fun drawLayer(
+        canvas: Canvas, image: Bitmap?, screenW: Float, screenH: Float,
+        cameraX: Float, scrollFactor: Float, topLayer: Boolean
     ) {
-        if (bitmap == null || bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) return
+        if (image == null || image.isRecycled || image.width <= 0 || image.height <= 0) return
 
-        // Uniform scaling: original 2172-px width fills the viewport exactly.
-        // The resulting height is computed from the source aspect ratio.
-        val displayHeight = viewportWidth * bitmap.height.toFloat() / bitmap.width.toFloat()
-        val y = if (isTop) TOP_OFFSET else viewportHeight - displayHeight + BOTTOM_OFFSET
+        // Preserve the FULL source image on the viewport at the beginning of
+        // the level. The source aspect ratio controls the displayed height.
+        val tileW = screenW
+        val tileH = tileW * image.height.toFloat() / image.width.toFloat()
+        val y = if (topLayer) TOP_OFFSET else screenH - tileH + BOTTOM_OFFSET
+
+        // A world position X appears at screenX = X - cameraX.
+        // Using a fraction of cameraX creates a controlled parallax effect.
+        // floor / positive modulo is stable for arbitrary level lengths.
+        val traveled = cameraX.coerceAtLeast(0f).toDouble() * scrollFactor.toDouble()
+        val offset = (traveled % tileW.toDouble()).toFloat()
+        val firstX = -offset
 
         canvas.save()
-        canvas.clipRect(0f, 0f, viewportWidth, viewportHeight)
-        canvas.drawBitmap(
-            bitmap,
-            Rect(0, 0, bitmap.width, bitmap.height),
-            RectF(0f, y, viewportWidth, y + displayHeight),
-            paint
-        )
+        canvas.clipRect(0f, 0f, screenW, screenH)
+        val src = Rect(0, 0, image.width, image.height)
+        // At most two images are required because tileW == screenW.
+        canvas.drawBitmap(image, src, RectF(firstX, y, firstX + tileW, y + tileH), paint)
+        if (offset > 0.0001f) {
+            canvas.drawBitmap(image, src,
+                RectF(firstX + tileW, y, firstX + 2f * tileW, y + tileH), paint)
+        }
         canvas.restore()
     }
 }

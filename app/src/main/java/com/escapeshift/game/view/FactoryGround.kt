@@ -28,6 +28,8 @@ class FactoryGround(context: Context) {
     private val centerB = BitmapFactory.decodeResource(context.resources, R.drawable.factory_ground_center_b)
     private val leftEdge = BitmapFactory.decodeResource(context.resources, R.drawable.factory_ground_edge_left)
     private val rightEdge = BitmapFactory.decodeResource(context.resources, R.drawable.factory_ground_edge_right)
+    private val slopeUp = BitmapFactory.decodeResource(context.resources, R.drawable.factory_slope_up)
+    private val slopeDown = BitmapFactory.decodeResource(context.resources, R.drawable.factory_slope_down)
 
     private val props: List<Bitmap> = listOf(
         R.drawable.factory_front_pipe,
@@ -59,14 +61,35 @@ class FactoryGround(context: Context) {
         val tileHeight = screenWorldHeight * GameVisualConfig.GROUND_TILE_HEIGHT_FRACTION
         if (tileWidth <= 1f || tileHeight <= 1f) return
         val viewRight = viewLeft + screenWorldWidth
+        // Split at terrain transitions so the art and the collision share a single surface.
+        val boundaries = (listOf(0f, spec.worldRight) + spec.slopes.flatMap { listOf(it.x, it.end) }).distinct().sorted()
         for (segment in solidSpans(spec.worldRight, visibleGaps)) {
-            paintSpan(c, segment.start, segment.end, spec.groundY, tileWidth, tileHeight, viewLeft, viewRight)
-            // A gap edge is ONLY drawn when it is a genuine hole, including after
-            // collapse. Never draw these ornaments at a hidden trap boundary.
+            val cuts = (listOf(segment.start, segment.end) + boundaries.filter { it > segment.start && it < segment.end }).sorted()
+            for (i in 0 until cuts.lastIndex) {
+                val l = cuts[i]; val r = cuts[i + 1]
+                if (r <= l) continue
+                val ramp = spec.slopes.firstOrNull { l >= it.x - .01f && r <= it.end + .01f }
+                if (ramp == null) {
+                    val y = GroundTerrain.surface(spec, (l+r)*.5f)
+                    paintSpan(c, l, r, y, tileWidth, tileHeight, viewLeft, viewRight)
+                } else {
+                    val leftY = GroundTerrain.surface(spec, l)
+                    val rightY = GroundTerrain.surface(spec, r)
+                    val image = if (ramp.rise < 0f) slopeUp else slopeDown
+                    // Slope sprites include a diagonal 3D curb and a textured face.
+                    c.save()
+                    c.clipRect(l, min(leftY,rightY), r, max(leftY,rightY)+tileHeight)
+                    c.drawBitmap(image, null, RectF(l, min(leftY,rightY), r, max(leftY,rightY)+tileHeight), paint)
+                    c.restore()
+                }
+            }
+            // Gap boundaries get matching left/right trims, never on concealed traps.
             if (segment.start > 0.1f) drawEdge(c, leftEdge, segment.start, true,
-                segment.start, segment.end, spec.groundY, tileWidth, tileHeight, viewLeft, viewRight)
+                segment.start, segment.end, GroundTerrain.surface(spec, segment.start),
+                tileWidth, tileHeight, viewLeft, viewRight)
             if (segment.end < spec.worldRight - 0.1f) drawEdge(c, rightEdge, segment.end, false,
-                segment.start, segment.end, spec.groundY, tileWidth, tileHeight, viewLeft, viewRight)
+                segment.start, segment.end, GroundTerrain.surface(spec, segment.end),
+                tileWidth, tileHeight, viewLeft, viewRight)
         }
     }
 

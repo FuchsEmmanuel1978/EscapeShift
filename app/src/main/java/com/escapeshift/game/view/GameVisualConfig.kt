@@ -4,10 +4,10 @@ package com.escapeshift.game
 object GameVisualConfig {
     const val MAX_HEARTS = BizConfig.Lives.MAX
     const val RESPAWN_IRIS_SECONDS = 0.28f  // short retry, no interstitial between hearts
-    const val CONTROL_BACKGROUND_ALPHA = 51  // 80% transparent white
-    const val MOVE_TRIANGLE_ALPHA = 128       // 50% visible
-    const val JUMP_TRIANGLE_ALPHA = 51        // 80% transparent
-    const val SHIFT_HASH_ALPHA = 128          // 50% visible
+    const val CONTROL_BACKGROUND_ALPHA = 0  // 80% transparent white
+    const val MOVE_TRIANGLE_ALPHA = 50       // 50% visible
+    const val JUMP_TRIANGLE_ALPHA = 50        // 80% transparent
+    const val SHIFT_HASH_ALPHA = 50          // 50% visible
     const val HERO_SPEED_MULTIPLIER = 1.20f // actual movement, all playable worlds
     const val PAUSE_BACKGROUND_ALPHA = 51  // translucent pause icon, no border
     const val PAUSE_SYMBOL_ALPHA = 200

@@ -1,10 +1,14 @@
 package com.escapeshift.game
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.SharedPreferences
 
 /** Local Step-1 economy. Play Billing entitlements and AdMob rewards are wired in later steps. */
 class LifeEconomy(context: Context) {
+    // Ne jamais activer les vies infinies dans une version release, meme si DevConfig.ENABLED est reste a true.
+    private val infiniteDebugLives = DevConfig.ENABLED && DevConfig.INFINITE_LIVES &&
+        (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     private val prefs: SharedPreferences = context.getSharedPreferences("escape_shift", Context.MODE_PRIVATE)
     private val keyLives = "economy_lives_v1"
     private val keyRegen = "economy_regen_at_v1"
@@ -18,7 +22,7 @@ class LifeEconomy(context: Context) {
     private val collectedHeartIds = prefs.getString(keyHeartIds, "")
         .orEmpty().split('|').filter { it.isNotBlank() }.toMutableSet()
 
-    val lives: Int get() { if (entitlements.isPremium) return BizConfig.Lives.MAX; refresh(); return livesRaw }
+    val lives: Int get() { if (infiniteDebugLives) return BizConfig.Lives.MAX; if (entitlements.isPremium) return BizConfig.Lives.MAX; refresh(); return livesRaw }
     fun availableCoins(totalCollectedUnique: Int): Int =
         (totalCollectedUnique.toLong() + prefs.getInt(ConsumableWallet.KEY_PAID_COINS, 0).coerceAtLeast(0) - spent)
             .coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
@@ -51,12 +55,14 @@ class LifeEconomy(context: Context) {
     }
 
     fun millisToNextLife(now: Long = System.currentTimeMillis()): Long {
+        if (infiniteDebugLives) return 0L
         refresh(now)
         if (livesRaw >= BizConfig.Lives.MAX) return 0
         return (rechargeMs - (now - anchor).coerceAtLeast(0)).coerceIn(0, rechargeMs)
     }
 
     fun loseLife(): Boolean {
+        if (infiniteDebugLives) return true
         refresh()
         if (entitlements.isPremium) return true
         if (livesRaw <= 0) return false
@@ -67,6 +73,7 @@ class LifeEconomy(context: Context) {
     }
 
     fun addLives(amount: Int): Boolean {
+        if (infiniteDebugLives) return false
         require(amount > 0)
         refresh()
         if (livesRaw >= BizConfig.Lives.MAX) return false
@@ -77,6 +84,7 @@ class LifeEconomy(context: Context) {
     }
 
     fun buyLife(totalCollectedUnique: Int): Boolean {
+        if (infiniteDebugLives) return false
         refresh()
         if (entitlements.isPremium || livesRaw >= BizConfig.Lives.MAX || availableCoins(totalCollectedUnique) < BizConfig.Lives.COINS_PER_LIFE) return false
         spent += BizConfig.Lives.COINS_PER_LIFE
@@ -86,8 +94,25 @@ class LifeEconomy(context: Context) {
         return true
     }
 
+    /** Debit the existing coin wallet and grant an in-game item in one durable transaction.
+     * No Play receipt, credited consumable or other purchase ledger is touched.
+     */
+    @Synchronized
+    fun spendCoinsWith(totalCollectedUnique: Int, amount: Int,
+                       write: (SharedPreferences.Editor) -> Unit): Boolean {
+        if (amount < 0 || availableCoins(totalCollectedUnique) < amount) return false
+        val nextSpent = spent.toLong() + amount.toLong()
+        if (nextSpent > Int.MAX_VALUE) return false
+        val editor = prefs.edit().putInt(keySpent, nextSpent.toInt())
+        write(editor)
+        if (!editor.commit()) return false
+        spent = nextSpent.toInt()
+        return true
+    }
+
     /** A collected heart is claimed once permanently, also after death/restart. */
     fun claimHeart(level: Int, id: String): Boolean {
+        if (infiniteDebugLives) return false
         refresh()
         val key = "${level}:${id}"
         if (entitlements.isPremium || livesRaw >= BizConfig.Lives.MAX || key in collectedHeartIds) return false

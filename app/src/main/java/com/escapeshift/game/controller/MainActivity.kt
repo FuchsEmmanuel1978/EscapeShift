@@ -26,7 +26,8 @@ class MainActivity : Activity() {
             onRestorePurchases = { billing?.refresh() },
             onPrice = { product -> billing?.formattedPrice(product) },
             privacyOptionsAvailable = { consent?.privacyOptionsRequired() == true },
-            onPauseChanged = { paused -> if (paused) gameMusic?.pause() else gameMusic?.resume() }
+            onPauseChanged = { paused -> if (paused) gameMusic?.pause() else gameMusic?.resume() },
+            onSettingsChanged = { gameMusic?.applyUserSettings() }
         )
         gameView = view
         setContentView(view)

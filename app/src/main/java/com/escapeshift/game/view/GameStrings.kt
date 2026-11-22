@@ -34,18 +34,21 @@ object GameLanguage {
 }
 
 class GameStrings(private val context: Context) {
-    val language: String
+    private val defaultLanguage: String
     private val fallback: Map<String, String>
-    private val translated: Map<String, String>
+    private val translations = mutableMapOf<String, Map<String, String>>()
+    private val prefs = context.getSharedPreferences("escape_shift", Context.MODE_PRIVATE)
+    val language: String get() = prefs.getString("v2_language", null)
+        ?.let(GameLanguage::normalize) ?: defaultLanguage
 
     init {
         val config = context.resources.configuration
         val tags = (0 until config.locales.size()).map { config.locales[it].toLanguageTag() }
         val debug = DevConfig.ENABLED &&
             (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
-        language = GameLanguage.choose(tags, debug, DevConfig.FORCE_LANGUAGE)
+        defaultLanguage = GameLanguage.choose(tags, debug, DevConfig.FORCE_LANGUAGE)
         fallback = readJson("en")
-        translated = if (language == "en") fallback else try { readJson(language) } catch (_: Exception) { fallback }
+        translations["en"] = fallback
     }
 
     private fun readJson(code: String): Map<String, String> {
@@ -62,6 +65,9 @@ class GameStrings(private val context: Context) {
 
     /** Lookup with named placeholders: t("level_count", "n" to 3). */
     fun t(key: String, vararg values: Pair<String, Any>): String {
+        val translated = translations.getOrPut(language) {
+            try { readJson(language) } catch (_: Exception) { fallback }
+        }
         var result = translated[key] ?: fallback[key] ?: "[$key]"
         for ((name, value) in values) result = result.replace("{$name}", value.toString())
         return result

@@ -6,7 +6,7 @@
   "hintKey": "level_15_hint",
   "intro": "OPEN",
   "backtrackCount": 0,
-  "worldWidth": 3875,
+  "worldWidth": 3120,
   "playerStart": {
     "x": 78,
     "y": 405
@@ -16,229 +16,137 @@
     "depth": 146,
     "gaps": [
       {
-        "id": "gap_01",
-        "x": 995,
-        "width": 118
+        "id": "gap_15_01",
+        "x": 1015,
+        "width": 470
       }
     ]
   },
   "objects": [
     {
-      "id": "crate_01",
-      "type": "crate",
-      "x": 225,
-      "y": 400,
-      "width": 46,
-      "height": 44
-    },
-    {
-      "id": "crate_wall_01",
-      "type": "wall",
-      "x": 375,
-      "y": 324,
-      "width": 42,
-      "height": 120
-    },
-    {
-      "id": "free_wall_01",
-      "type": "wall",
-      "x": 635,
-      "y": 369,
-      "width": 38,
-      "height": 75
-    },
-    {
-      "id": "spike_01",
+      "id": "spike_15_01",
       "type": "spike",
-      "x": 1305,
+      "x": 380,
       "y": 421,
       "width": 34,
       "height": 23,
-      "count": 2,
-      "spacing": 3
+      "count": 1,
+      "spacing": 4
     },
     {
-      "id": "saw_01",
+      "id": "spring_15_01",
+      "type": "spring",
+      "x": 888,
+      "y": 437,
+      "width": 48,
+      "height": 7
+    },
+    {
+      "id": "coin_15_01",
+      "type": "coin",
+      "x": 1030,
+      "y": 325,
+      "width": 25,
+      "height": 25
+    },
+    {
+      "id": "key_15_01",
+      "type": "key",
+      "x": 1508,
+      "y": 336,
+      "width": 25,
+      "height": 28
+    },
+    {
+      "id": "saw_15_01",
       "type": "saw",
-      "x": 1615,
-      "y": 410,
-      "width": 30,
-      "height": 34,
-      "amplitude": 23,
-      "phase": 124,
+      "x": 1930,
+      "y": 405,
+      "width": 36,
+      "height": 36,
+      "amplitude": 48,
+      "phase": 0,
+      "period": 154
+    },
+    {
+      "id": "saw_15_02",
+      "type": "saw",
+      "x": 2460,
+      "y": 405,
+      "width": 36,
+      "height": 36,
+      "amplitude": 42,
+      "phase": 40,
       "period": 160
     },
     {
-      "id": "monster_01",
-      "type": "monster",
-      "x": 1925,
-      "y": 398,
-      "width": 62,
-      "height": 46,
-      "amplitude": 16,
-      "phase": 100,
-      "period": 138
-    },
-    {
-      "id": "laser_01",
-      "type": "laser_red",
-      "x": 2235,
-      "y": 291,
-      "width": 16,
-      "height": 153
-    },
-    {
-      "id": "spike_02",
-      "type": "spike",
-      "x": 2500,
-      "y": 421,
-      "width": 34,
-      "height": 23,
-      "count": 2,
-      "spacing": 3
-    },
-    {
-      "id": "laser_02",
-      "type": "laser_blue",
-      "x": 2810,
-      "y": 291,
-      "width": 16,
-      "height": 153
-    },
-    {
-      "id": "spike_03",
-      "type": "spike",
-      "x": 3075,
-      "y": 421,
-      "width": 34,
-      "height": 23,
-      "count": 2,
-      "spacing": 3
-    },
-    {
-      "id": "switch_01",
-      "type": "switch",
-      "x": 3385,
-      "y": 431,
-      "width": 47,
-      "height": 13
-    },
-    {
-      "id": "snowflake_01",
-      "type": "snowflake",
-      "x": 1170.0,
-      "y": 92,
-      "width": 24,
-      "height": 24,
-      "phase": 139,
-      "period": 160,
-      "amplitude": 0,
-      "speed": 160
-    },
-    {
-      "id": "snowflake_02",
-      "type": "snowflake",
-      "x": 1661.0,
-      "y": 104,
-      "width": 24,
-      "height": 24,
-      "phase": 10,
-      "period": 160,
-      "amplitude": 0,
-      "speed": 177
-    },
-    {
-      "id": "snowflake_03",
-      "type": "snowflake",
-      "x": 2152.0,
-      "y": 116,
-      "width": 24,
-      "height": 24,
-      "phase": 41,
-      "period": 160,
-      "amplitude": 0,
-      "speed": 194
-    },
-    {
-      "id": "snowflake_04",
-      "type": "snowflake",
-      "x": 2643.0,
-      "y": 92,
-      "width": 24,
-      "height": 24,
-      "phase": 72,
-      "period": 160,
-      "amplitude": 0,
-      "speed": 160
-    },
-    {
-      "id": "snowflake_05",
-      "type": "snowflake",
-      "x": 3134.0,
-      "y": 104,
-      "width": 24,
-      "height": 24,
-      "phase": 103,
-      "period": 160,
-      "amplitude": 0,
-      "speed": 177
-    },
-    {
-      "id": "platform_01",
-      "type": "platform",
-      "x": 1115,
-      "y": 344,
-      "width": 128,
-      "height": 20
-    },
-    {
-      "id": "coin_01",
+      "id": "coin_15_02",
       "type": "coin",
-      "x": 1165,
-      "y": 308,
-      "width": 24,
-      "height": 24
+      "x": 2690,
+      "y": 387,
+      "width": 25,
+      "height": 25
     },
     {
       "id": "exit_door",
       "type": "door",
-      "x": 3685,
+      "x": 2980,
       "y": 354,
       "width": 65,
       "height": 90
     }
   ],
   "route": [
-    "free_wall_01",
-    "gap_01",
-    "spike_01",
-    "saw_01",
-    "monster_01",
-    "laser_01",
-    "spike_02",
-    "laser_02",
-    "spike_03",
-    "switch_01"
+    "spike_15_01",
+    "spring_15_01",
+    "gap_15_01",
+    "key_15_01",
+    "saw_15_01",
+    "saw_15_02"
   ],
-  "difficulty": {
-    "jump": "moyen",
-    "sawAmplitude": 23,
-    "spikeGroups": 3,
-    "spikesPerGroup": 2,
-    "monsters": 1,
-    "crates": 1,
-    "buttons": 1,
-    "cratePressurePads": 0,
-    "walls": 2,
-    "snowflakes": 5,
-    "shiftChanges": 2
-  },
-  "world2Modules": [
+  "designVersion": "world2_snow_level15_json_v1",
+  "traps": [
     {
-      "crateId": "crate_01",
-      "wallId": "crate_wall_01",
-      "mustClimb": true,
-      "pressureId": null
+      "id": "moving_15_01",
+      "type": "moving_platform",
+      "x": 1040,
+      "y": 372,
+      "width": 125,
+      "height": 16,
+      "trigger": "player_near",
+      "travelX": 22,
+      "travelY": 0,
+      "periodTicks": 155,
+      "delayTicks": 0,
+      "transitionTicks": 20
+    },
+    {
+      "id": "moving_15_02",
+      "type": "moving_platform",
+      "x": 1196,
+      "y": 343,
+      "width": 125,
+      "height": 16,
+      "trigger": "player_near",
+      "travelX": 24,
+      "travelY": 0,
+      "periodTicks": 188,
+      "delayTicks": 0,
+      "transitionTicks": 20
+    },
+    {
+      "id": "moving_15_03",
+      "type": "moving_platform",
+      "x": 1347,
+      "y": 369,
+      "width": 130,
+      "height": 16,
+      "trigger": "player_near",
+      "travelX": 22,
+      "travelY": 0,
+      "periodTicks": 200,
+      "delayTicks": 0,
+      "transitionTicks": 20
     }
   ]
 }

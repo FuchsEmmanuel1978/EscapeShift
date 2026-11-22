@@ -26,6 +26,27 @@ data class Challenge(
     val activeTicks: Int = 64, val offsetX: Float = 0f, val speed: Float = -145f
 )
 
+/** A two-tile slope: rise < 0 = uphill to the right, rise > 0 = downhill. */
+data class GroundSlope(val id: String, val x: Float, val width: Float, val rise: Float) {
+    val end: Float get() = x + width
+}
+
+/** World-space terrain profile; the same geometry drives graphics and physics. */
+object GroundTerrain {
+    fun surface(spec: LevelSpec, worldX: Float): Float {
+        var y = spec.groundY
+        for (s in spec.slopes) {
+            if (worldX <= s.x) break
+            val t = ((worldX - s.x) / s.width).coerceIn(0f, 1f)
+            y += s.rise * t
+        }
+        return y
+    }
+    fun inGap(x: Float, gaps: List<GroundGap>): Boolean = gaps.any { x >= it.x && x < it.x + it.width }
+    fun floor(spec: LevelSpec, x: Float, gaps: List<GroundGap>): Float? =
+        if (x < 0f || x >= spec.worldRight || inGap(x, gaps)) null else surface(spec, x)
+}
+
 data class LevelSpec(
     val number: Int,
     val title: String,
@@ -42,6 +63,7 @@ data class LevelSpec(
     val groundY: Float,
     val groundDepth: Float,
     val gaps: List<GroundGap>,
+    val slopes: List<GroundSlope> = emptyList(),
     val objects: List<LevelObject>,
     val traps: List<TrapDefinition> = emptyList(),
     val physicalPuzzle: PhysicalPuzzlePlan? = null,
@@ -139,15 +161,17 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
     val exit: HitBox get() = traps.exit(initialExit)
 
     val blocks: List<HitBox> = buildList {
-        // Ground is a single baseline with explicit empty intervals (gaps).
-        // Widen a gap in JSON to make a jump longer; no hidden code must be changed.
-        var cursor = 0f
-        val floorCuts = (spec.gaps + traps.floorDefinitions().map { GroundGap(it.id, it.x, it.width) }).sortedBy { it.x }
-        for (gap in floorCuts) {
-            if (gap.x > cursor) add(HitBox(cursor, spec.groundY, gap.x, spec.groundY + spec.groundDepth))
-            cursor = gap.x + gap.width
+        // Legacy flat levels retain their exact rectangular collision geometry.
+        // Slope-enabled levels use an interpolated walking surface instead.
+        if (spec.slopes.isEmpty()) {
+            var cursor = 0f
+            val floorCuts = (spec.gaps + traps.floorDefinitions().map { GroundGap(it.id, it.x, it.width) }).sortedBy { it.x }
+            for (gap in floorCuts) {
+                if (gap.x > cursor) add(HitBox(cursor, spec.groundY, gap.x, spec.groundY + spec.groundDepth))
+                cursor = max(cursor, gap.x + gap.width)
+            }
+            if (cursor < spec.worldRight) add(HitBox(cursor, spec.groundY, spec.worldRight, spec.groundY + spec.groundDepth))
         }
-        if (cursor < spec.worldRight) add(HitBox(cursor, spec.groundY, spec.worldRight, spec.groundY + spec.groundDepth))
         addAll(objects("wall").map { it.box })
         addAll(objects("platform").map { it.box })
     }
@@ -408,6 +432,11 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
                 }
             }
         }
+        // Keep the hero attached while walking up a slope; do not affect jumps.
+        if (spec.slopes.isNotEmpty() && grounded && vy >= 0f) {
+            val floor = GroundTerrain.floor(spec, x + SIZE * .5f, dynamicGroundGaps)
+            if (floor != null && kotlin.math.abs(floor - (y + SIZE)) <= 15f) y = floor - SIZE
+        }
         for (solid in solids()) {
             if (playerBox.intersects(solid)) {
                 if (dx > 0f) x = min(x, solid.left - SIZE)
@@ -438,6 +467,16 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             } else if (solid !in activePlatforms && vy < 0f && previousTop >= solid.bottom - 2f) {
                 y = solid.bottom
                 vy = 0f
+            }
+        }
+        // Smooth one-way terrain support at the true interpolated height.
+        // Avoid the pre-collision rectangular AABBs that create staircase movement.
+        if (spec.slopes.isNotEmpty() && vy >= 0f) {
+            val floor = GroundTerrain.floor(spec, x + SIZE * .5f, dynamicGroundGaps)
+            if (floor != null && previousBottom <= floor + 15f && y + SIZE >= floor - 0.1f) {
+                y = floor - SIZE
+                vy = 0f
+                grounded = true
             }
         }
         // A missed ledge should not immediately cancel a jump pressed a few frames late.
@@ -506,6 +545,12 @@ class GameWorld(val levelNumber: Int = 1, private val previewSpec: LevelSpec? = 
             var landingTop = Float.POSITIVE_INFINITY
             val x0 = cratePositions[i]
             val x1 = x0 + c.width
+            if (spec.slopes.isNotEmpty()) {
+                val surface = GroundTerrain.floor(spec, (x0 + x1) * .5f, dynamicGroundGaps)
+                if (surface != null && previousBottom <= surface + 8f && nextBottom >= surface) {
+                    landingTop = min(landingTop, surface)
+                }
+            }
             for (support in supports) {
                 if (x1 <= support.left || x0 >= support.right) continue
                 if (previousBottom <= support.top + 2f && nextBottom >= support.top) {

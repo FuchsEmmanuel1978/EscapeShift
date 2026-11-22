@@ -1,4 +1,3 @@
-
 {
   "schemaVersion": 1,
   "world": 1,
@@ -15,7 +14,21 @@
   "ground": {
     "y": 444,
     "depth": 146,
-    "gaps": []
+    "gaps": [],
+    "slopes": [
+      {
+        "id": "ramp_up_01",
+        "x": 1280,
+        "width": 176,
+        "rise": -44
+      },
+      {
+        "id": "ramp_down_01",
+        "x": 1536,
+        "width": 176,
+        "rise": 44
+      }
+    ]
   },
   "objects": [
     {
@@ -75,7 +88,7 @@
     "spike_03",
     "shift_laser_01"
   ],
-  "designVersion": "world1_level1_shift_laser_trap_v24",
+  "designVersion": "world1_level1_slopes_v1",
   "traps": [
     {
       "id": "trap_01_01",

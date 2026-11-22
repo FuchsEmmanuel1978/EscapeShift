@@ -12,16 +12,26 @@ class GameMusic(context: Context) {
         const val DEFAULT_VOLUME = 0.36f
     }
 
+    private val userSettings = GameUserSettings(context)
     private var player: MediaPlayer? = try {
         MediaPlayer.create(context.applicationContext, R.raw.ambient_loop)?.apply {
             isLooping = true
-            setVolume(DEFAULT_VOLUME, DEFAULT_VOLUME)
+            val settings = userSettings.get()
+            val volume = if (settings.muteMusic) 0f else DEFAULT_VOLUME * settings.music / 100f
+            setVolume(volume, volume)
         }
     } catch (_: Exception) {
         null // Allow game to run even when audio cannot be loaded on a device.
     }
 
+    fun applyUserSettings() {
+        val settings = userSettings.get()
+        val volume = if (settings.muteMusic) 0f else DEFAULT_VOLUME * settings.music / 100f
+        try { player?.setVolume(volume, volume) } catch (_: IllegalStateException) { }
+    }
+
     fun resume() {
+        applyUserSettings()
         try {
             player?.let { if (!it.isPlaying) it.start() }
         } catch (_: IllegalStateException) {

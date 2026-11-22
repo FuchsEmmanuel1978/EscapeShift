@@ -3,6 +3,7 @@ package com.escapeshift.game
 /** CONFIGURATION DE DEVELOPPEMENT — mettre ENABLED = false avant publication. */
 object DevConfig {
     const val ENABLED = true
+    const val INFINITE_LIVES = true       // En build debug uniquement : pas de vie perdue, pas de pub pour recuperer des vies
     const val UNLOCK_ALL_LEVELS = true     // Uniquement pour tester, ne change pas la sauvegarde
     const val SHOW_HITBOXES = false       // Cadres de collision pendant le jeu
     const val SHOW_DEBUG_STATS = true     // Position / niveau / nombre d'actions
